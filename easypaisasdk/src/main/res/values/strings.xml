@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">EasyPaisaSDK</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="offers_discount"><![CDATA[Offers & Discount]]></string>
+    <string name="in_your_city_discounts">In your City Discounts</string>
+    <string name="filter">Filter</string>
+    <string name="search_discounts">Search Discounts</string>
+    <string name="tim_hortons">Tim Hortons</string>
+    <string name="back">back</string>
+    <string name="banner">banner</string>
+    <string name="see_all">See All</string>
+    <string name="upto_50_discount_on_coffee_nationwide">Upto 50% Discount on Coffee Nationwide</string>
+    <string name="with_easypaisa_premium_debit_card">with easypaisa premium debit card</string>
+    <string name="terms_applied">Terms applied</string>
+    <string name="terms_conditions"><![CDATA[Terms & Conditions]]></string>
+</resources>

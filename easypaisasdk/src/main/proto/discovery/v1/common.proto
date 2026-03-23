@@ -1,0 +1,190 @@
+syntax = "proto3";
+
+package discovery.v1;
+
+option java_multiple_files = true;
+option java_package = "com.discountworld.discovery";
+
+// ─────────────────────────────────────────────
+// Common Types
+// ─────────────────────────────────────────────
+
+message GeoPoint {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message PaginationRequest {
+  int32 page = 1;
+  int32 size = 2;
+}
+
+message PaginationResponse {
+  int32 current_page = 1;
+  int32 total_pages = 2;
+  int64 total_elements = 3;
+  int32 page_size = 4;
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum DealType {
+  DEAL_TYPE_UNSPECIFIED = 0;
+  DEAL_TYPE_BOGO = 1;
+  DEAL_TYPE_PERCENTAGE = 2;
+  DEAL_TYPE_FIXED_AMOUNT = 3;
+  DEAL_TYPE_FREE_ITEM = 4;
+}
+
+enum CardDiscountType {
+  CARD_DISCOUNT_TYPE_UNSPECIFIED = 0;
+  CARD_DISCOUNT_TYPE_PERCENTAGE = 1;
+  CARD_DISCOUNT_TYPE_FIXED_AMOUNT = 2;
+  CARD_DISCOUNT_TYPE_CASHBACK = 3;
+}
+
+// ─────────────────────────────────────────────
+// Entity Messages
+// ─────────────────────────────────────────────
+
+message CityImage {
+  int64 id = 1;
+  string image_url = 2;
+  string caption = 3;
+  int32 sort_order = 4;
+  bool featured = 5;
+}
+
+message City {
+  int64 id = 1;
+  string name = 2;
+  string country = 3;
+  bool featured = 4;
+  repeated CityImage images = 5;
+}
+
+message Category {
+  int64 id = 1;
+  string name = 2;
+  string description = 3;
+  string image_url = 4;
+  int32 sort_order = 5;
+}
+
+message CardType {
+  int64 id = 1;
+  string name = 2;
+  string description = 3;
+  string image_url = 4;
+}
+
+message VendorTag {
+  int64 id = 1;
+  string name = 2;
+  string icon_light_url = 3;
+  string icon_dark_url = 4;
+}
+
+message SocialLink {
+  string platform = 1;
+  string url = 2;
+}
+
+message GalleryImage {
+  int64 id = 1;
+  string image_url = 2;
+  string caption = 3;
+  int32 sort_order = 4;
+}
+
+message BranchTiming {
+  int32 day_of_week = 1;
+  string opening_time = 2;
+  string closing_time = 3;
+  bool is_closed = 4;
+}
+
+message Branch {
+  int64 id = 1;
+  int64 vendor_id = 2;
+  string name = 3;
+  string address = 4;
+  int64 city_id = 5;
+  string city_name = 6;
+  GeoPoint location = 7;
+  string phone_number = 9;
+  repeated BranchTiming timings = 10;
+}
+
+message Deal {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  DealType deal_type = 4;
+  double deal_value = 5;
+  bool featured = 6;
+  string start_date = 7;
+  string end_date = 8;
+  int64 vendor_id = 9;
+  string vendor_name = 10;
+  string vendor_logo_url = 11;
+  string product_name = 12;
+  string product_image_url = 13;
+  repeated int64 branch_ids = 14;
+  int32 sort_order = 15;
+}
+
+message CardDiscount {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  CardDiscountType discount_type = 4;
+  double discount_value = 5;
+  string terms = 6;
+  bool featured = 7;
+  string start_date = 8;
+  string end_date = 9;
+  int64 vendor_id = 10;
+  string vendor_name = 11;
+  string vendor_logo_url = 12;
+  string product_name = 13;
+  string product_image_url = 14;
+  repeated CardType card_types = 15;
+  int32 sort_order = 16;
+}
+
+message Product {
+  int64 id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  string image_url = 5;
+  int64 vendor_id = 6;
+  string vendor_name = 7;
+  int64 category_id = 8;
+  string category_name = 9;
+  int32 sort_order = 10;
+}
+
+message Banner {
+  int64 id = 1;
+  string title = 2;
+  string image_url = 3;
+  string link_url = 4;
+  int32 display_order = 5;
+  int64 vendor_id = 6;
+}
+
+message Campaign {
+  int64 id = 1;
+  string name = 2;
+  string description = 3;
+  string start_date = 4;
+  string end_date = 5;
+  int64 vendor_id = 6;
+  string vendor_name = 7;
+  string vendor_logo_url = 8;
+  int64 card_discount_id = 9;
+}

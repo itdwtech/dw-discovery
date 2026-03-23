@@ -1,0 +1,43 @@
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="170dp"
+    android:layout_height="146dp"
+    android:layout_marginEnd="12dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="1dp"
+    app:strokeColor="@color/white"
+    app:cardBackgroundColor="@color/dim_gray"
+    app:cardUseCompatPadding="true"
+    app:cardPreventCornerOverlap="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <!-- Image -->
+        <ImageView
+            android:id="@+id/imgBanner"
+            android:layout_width="138dp"
+            android:layout_height="93dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="centerCrop"/>
+
+        <!-- Text -->
+        <com.example.easypaisasdk.reusables.TextViewBold
+            android:id="@+id/txtBanner"
+            android:layout_width="138dp"
+            android:layout_height="16dp"
+            android:text="Islamabad"
+            android:textColor="@android:color/black"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:layout_marginTop="4dp" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

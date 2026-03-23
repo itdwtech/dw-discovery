@@ -1,0 +1,342 @@
+syntax = "proto3";
+
+package discovery.v1;
+
+option java_multiple_files = true;
+option java_package = "com.discountworld.discovery";
+
+import "discovery/v1/common.proto";
+
+// ─────────────────────────────────────────────
+// City Requests/Responses
+// ─────────────────────────────────────────────
+
+message ResolveCityRequest {
+  GeoPoint location = 1;
+}
+
+message ResolveCityResponse {
+  City city = 1;
+}
+
+message ListCitiesRequest {
+  bool featured_only = 1;
+}
+
+message ListCitiesResponse {
+  repeated City cities = 1;
+}
+
+// ─────────────────────────────────────────────
+// Category Requests/Responses
+// ─────────────────────────────────────────────
+
+message ListCategoriesRequest {}
+
+message ListCategoriesResponse {
+  repeated Category categories = 1;
+}
+
+// ─────────────────────────────────────────────
+// Card Type Requests/Responses
+// ─────────────────────────────────────────────
+
+message ListCardTypesRequest {}
+
+message ListCardTypesResponse {
+  repeated CardType card_types = 1;
+}
+
+// ─────────────────────────────────────────────
+// Vendor
+// ─────────────────────────────────────────────
+
+message VendorSummary {
+  int64 id = 1;
+  string company_name = 2;
+  string logo_url = 3;
+  string description = 4;
+  bool featured = 5;
+  repeated Category categories = 6;
+  string title = 7;
+}
+
+message VendorDetail {
+  int64 id = 1;
+  string company_name = 2;
+  string logo_url = 3;
+  string description = 4;
+  bool featured = 5;
+  string head_office_number = 6;
+  string terms_and_conditions = 7;
+  repeated Category categories = 8;
+  repeated Branch branches = 9;
+  repeated SocialLink social_links = 10;
+  repeated GalleryImage gallery_images = 11;
+  string title = 12;
+}
+
+message ListVendorsRequest {
+  PaginationRequest pagination = 1;
+  optional int64 city_id = 2;
+  optional int64 category_id = 3;
+  optional string search = 4;
+  optional bool featured = 5;
+  optional string discount_type = 6;
+  optional double min_discount_value = 7;
+  optional bool has_discount = 8;
+  optional bool is_open = 9;
+}
+
+message ListVendorsResponse {
+  repeated VendorSummary vendors = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetVendorRequest {
+  int64 vendor_id = 1;
+  int64 city_id = 2;
+}
+
+message GetVendorResponse {
+  VendorDetail vendor = 1;
+}
+
+// ─────────────────────────────────────────────
+// Branch Requests/Responses
+// ─────────────────────────────────────────────
+
+message ListBranchesRequest {
+  PaginationRequest pagination = 1;
+  optional int64 vendor_id = 2;
+  optional int64 city_id = 3;
+}
+
+message ListBranchesResponse {
+  repeated Branch branches = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetBranchRequest {
+  int64 branch_id = 1;
+}
+
+message GetBranchResponse {
+  Branch branch = 1;
+}
+
+// ─────────────────────────────────────────────
+// Deal Requests/Responses
+// ─────────────────────────────────────────────
+
+message ListDealsRequest {
+  PaginationRequest pagination = 1;
+  optional int64 vendor_id = 2;
+  optional bool featured = 3;
+}
+
+message ListDealsResponse {
+  repeated Deal deals = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetDealRequest {
+  int64 deal_id = 1;
+}
+
+message GetDealResponse {
+  Deal deal = 1;
+}
+
+// ─────────────────────────────────────────────
+// Card Discount Requests/Responses
+// ─────────────────────────────────────────────
+
+message ListCardDiscountsRequest {
+  PaginationRequest pagination = 1;
+  optional int64 vendor_id = 2;
+  optional bool featured = 3;
+}
+
+message ListCardDiscountsResponse {
+  repeated CardDiscount card_discounts = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetCardDiscountRequest {
+  int64 card_discount_id = 1;
+}
+
+message GetCardDiscountResponse {
+  CardDiscount card_discount = 1;
+}
+
+// ─────────────────────────────────────────────
+// Product Requests/Responses
+// ─────────────────────────────────────────────
+
+message ListProductsRequest {
+  PaginationRequest pagination = 1;
+  optional int64 vendor_id = 2;
+  optional int64 category_id = 3;
+}
+
+message ListProductsResponse {
+  repeated Product products = 1;
+  PaginationResponse pagination = 2;
+}
+
+// ─────────────────────────────────────────────
+// Banner Requests/Responses
+// ─────────────────────────────────────────────
+
+message ListBannersRequest {
+  PaginationRequest pagination = 1;
+  optional int64 vendor_id = 2;
+}
+
+message ListBannersResponse {
+  repeated Banner banners = 1;
+  PaginationResponse pagination = 2;
+}
+
+// ─────────────────────────────────────────────
+// Campaign Requests/Responses
+// ─────────────────────────────────────────────
+
+message ListCampaignsRequest {
+  PaginationRequest pagination = 1;
+  optional int64 vendor_id = 2;
+}
+
+message ListCampaignsResponse {
+  repeated Campaign campaigns = 1;
+  PaginationResponse pagination = 2;
+}
+
+// ─────────────────────────────────────────────
+// DiscoveryService
+// ─────────────────────────────────────────────
+
+service DiscoveryService {
+  // City
+  rpc ResolveCity(ResolveCityRequest) returns (ResolveCityResponse);
+  rpc ListCities(ListCitiesRequest) returns (ListCitiesResponse);
+
+  // Category
+  rpc ListCategories(ListCategoriesRequest) returns (ListCategoriesResponse);
+
+  // Card Type
+  rpc ListCardTypes(ListCardTypesRequest) returns (ListCardTypesResponse);
+
+  // Vendor
+  rpc ListVendors(ListVendorsRequest) returns (ListVendorsResponse);
+  rpc GetVendor(GetVendorRequest) returns (GetVendorResponse);
+
+  // Branch
+  rpc ListBranches(ListBranchesRequest) returns (ListBranchesResponse);
+  rpc GetBranch(GetBranchRequest) returns (GetBranchResponse);
+
+  // Deal
+  rpc ListDeals(ListDealsRequest) returns (ListDealsResponse);
+  rpc GetDeal(GetDealRequest) returns (GetDealResponse);
+
+  // Card Discount
+  rpc ListCardDiscounts(ListCardDiscountsRequest) returns (ListCardDiscountsResponse);
+  rpc GetCardDiscount(GetCardDiscountRequest) returns (GetCardDiscountResponse);
+
+  // Product
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+
+  // Banner
+  rpc ListBanners(ListBannersRequest) returns (ListBannersResponse);
+
+  // Campaign
+  rpc ListCampaigns(ListCampaignsRequest) returns (ListCampaignsResponse);
+}
+
+// ═════════════════════════════════════════════
+// Merged (composite APIs for mobile)
+// ═════════════════════════════════════════════
+
+// ─── GeoLocate ───
+
+message GeoLocateRequest {
+  GeoPoint location = 1;
+}
+
+message GeoLocateResponse {
+  City city = 1;
+  repeated City featured_cities = 2;
+  repeated Category categories = 3;
+}
+
+// ─── SearchVendors ───
+
+message SearchVendorItem {
+  int64 id = 1;
+  string company_name = 2;
+  string logo_url = 3;
+  string description = 4;
+  bool featured = 5;
+  repeated Category categories = 6;
+  string title = 7;
+  repeated Banner banners = 8;
+  int32 sort_order = 9;
+}
+
+message SearchVendorsRequest {
+  PaginationRequest pagination = 1;
+  optional int64 city_id = 2;
+  optional int64 category_id = 3;
+  optional string search = 4;
+  optional bool featured = 5;
+  optional string discount_type = 6;
+  optional double min_discount_value = 7;
+  optional bool has_discount = 8;
+  optional bool is_open = 9;
+}
+
+message SearchVendorsResponse {
+  repeated SearchVendorItem vendors = 1;
+  PaginationResponse pagination = 2;
+}
+
+// ─── GetVendorFull ───
+
+message VendorFullDetail {
+  int64 id = 1;
+  string company_name = 2;
+  string logo_url = 3;
+  string description = 4;
+  bool featured = 5;
+  string head_office_number = 6;
+  string terms_and_conditions = 7;
+  string title = 8;
+  repeated Category categories = 9;
+  repeated VendorTag tags = 10;
+  repeated Branch branches = 11;
+  repeated SocialLink social_links = 12;
+  repeated GalleryImage gallery_images = 13;
+  repeated Product products = 14;
+  repeated Deal deals = 15;
+  repeated CardDiscount card_discounts = 16;
+  repeated Banner banners = 17;
+}
+
+message GetVendorFullRequest {
+  int64 vendor_id = 1;
+  int64 city_id = 2;
+}
+
+message GetVendorFullResponse {
+  VendorFullDetail vendor = 1;
+}
+
+// ─── Merged Service ───
+
+service DiscoveryServiceMerged {
+  rpc GeoLocate(GeoLocateRequest) returns (GeoLocateResponse);
+  rpc SearchVendors(SearchVendorsRequest) returns (SearchVendorsResponse);
+  rpc GetVendorFull(GetVendorFullRequest) returns (GetVendorFullResponse);
+}

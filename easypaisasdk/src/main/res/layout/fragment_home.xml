@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:padding="16dp"
+    tools:context=".fragments.HomeFragment">
+
+    <ImageButton
+        android:id="@+id/back"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/image_bg"
+        android:src="@drawable/ic_backs"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <!-- Search -->
+    <com.example.easypaisasdk.reusables.TextViewThin
+        android:id="@+id/search"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:layout_marginHorizontal="10dp"
+        android:background="@drawable/search_bar_bg"
+        android:drawablePadding="8dp"
+        android:hint="@string/search_discounts"
+        android:textColorHint="@color/gray"
+        android:textColor="@color/black"
+        android:paddingStart="10dp"
+        android:gravity="center_vertical"
+        app:drawableStartCompat="@drawable/ic_search"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/back"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/back"
+        android:layout_marginTop="20dp"
+        android:orientation="vertical">
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/lv_shimmer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <View
+                    android:layout_width="200dp"
+                    android:layout_height="35dp"
+                    android:background="@android:color/darker_gray" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <!-- Tab 1 -->
+                    <View
+                        android:layout_width="80dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@android:color/darker_gray"/>
+
+                    <!-- Tab 2 -->
+                    <View
+                        android:layout_width="60dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@android:color/darker_gray"/>
+
+                    <!-- Tab 3 -->
+                    <View
+                        android:layout_width="100dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@android:color/darker_gray"/>
+
+                    <!-- Tab 4 -->
+                    <View
+                        android:layout_width="70dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@android:color/darker_gray"/>
+
+                    <View
+                        android:layout_width="70dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@android:color/darker_gray"/>
+
+                    <View
+                        android:layout_width="70dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@android:color/darker_gray"/>
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="150dp"
+                        android:layout_height="20dp"
+                        android:background="@android:color/darker_gray"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <!-- Item 1 -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="170dp"
+                        android:layout_height="146dp"
+                        android:layout_marginTop="8dp"
+                        app:cardBackgroundColor="@android:color/darker_gray"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="4dp"
+                        android:layout_marginEnd="12dp">
+
+                    </androidx.cardview.widget.CardView>
+
+
+                    <!-- Item 2 -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="170dp"
+                        android:layout_height="146dp"
+                        android:layout_marginTop="8dp"
+                        app:cardBackgroundColor="@android:color/darker_gray"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="4dp"
+                        android:layout_marginEnd="12dp">
+
+                    </androidx.cardview.widget.CardView>
+
+
+                    <!-- Item 3 -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="170dp"
+                        android:layout_height="146dp"
+                        android:layout_marginTop="8dp"
+                        app:cardBackgroundColor="@android:color/darker_gray"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="4dp"
+                        android:layout_marginEnd="12dp">
+
+                    </androidx.cardview.widget.CardView>
+
+
+                    <!-- Item 4 -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="170dp"
+                        android:layout_height="146dp"
+                        android:layout_marginTop="8dp"
+                        app:cardBackgroundColor="@android:color/darker_gray"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="4dp"
+                        android:layout_marginEnd="12dp">
+
+                    </androidx.cardview.widget.CardView>
+
+
+                </LinearLayout>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:layout_marginTop="16dp"
+                    app:cardBackgroundColor="@android:color/darker_gray"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp">
+
+                    <View
+                        android:layout_width="150dp"
+                        android:layout_height="20dp"
+                        android:background="@android:color/darker_gray"/>
+
+                    <LinearLayout
+                        android:layout_marginTop="8dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <!-- Item 1 -->
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="170dp"
+                            android:layout_height="146dp"
+                            android:layout_marginTop="8dp"
+                            app:cardBackgroundColor="@android:color/darker_gray"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="4dp"
+                            android:layout_marginEnd="12dp">
+
+                        </androidx.cardview.widget.CardView>
+
+
+                        <!-- Item 2 -->
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="170dp"
+                            android:layout_height="146dp"
+                            android:layout_marginTop="8dp"
+                            app:cardBackgroundColor="@android:color/darker_gray"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="4dp"
+                            android:layout_marginEnd="12dp">
+
+                        </androidx.cardview.widget.CardView>
+
+
+                        <!-- Item 3 -->
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="170dp"
+                            android:layout_height="146dp"
+                            android:layout_marginTop="8dp"
+                            app:cardBackgroundColor="@android:color/darker_gray"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="4dp"
+                            android:layout_marginEnd="12dp">
+
+                        </androidx.cardview.widget.CardView>
+
+
+                        <!-- Item 4 -->
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="170dp"
+                            android:layout_height="146dp"
+                            android:layout_marginTop="8dp"
+                            app:cardBackgroundColor="@android:color/darker_gray"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="4dp"
+                            android:layout_marginEnd="12dp">
+
+                        </androidx.cardview.widget.CardView>
+
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:layout_marginTop="16dp"
+                    app:cardBackgroundColor="@android:color/darker_gray"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp"/>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:layout_marginTop="16dp"
+                    app:cardBackgroundColor="@android:color/darker_gray"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp"/>
+
+            </LinearLayout>
+
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
+        <LinearLayout
+            android:id="@+id/lv_main"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.example.easypaisasdk.reusables.TextViewBold
+                android:id="@+id/offers_and_discounts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/offers_discount"
+                android:textColor="@color/black"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/back"/>
+
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/category"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                app:tabMode="scrollable"
+                app:tabIndicatorColor="@color/green"
+                app:tabIndicatorHeight="3dp"
+                app:tabIndicatorFullWidth="true"
+                app:tabTextColor="#9E9E9E"
+                app:tabSelectedTextColor="@color/black"
+                app:tabRippleColor="@android:color/transparent" />
+
+
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/nested_scroll"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- City Title -->
+                    <LinearLayout
+                        android:id="@+id/lv_city"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center_vertical"
+                        android:weightSum="1">
+
+                        <com.example.easypaisasdk.reusables.TextViewBold
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="@string/in_your_city_discounts"
+                            android:textColor="@color/black"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:layout_weight="0.8" />
+
+                        <com.example.easypaisasdk.reusables.TextViewMedium
+                            android:id="@+id/seeAllCities"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:text="@string/see_all"
+                            android:textStyle="bold"
+                            android:textSize="14sp"
+                            android:textColor="@color/green"
+                            android:layout_weight="0.2"
+                            android:gravity="end" />
+
+                    </LinearLayout>
+
+
+                    <!-- Cities -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rcy_cities"
+                        android:layout_width="match_parent"
+                        android:layout_height="140dp"
+                        android:nestedScrollingEnabled="false"/>
+
+                    <!-- Card -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/lv_featured_vendor"
+                        android:layout_width="match_parent"
+                        android:layout_height="298dp"
+                        app:cardBackgroundColor="@color/dim_gray"
+                        android:layout_marginTop="16dp"
+                        app:cardCornerRadius="16dp">
+
+                        <LinearLayout
+                            android:id="@+id/card"
+                            android:orientation="vertical"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <ImageView
+                                android:id="@+id/imgBanner"
+                                android:layout_width="match_parent"
+                                android:layout_height="200dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/ic_banner"/>
+
+                            <LinearLayout
+                                android:padding="12dp"
+                                android:orientation="vertical"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <com.example.easypaisasdk.reusables.TextViewBold
+                                    android:id="@+id/txtTitle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/black"
+                                    android:textStyle="bold"
+                                    android:textSize="16sp"/>
+
+                                <com.example.easypaisasdk.reusables.TextViewRegular
+                                    android:id="@+id/txtSubtitle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/black"
+                                    android:layout_marginTop="5dp"
+                                    android:layout_marginBottom="5dp"
+                                    android:ellipsize="end"
+                                    android:maxLines="2"
+                                    android:textSize="12sp"/>
+
+                                <com.example.easypaisasdk.reusables.TextViewThin
+                                    android:id="@+id/txtTerms"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/terms_applied"
+                                    android:textColor="@color/green"
+                                    android:textSize="12sp"/>
+
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Top Brands -->
+                    <com.example.easypaisasdk.reusables.TextViewBold
+                        android:id="@+id/tv_top_brands"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Top Brands"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:layout_marginTop="16dp"/>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rcy_top_Brands"
+                        android:layout_width="match_parent"
+                        android:layout_height="140dp"
+                        android:nestedScrollingEnabled="false"/>
+
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rcy_vendors"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginBottom="50dp"
+                        android:nestedScrollingEnabled="false"/>
+
+
+                </LinearLayout>
+
+            </androidx.core.widget.NestedScrollView>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+
+    <TextView
+        android:id="@+id/txtLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Waiting for location..."
+        android:textSize="18sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:layout_editor_absoluteY="16dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
