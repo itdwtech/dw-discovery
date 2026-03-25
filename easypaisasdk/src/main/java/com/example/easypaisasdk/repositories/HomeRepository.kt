@@ -1,9 +1,11 @@
 package com.example.easypaisasdk.repositories
 
+import com.discountworld.discovery.Banner
 import com.discountworld.discovery.CardType
 import com.discountworld.discovery.Category
 import com.discountworld.discovery.City
 import com.discountworld.discovery.GeoPoint
+import com.discountworld.discovery.ListBannersRequest
 import com.discountworld.discovery.ListCardTypesRequest
 import com.discountworld.discovery.ListCategoriesRequest
 import com.discountworld.discovery.ListCitiesRequest
@@ -96,6 +98,20 @@ class HomeRepository {
         }.onFailure { throwable ->
             println("gRPC failed: ${throwable.message}")
         }
+        return null
+    }
+    suspend fun getBanners(): List<Banner>? {
+
+        val request = ListBannersRequest.newBuilder().build()
+
+        val result = grpcCall { stub.listBanners(request) }
+
+        result.onSuccess { response ->
+            return response.bannersList
+        }.onFailure {
+            println("Banner API failed: ${it.message}")
+        }
+
         return null
     }
 

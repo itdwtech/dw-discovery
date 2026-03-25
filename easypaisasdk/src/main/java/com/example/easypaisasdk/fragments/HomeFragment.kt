@@ -242,12 +242,19 @@ class HomeFragment : Fragment() {
         })
     }
     private fun setupVendorsList() {
+
         binding.rcyVendors.layoutManager = LinearLayoutManager(requireContext())
 
         lifecycleScope.launch {
-            val vendors = repository.getListOfVendors(cityId = cityId) ?: emptyList()
 
-            binding.rcyVendors.adapter = VendorAdapter(vendors) { vendor ->
+            val vendors = repository.getListOfVendors(cityId = cityId) ?: emptyList()
+            val banners = repository.getBanners() ?: emptyList()   // ✅ ADD THIS
+
+            binding.rcyVendors.adapter = VendorAdapter(
+                vendors = vendors,
+                banners = banners   // ✅ PASS HERE
+            ) { vendor ->
+
                 val action = HomeFragmentDirections
                     .actionHomeFragmentToUserDetailFragment(
                         bannerTitle = vendor.companyName,
@@ -265,38 +272,58 @@ class HomeFragment : Fragment() {
 
         CoroutineTask.ioThenMain({
 
-            repository.getListOfVendors(featured = true, cityId = cityId)
+            val vendors = repository.getListOfVendors(
+                featured = true,
+                cityId = cityId
+            )
 
-        }, { vendors ->
+            val banners = repository.getBanners()
+
+            Pair(vendors, banners)
+
+        }, { result ->
+
+            val vendors = result?.first
+            val banners = result?.second
 
             val vendor = vendors?.firstOrNull()
+            val banner = banners?.firstOrNull()
 
             if (vendor != null) {
 
-                // Update UI
-                binding.txtTitle.text = vendor.title
-                binding.txtSubtitle.text = vendor.description
-                //binding.txtTerms.text = vendor.title
+                // ✅ Vendor Data (Title + Description)
+                binding.txtTitle.text = vendor.title ?: ""
+                binding.txtSubtitle.text = vendor.description ?: ""
 
+                // ✅ Banner Image (from Banner API)
                 Glide.with(requireContext())
-                    .load(vendor.logoUrl)
+                    .load(banner?.imageUrl ?: vendor.logoUrl) // fallback added
                     .placeholder(R.drawable.ic_banner)
+                    .error(R.drawable.ic_banner)
+                    .centerCrop()
                     .into(binding.imgBanner)
 
-                // Click navigation
+                // ✅ Click Navigation (Vendor data)
                 binding.card.setOnClickListener {
 
                     val action =
                         HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
-                            bannerTitle = vendor.companyName,
-                            bannerSubtitle = vendor.description,
-                            bannerTerms = vendor.title,
+                            bannerTitle = vendor.companyName ?: "",
+                            bannerSubtitle = vendor.description ?: "",
+                            bannerTerms = vendor.title ?: "",
                             vendorId = vendor.id
                         )
 
                     findNavController().navigate(action)
                 }
+
+            } else {
+                // Optional empty state
+                binding.txtTitle.text = "No Data"
+                binding.txtSubtitle.text = ""
+                binding.imgBanner.setImageResource(R.drawable.ic_banner)
             }
+
             shimmerStopped()
         })
     }
@@ -435,7 +462,12 @@ class HomeFragment : Fragment() {
                 categoryId = categoryId
             ) ?: emptyList()
 
-            binding.rcyVendors.adapter = VendorAdapter(vendors) { vendor ->
+            val banners = repository.getBanners() ?: emptyList()   // ✅ ADD THIS
+
+            binding.rcyVendors.adapter = VendorAdapter(
+                vendors = vendors,
+                banners = banners   // ✅ PASS HERE
+            ) { vendor ->
 
                 val action =
                     HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
@@ -475,8 +507,5 @@ class HomeFragment : Fragment() {
         _binding = null
 
     }
-
-
-    
 
 }

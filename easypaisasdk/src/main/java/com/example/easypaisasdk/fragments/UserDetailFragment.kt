@@ -13,6 +13,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import com.discountworld.discovery.VendorDetail
 import com.example.easypaisasdk.R
 import com.example.easypaisasdk.adapters.CardsAdapter
@@ -28,12 +31,11 @@ class UserDetailFragment : Fragment() {
 
     private val repository = DetailRepository()
     private val args: UserDetailFragmentArgs by navArgs()
-    private var terms :String = ""
 
-    val outletsAdapter = OutletsAdapter(emptyList())
-    val cardsAdapter = CardsAdapter(emptyList())
-    // ✅ STORE VENDOR HERE
     private var vendorDetail: VendorDetail? = null
+
+    private val outletsAdapter = OutletsAdapter(emptyList())
+    private val cardsAdapter = CardsAdapter(emptyList())
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,85 +48,122 @@ class UserDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Recycler setup
         binding.rvOutlets.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = outletsAdapter
         }
 
         binding.rvCards.apply {
-            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            layoutManager = LinearLayoutManager(
+                requireContext(),
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
             adapter = cardsAdapter
         }
 
-        // ✅ Load Vendor
+        // Load data
         loadVendorDetail()
+        loadBranches()
+        loadCards()
 
-        // Outlets
-        lifecycleScope.launch {
-            val branches = repository.getListOfBranches(vendorId = args.vendorId)
-            branches?.let {
-                if (it.isNotEmpty()){
-                    binding.tvOutlets.visibility = View.VISIBLE
-                    outletsAdapter.updateData(it)
-                }
-                else binding.tvOutlets.visibility = View.GONE
-            }
-        }
-
-        // Cards
-        lifecycleScope.launch {
-            val cardDiscounts = repository.getListOfCardDiscounts(vendorId = args.vendorId)
-            cardDiscounts?.let {
-                if(it.isNotEmpty()) {
-                    binding.tvDiscountCard.visibility = View.VISIBLE
-                    cardsAdapter.updateData(it)
-                }
-                else binding.tvDiscountCard.visibility = View.GONE
-            }
-        }
-        
+        // Terms button
         binding.btnTerms.setOnClickListener {
             val terms = vendorDetail?.termsAndConditions ?: "No terms available"
             showTermsPopup(terms)
         }
 
+        // Back button
         binding.back.setOnClickListener {
-           requireActivity().onBackPressed()
+            requireActivity().onBackPressed()
         }
     }
 
-    @SuppressLint("DefaultLocale", "SetTextI18n")
-    private fun loadVendorDetail() {
+    private fun loadBranches() {
         lifecycleScope.launch {
+            val branches = repository.getListOfBranches(vendorId = args.vendorId)
+
+            branches?.let {
+                if (it.isNotEmpty()) {
+                    binding.tvOutlets.visibility = View.VISIBLE
+                    outletsAdapter.updateData(it)
+                } else {
+                    binding.tvOutlets.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private fun loadCards() {
+        lifecycleScope.launch {
+            val cardDiscounts =
+                repository.getListOfCardDiscounts(vendorId = args.vendorId)
+
+            cardDiscounts?.let {
+                if (it.isNotEmpty()) {
+                    binding.tvDiscountCard.visibility = View.VISIBLE
+                    cardsAdapter.updateData(it)
+                } else {
+                    binding.tvDiscountCard.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    @SuppressLint("SetTextI18n", "DefaultLocale")
+    private fun loadVendorDetail() {
+
+        lifecycleScope.launch {
+
             val vendor = repository.getVendor(args.vendorId, 1)
+            val banners = repository.getBanners() ?: emptyList()
 
             vendor?.let {
-                // ✅ SAVE DATA HERE
+
                 vendorDetail = it
 
                 binding.title.text = it.companyName
                 binding.offerTitle.text = it.title
                 binding.offerDesc.text = it.description
-                val num = if(it.branchesCount == 0) "0" else String.format("%02d", it.branchesCount)
-                binding.outletCount.text = "${num} Outlets"
-                terms = it.termsAndConditions
+
+                val num = if (it.branchesCount == 0) "0"
+                else String.format("%02d", it.branchesCount)
+
+                binding.outletCount.text = "$num Outlets"
+
+                // Outlets adapter image
                 outletsAdapter.updateVendorUrl(it.logoUrl)
-                // Load banner image
+
+                // Find banner for vendor
+                val banner = banners.firstOrNull { b ->
+                    b.vendorId == it.id
+                }
+
+                // ✅ ROUNDED IMAGE LOADING
                 Glide.with(requireContext())
-                    .load(it.logoUrl)
+                    .load(banner?.imageUrl ?: it.logoUrl)
+                    .apply(
+                        RequestOptions()
+                            .transform(
+                                CenterCrop(),
+                                RoundedCorners(24) // 👈 Rounded corners
+                            )
+                    )
                     .placeholder(R.drawable.ic_banner)
+                    .error(R.drawable.ic_banner)
                     .into(binding.bannerImage)
             }
         }
     }
 
     private fun showTermsPopup(terms: String) {
+
         val dialog = Dialog(requireContext(), R.style.CenterDialogTheme)
         dialog.setContentView(R.layout.dialog_terms_conditions)
 
         val tvTerms = dialog.findViewById<TextView>(R.id.tvTerms)
 
-        // Bullet formatting
         val formattedTerms = if (terms.contains("\n")) {
             "• " + terms.replace("\n", "\n• ")
         } else {

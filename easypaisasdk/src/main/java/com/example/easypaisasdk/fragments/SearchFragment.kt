@@ -63,14 +63,31 @@ class SearchFragment : Fragment() {
 
     }
 
-    private fun findVendor(text :String){
+    private fun findVendor(text: String) {
+
         CoroutineTask.ioThenMain({
-            repository.getListOfVendors(search = text)
-        },{
-            if(it.isNullOrEmpty()){
+
+            val vendors = repository.getListOfVendors(search = text)
+            val banners = repository.getBanners()
+
+            Pair(vendors, banners)
+
+        }, { result ->
+
+            val vendors = result?.first
+            val banners = result?.second ?: emptyList()
+
+            if (vendors.isNullOrEmpty()) {
+
                 Toast.makeText(requireContext(), "No vendors found", Toast.LENGTH_SHORT).show()
-            }else{
-                binding.rcyVendors.adapter = VendorAdapter(it) { vendor ->
+
+            } else {
+
+                binding.rcyVendors.adapter = VendorAdapter(
+                    vendors = vendors,
+                    banners = banners   // ✅ IMPORTANT
+                ) { vendor ->
+
                     val action = HomeFragmentDirections
                         .actionHomeFragmentToUserDetailFragment(
                             bannerTitle = vendor.companyName,
@@ -83,7 +100,6 @@ class SearchFragment : Fragment() {
                 }
             }
         })
-
     }
 
     private fun onBackPressed() {

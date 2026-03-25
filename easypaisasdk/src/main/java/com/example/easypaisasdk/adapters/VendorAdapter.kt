@@ -7,8 +7,11 @@ import com.discountworld.discovery.VendorSummary
 import com.example.easypaisasdk.R
 import com.example.easypaisasdk.databinding.ItemBannerCardBinding
 import com.bumptech.glide.Glide
+import com.discountworld.discovery.Banner
+
 class VendorAdapter(
     private val vendors: List<VendorSummary>,
+    private val banners: List<Banner>?,
     private val onClick: (VendorSummary) -> Unit
 ) : RecyclerView.Adapter<VendorAdapter.VendorViewHolder>() {
 
@@ -25,26 +28,28 @@ class VendorAdapter(
     }
 
     override fun onBindViewHolder(holder: VendorViewHolder, position: Int) {
+
         val vendor = vendors[position]
 
-        holder.binding.txtTitle.text = vendor.title
-        holder.binding.txtSubtitle.text = vendor.description
-        //holder.binding.txtTerms.text = vendor.title
+        // ✅ Match banner with vendorId
+        val banner = banners?.firstOrNull { it.vendorId == vendor.id }
 
+        // ✅ Vendor data
+        holder.binding.txtTitle.text = vendor.title ?: ""
+        holder.binding.txtSubtitle.text = vendor.description ?: ""
+
+        // ✅ Banner image (fallback to logo)
         Glide.with(holder.binding.root.context)
-            .load(vendor.logoUrl)
+            .load(banner?.imageUrl ?: vendor.logoUrl)
             .placeholder(R.drawable.ic_banner)
+            .error(R.drawable.ic_banner)
+            .centerCrop()
             .into(holder.binding.imgBanner)
 
+        // ✅ Click
         holder.binding.root.setOnClickListener {
             onClick(vendor)
         }
-
-//        if (vendor.featured) {
-//            holder.binding.root.setBackgroundResource(R.drawable.bg_featured_vendor)
-//        } else {
-//            holder.binding.root.setBackgroundResource(R.drawable.bg_normal_vendor)
-//        }
     }
 
     override fun getItemCount() = vendors.size

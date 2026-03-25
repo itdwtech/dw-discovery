@@ -283,4 +283,18 @@ class DetailRepository {
         }
         return null
     }
+    suspend fun getBanners(): List<Banner>? {
+
+        val request = ListBannersRequest.newBuilder().build()
+
+        val result = grpcCall { stub.listBanners(request) }
+
+        result.onSuccess { response ->
+            return response.bannersList
+        }.onFailure {
+            println("Banner API failed: ${it.message}")
+        }
+
+        return null
+    }
 }
