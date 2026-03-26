@@ -1,10 +1,10 @@
 import com.google.protobuf.gradle.*
 
 plugins {
-    alias(libs.plugins.android.application)
+    id("com.android.library")
     alias(libs.plugins.kotlin.android)
     id("androidx.navigation.safeargs.kotlin") version "2.9.7"
-    id("com.google.protobuf") version "0.9.1"
+    id("com.google.protobuf") version "0.9.4"
 }
 
 android {
@@ -12,11 +12,11 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.easypaisasdk"
-        minSdk = 24
+        //applicationId = "com.example.easypaisasdk"
+        minSdk = 23
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        /*versionCode = 1
+        versionName = "1.0"*/
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

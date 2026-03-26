@@ -31,3 +31,4 @@ dependencyResolutionManagement {
 rootProject.name = "App"
 include(":app")
 include(":easypaisasdk")
+include(":prototype")
