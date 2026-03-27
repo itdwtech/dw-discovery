@@ -66,7 +66,7 @@ class UserDetailFragment : Fragment() {
 
         // Load data
         loadVendorDetail()
-        loadBranches()
+
 
         // Terms button
         binding.btnTerms.setOnClickListener {
@@ -82,7 +82,7 @@ class UserDetailFragment : Fragment() {
 
     private fun loadBranches() {
         lifecycleScope.launch {
-            val branches = repository.getListOfBranches(vendorId = args.vendorId)
+            val branches = vendorDetail?.branchesList
 
             branches?.let {
                 if (it.isNotEmpty()) {
@@ -128,6 +128,7 @@ class UserDetailFragment : Fragment() {
                 binding.offerTitle.text = it.title
                 binding.offerDesc.text = it.description
                 loadCards()
+                loadBranches()
 
                 val num = if (it.branchesCount == 0) "0"
                 else String.format("%02d", it.branchesCount)
@@ -166,13 +167,8 @@ class UserDetailFragment : Fragment() {
 
         val tvTerms = dialog.findViewById<TextView>(R.id.tvTerms)
 
-        val formattedTerms = if (terms.contains("\n")) {
-            "• " + terms.replace("\n", "\n• ")
-        } else {
-            "• $terms"
-        }
-
-        tvTerms.text = formattedTerms
+        // Just show text normally without bullets
+        tvTerms.text = terms
 
         dialog.window?.setLayout(
             (resources.displayMetrics.widthPixels * 0.85).toInt(),

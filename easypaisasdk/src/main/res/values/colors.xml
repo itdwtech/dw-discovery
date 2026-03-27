@@ -8,4 +8,5 @@
     <color name="lightgray">#5F6368 </color>
     <color name="Black">#1F1F1F </color>
     <color name="dim_gray">#F8F8F8 </color>
+    <color name="d_gray">#F8F8F8 </color>
 </resources>

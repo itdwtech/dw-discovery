@@ -1,9 +1,13 @@
 package com.example.easypaisasdk.adapters
 
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.discountworld.discovery.CardDiscount
+import com.example.easypaisasdk.R
 import com.example.easypaisasdk.databinding.ItemCardBinding
 import com.example.easypaisasdk.models.Card
 
@@ -22,12 +26,35 @@ class CardsAdapter(private var list: List<CardDiscount>) :
         return ViewHolder(binding)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val card = list[position]
+
         holder.binding.apply {
             title.text = card.title
-            description.text = card.description
-            //terms.text = card.terms
+
+            // Format endDate as "dd MMM yyyy" (e.g., 27 Mar 2026)
+            val formattedDate = try {
+                val rawDate = card.endDate.takeIf { it.isNotEmpty() }?.substring(0, 10) ?: ""
+                val parsedDate = java.time.LocalDate.parse(rawDate) // parses "yyyy-MM-dd"
+                val formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                parsedDate.format(formatter)
+            } catch (e: Exception) {
+                card.endDate // fallback if parsing fails
+            }
+
+            description.text = formattedDate
+            terms.text = card.terms
+
+            val imageUrl = card.cardTypesList
+                .firstOrNull()
+                ?.imageUrl
+
+            Glide.with(root.context)
+                .load(imageUrl?.takeIf { it.isNotEmpty() })
+                .placeholder(R.drawable.ic_bank_card)
+                .error(R.drawable.ic_bank_card)
+                .into(bankCardImage)
         }
     }
 

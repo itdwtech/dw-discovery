@@ -33,9 +33,10 @@ class CityAdapter(
 
         if (showImage) {
             holder.binding.imgCity.visibility = View.VISIBLE
-            val image = if(!city.imagesList.isNullOrEmpty())
-                city.getImages(position).imageUrl
-            else null
+
+            // safely get first image (if exists)
+            val image = city.imagesList?.getOrNull(0)?.imageUrl
+
             Glide.with(holder.binding.root.context)
                 .load(image)
                 .placeholder(R.drawable.ic_islamabad)
@@ -47,7 +48,6 @@ class CityAdapter(
         holder.binding.root.setOnClickListener {
             onCityClick(city)
         }
-
     }
 
     override fun getItemCount() = cities.size
