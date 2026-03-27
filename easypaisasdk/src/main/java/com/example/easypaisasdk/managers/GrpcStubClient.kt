@@ -1,6 +1,7 @@
 package com.example.easypaisasdk.managers
 
 import com.discountworld.discovery.DiscoveryServiceGrpcKt
+import com.discountworld.discovery.DiscoveryServiceMergedGrpcKt
 import io.grpc.ManagedChannel
 import io.grpc.Metadata
 import io.grpc.StatusException
@@ -30,6 +31,19 @@ object GrpcStubClient {
 
         MetadataUtils.attachHeaders(
             DiscoveryServiceGrpcKt.DiscoveryServiceCoroutineStub(channel),
+            headers
+        )
+    }
+
+    val stubMerge: DiscoveryServiceMergedGrpcKt.DiscoveryServiceMergedCoroutineStub by lazy {
+        val headers = Metadata()
+        val apiKeyKey = Metadata.Key.of("x-api-key", Metadata.ASCII_STRING_MARSHALLER)
+        val originalBytes = API_KEY.toByteArray(Charsets.UTF_8)
+        val encodedString = Base64.Default.encode(originalBytes)
+        headers.put(apiKeyKey, encodedString)
+
+        MetadataUtils.attachHeaders(
+            DiscoveryServiceMergedGrpcKt.DiscoveryServiceMergedCoroutineStub(channel),
             headers
         )
     }

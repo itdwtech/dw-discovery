@@ -17,6 +17,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.discountworld.discovery.VendorDetail
+import com.discountworld.discovery.VendorFullDetail
 import com.example.easypaisasdk.R
 import com.example.easypaisasdk.adapters.CardsAdapter
 import com.example.easypaisasdk.adapters.OutletsAdapter
@@ -32,7 +33,7 @@ class UserDetailFragment : Fragment() {
     private val repository = DetailRepository()
     private val args: UserDetailFragmentArgs by navArgs()
 
-    private var vendorDetail: VendorDetail? = null
+    private var vendorDetail: VendorFullDetail? = null
 
     private val outletsAdapter = OutletsAdapter(emptyList())
     private val cardsAdapter = CardsAdapter(emptyList())
@@ -57,7 +58,7 @@ class UserDetailFragment : Fragment() {
         binding.rvCards.apply {
             layoutManager = LinearLayoutManager(
                 requireContext(),
-                LinearLayoutManager.HORIZONTAL,
+                LinearLayoutManager.VERTICAL,
                 false
             )
             adapter = cardsAdapter
@@ -66,7 +67,6 @@ class UserDetailFragment : Fragment() {
         // Load data
         loadVendorDetail()
         loadBranches()
-        loadCards()
 
         // Terms button
         binding.btnTerms.setOnClickListener {
@@ -97,8 +97,7 @@ class UserDetailFragment : Fragment() {
 
     private fun loadCards() {
         lifecycleScope.launch {
-            val cardDiscounts =
-                repository.getListOfCardDiscounts(vendorId = args.vendorId)
+            val cardDiscounts = vendorDetail?.cardDiscountsList
 
             cardDiscounts?.let {
                 if (it.isNotEmpty()) {
@@ -116,16 +115,19 @@ class UserDetailFragment : Fragment() {
 
         lifecycleScope.launch {
 
-            val vendor = repository.getVendor(args.vendorId, 1)
+            val vendor = repository.getFullVendor(args.vendorId, 1)
             val banners = repository.getBanners() ?: emptyList()
 
             vendor?.let {
 
                 vendorDetail = it
 
+
+
                 binding.title.text = it.companyName
                 binding.offerTitle.text = it.title
                 binding.offerDesc.text = it.description
+                loadCards()
 
                 val num = if (it.branchesCount == 0) "0"
                 else String.format("%02d", it.branchesCount)

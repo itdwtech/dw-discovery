@@ -9,6 +9,7 @@ import com.discountworld.discovery.Deal
 import com.discountworld.discovery.GetBranchRequest
 import com.discountworld.discovery.GetCardDiscountRequest
 import com.discountworld.discovery.GetDealRequest
+import com.discountworld.discovery.GetVendorFullRequest
 import com.discountworld.discovery.GetVendorRequest
 import com.discountworld.discovery.ListBannersRequest
 import com.discountworld.discovery.ListBranchesRequest
@@ -20,12 +21,15 @@ import com.discountworld.discovery.ListProductsRequest
 import com.discountworld.discovery.PaginationRequest
 import com.discountworld.discovery.Product
 import com.discountworld.discovery.VendorDetail
+import com.discountworld.discovery.VendorFullDetail
 import com.example.easypaisasdk.managers.GrpcStubClient
 import com.example.easypaisasdk.managers.GrpcStubClient.grpcCall
 
 class DetailRepository {
 
     val stub = GrpcStubClient.stub
+
+    val stubMerge = GrpcStubClient.stubMerge
 
     // Card Type Requests/Responses
     suspend fun getListOfCardType(): List<CardType>?{
@@ -47,6 +51,22 @@ class DetailRepository {
             .build()
 
         val result = grpcCall { stub.getVendor(request) }
+        result.onSuccess { response ->
+            return response.vendor
+        }.onFailure { throwable ->
+            println("gRPC failed: ${throwable.message}")
+        }
+        return null
+    }
+
+    suspend fun getFullVendor(vendorId: Long, cityId: Long): VendorFullDetail? {
+
+        val request = GetVendorFullRequest.newBuilder()
+            .setVendorId(vendorId)
+            .setCityId(cityId)
+            .build()
+
+        val result = grpcCall { stubMerge.getVendorFull(request)}
         result.onSuccess { response ->
             return response.vendor
         }.onFailure { throwable ->
@@ -283,6 +303,8 @@ class DetailRepository {
         }
         return null
     }
+
+
     suspend fun getBanners(): List<Banner>? {
 
         val request = ListBannersRequest.newBuilder().build()
