@@ -10,7 +10,7 @@ class Constants {
         const val APP_LOCALE = "app_locale"
 
         const val FONT_BOLD = "archia_bold.ttf"
-        const val FONT_REG = "archiar_regular.ttf"
+        const val FONT_REG = "archia_regular.ttf"
 
         const val FONT_MED = "archia_medium.ttf"
 

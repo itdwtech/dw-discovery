@@ -3,6 +3,7 @@ package com.example.easypaisasdk.fragments
 import Constants.Companion.FONT_BOLD
 import Constants.Companion.FONT_REG
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.content.SharedPreferences
@@ -11,12 +12,15 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.checkSelfPermission
@@ -53,6 +57,7 @@ class HomeFragment : Fragment() {
     private val repository = HomeRepository()
 
     private var cityId: Long? = null
+    private var isSearching = false  // Flag to track if we're in search mode
 
 
     private val requestPermissionLauncher =
@@ -103,14 +108,73 @@ class HomeFragment : Fragment() {
             findNavController().navigate(R.id.action_homeFragment_to_userDetailFragment)
         }
 
-        binding.search.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_searchFragment)
-        }
+//        binding.search.setOnClickListener {
+//            findNavController().navigate(R.id.action_homeFragment_to_searchFragment)
+//        }
+        binding.search.addTextChangedListener(object : TextWatcher {
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val text = s.toString()
+                if(text.isNotEmpty()){
+                    // Enter search mode - hide other UI elements
+                    enterSearchMode()
+                    findVendor(text)
+                } else {
+                    // Exit search mode - show all UI elements
+                    exitSearchMode()
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+            }
+        })
 
         binding.back.setOnClickListener {
             requireActivity().finishAffinity()
         }
 
+    }
+
+    // New method to hide UI elements when searching
+    private fun enterSearchMode() {
+        isSearching = true
+
+        // Hide all UI elements similar to category selection
+        binding.lvCity.visibility = View.GONE
+        binding.lvFeaturedVendor.visibility = View.GONE
+        binding.rcyCities.visibility = View.GONE
+        binding.rcyTopBrands.visibility = View.GONE
+        binding.tvTopBrands.visibility = View.GONE
+//        binding.category.visibility = View.GONE  // Hide categories tab
+        binding.seeAllCities.visibility = View.GONE  // Hide "See All Cities" button
+
+        // Show only search results area
+        binding.rcyVendors.visibility = View.VISIBLE
+    }
+
+    // New method to show UI elements when search is cleared
+    private fun exitSearchMode() {
+        isSearching = false
+
+        // Show all UI elements back
+        binding.lvCity.visibility = View.VISIBLE
+        binding.lvFeaturedVendor.visibility = View.VISIBLE
+        binding.rcyCities.visibility = View.VISIBLE
+        binding.rcyTopBrands.visibility = View.VISIBLE
+        binding.tvTopBrands.visibility = View.VISIBLE
+        binding.category.visibility = View.VISIBLE  // Show categories tab
+        binding.seeAllCities.visibility = View.VISIBLE  // Show "See All Cities" button
+
+        // Restore the default vendor list based on current category selection
+        val selectedTabPosition = binding.category.selectedTabPosition
+        if (selectedTabPosition == 0) {
+            setupVendorsList()
+        } else {
+            val categoryId = categoriesList[selectedTabPosition - 1].id
+            loadVendorsByCategory(categoryId)
+        }
     }
 
     private fun setupStatusBar() {
@@ -180,6 +244,9 @@ class HomeFragment : Fragment() {
 
                     override fun onTabSelected(tab: TabLayout.Tab) {
 
+                        // Don't process tab selection if we're in search mode
+                        if (isSearching) return
+
                         val typeface = TypeFaceUtils.get(requireContext(),FONT_BOLD)
                         (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
 
@@ -248,11 +315,11 @@ class HomeFragment : Fragment() {
         lifecycleScope.launch {
 
             val vendors = repository.getListOfVendors(cityId = cityId) ?: emptyList()
-            val banners = repository.getBanners() ?: emptyList()   // ✅ ADD THIS
+            val banners = repository.getBanners() ?: emptyList()
 
             binding.rcyVendors.adapter = VendorAdapter(
                 vendors = vendors,
-                banners = banners   // ✅ PASS HERE
+                banners = banners
             ) { vendor ->
 
                 val action = HomeFragmentDirections
@@ -268,6 +335,7 @@ class HomeFragment : Fragment() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun loadFeaturedVendor() {
 
         CoroutineTask.ioThenMain({
@@ -293,7 +361,7 @@ class HomeFragment : Fragment() {
 
                 // ✅ Vendor Data (Title + Description)
                 binding.txtTitle.text = vendor.title ?: ""
-                binding.txtSubtitle.text = vendor.description ?: ""
+                binding.txtSubtitle.text = "with easypaisa premium debit card "
 
                 // ✅ Banner Image (from Banner API)
                 Glide.with(requireContext())
@@ -462,11 +530,11 @@ class HomeFragment : Fragment() {
                 categoryId = categoryId
             ) ?: emptyList()
 
-            val banners = repository.getBanners() ?: emptyList()   // ✅ ADD THIS
+            val banners = repository.getBanners() ?: emptyList()
 
             binding.rcyVendors.adapter = VendorAdapter(
                 vendors = vendors,
-                banners = banners   // ✅ PASS HERE
+                banners = banners
             ) { vendor ->
 
                 val action =
@@ -498,6 +566,53 @@ class HomeFragment : Fragment() {
         binding.lvShimmer.stopShimmer()
         binding.lvShimmer.visibility = View.GONE
         binding.lvMain.visibility = View.VISIBLE
+    }
+
+    private fun findVendor(text: String) {
+
+        CoroutineTask.ioThenMain({
+
+            val vendors = repository.getListOfVendors(search = text)
+            val banners = repository.getBanners()
+
+            Pair(vendors, banners)
+
+        }, { result ->
+
+            val vendors = result?.first
+            val banners = result?.second ?: emptyList()
+
+            if (vendors.isNullOrEmpty()) {
+
+                Toast.makeText(requireContext(), "No vendors found", Toast.LENGTH_SHORT).show()
+                // Show empty state in RecyclerView
+                binding.rcyVendors.adapter = VendorAdapter(
+                    vendors = emptyList(),
+                    banners = banners
+                ) { vendor ->
+                    // Navigation disabled for empty state
+                }
+
+            } else {
+
+                binding.rcyVendors.adapter = VendorAdapter(
+                    vendors = vendors,
+                    banners = banners
+                ) { vendor ->
+
+                    // Enable navigation for search results
+                    val action =
+                        HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
+                            bannerTitle = vendor.companyName,
+                            bannerSubtitle = vendor.description,
+                            bannerTerms = vendor.title,
+                            vendorId = vendor.id
+                        )
+
+                    findNavController().navigate(action)
+                }
+            }
+        })
     }
 
     override fun onDestroyView() {

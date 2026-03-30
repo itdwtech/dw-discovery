@@ -36,7 +36,7 @@ class VendorAdapter(
 
         // ✅ Vendor data
         holder.binding.txtTitle.text = vendor.title ?: ""
-        holder.binding.txtSubtitle.text = vendor.description ?: ""
+        holder.binding.txtSubtitle.text = "with easypaisa premium debit card "
 
         // ✅ Banner image (fallback to logo)
         Glide.with(holder.binding.root.context)
