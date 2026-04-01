@@ -57,7 +57,9 @@ class HomeFragment : Fragment() {
     private val repository = HomeRepository()
 
     private var cityId: Long? = null
-    private var isSearching = false  // Flag to track if we're in search mode
+    private var isSearching = false
+
+    private var selectedCategoryId: Long? = null
 
 
     private val requestPermissionLauncher =
@@ -116,19 +118,21 @@ class HomeFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+
                 val text = s.toString()
-                if(text.isNotEmpty()){
-                    // Enter search mode - hide other UI elements
+
+                if (text.isNotEmpty()) {
+
                     enterSearchMode()
                     findVendor(text)
+
                 } else {
-                    // Exit search mode - show all UI elements
+
                     exitSearchMode()
                 }
             }
 
-            override fun afterTextChanged(s: Editable?) {
-            }
+            override fun afterTextChanged(s: Editable?) {}
         })
 
         binding.back.setOnClickListener {
@@ -156,24 +160,25 @@ class HomeFragment : Fragment() {
 
     // New method to show UI elements when search is cleared
     private fun exitSearchMode() {
+
         isSearching = false
 
-        // Show all UI elements back
         binding.lvCity.visibility = View.VISIBLE
         binding.lvFeaturedVendor.visibility = View.VISIBLE
         binding.rcyCities.visibility = View.VISIBLE
         binding.rcyTopBrands.visibility = View.VISIBLE
         binding.tvTopBrands.visibility = View.VISIBLE
-        binding.category.visibility = View.VISIBLE  // Show categories tab
-        binding.seeAllCities.visibility = View.VISIBLE  // Show "See All Cities" button
+        binding.category.visibility = View.VISIBLE
+        binding.seeAllCities.visibility = View.VISIBLE
 
-        // Restore the default vendor list based on current category selection
         val selectedTabPosition = binding.category.selectedTabPosition
+
         if (selectedTabPosition == 0) {
+            selectedCategoryId = null
             setupVendorsList()
         } else {
-            val categoryId = categoriesList[selectedTabPosition - 1].id
-            loadVendorsByCategory(categoryId)
+            selectedCategoryId = categoriesList[selectedTabPosition - 1].id
+            loadVendorsByCategory(selectedCategoryId!!)
         }
     }
 
@@ -239,44 +244,55 @@ class HomeFragment : Fragment() {
                     )
                 }
 
-                binding.category.addOnTabSelectedListener(object :
-                    TabLayout.OnTabSelectedListener {
+                binding.category.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
 
                     override fun onTabSelected(tab: TabLayout.Tab) {
 
-                        // Don't process tab selection if we're in search mode
-                        if (isSearching) return
-
-                        val typeface = TypeFaceUtils.get(requireContext(),FONT_BOLD)
+                        val typeface = TypeFaceUtils.get(requireContext(), FONT_BOLD)
                         (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
 
-                        val isVisible: Int = if(tab.position == 0) View.VISIBLE else View.GONE
+                        val isVisible = if (tab.position == 0) View.VISIBLE else View.GONE
+
                         binding.lvCity.visibility = isVisible
                         binding.lvFeaturedVendor.visibility = isVisible
                         binding.rcyCities.visibility = isVisible
                         binding.rcyTopBrands.visibility = isVisible
                         binding.tvTopBrands.visibility = isVisible
-                        if(tab.position == 0)
+
+                        if (tab.position == 0) {
+
+                            // ✅ CLEAR SEARCH WHEN ALL CLICKED
+                            binding.search.setText("")
+
+                            selectedCategoryId = null
                             addMargin(binding.rcyVendors, 0, 0, 0, 0)
-                        else addMargin(binding.rcyVendors, 16, 0, 0, 0)
+
+                        } else {
+
+                            selectedCategoryId = categoriesList[tab.position - 1].id
+                            addMargin(binding.rcyVendors, 16, 0, 0, 0)
+                        }
+
+                        val searchText = binding.search.text.toString()
+
+                        if (searchText.isNotEmpty()) {
+                            findVendor(searchText)
+                            return
+                        }
 
                         if (tab.position == 0) {
                             setupVendorsList()
                         } else {
-                            val categoryId = categoriesList[tab.position - 1].id
-                            loadVendorsByCategory(categoryId)
+                            loadVendorsByCategory(selectedCategoryId!!)
                         }
                     }
 
                     override fun onTabUnselected(tab: TabLayout.Tab) {
-                        val typeface = TypeFaceUtils.get(requireContext(),FONT_REG)
-                        (tab.view.getChildAt(1) as TextView)
-                            .setTypeface(typeface)
-
+                        val typeface = TypeFaceUtils.get(requireContext(), FONT_REG)
+                        (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
                     }
 
                     override fun onTabReselected(tab: TabLayout.Tab) {}
-
                 })
             }
         })
@@ -572,45 +588,35 @@ class HomeFragment : Fragment() {
 
         CoroutineTask.ioThenMain({
 
-            val vendors = repository.getListOfVendors(search = text)
+            val vendors = repository.getListOfVendors(
+                search = text,
+                categoryId = selectedCategoryId,   // 🔥 MAIN FIX
+                cityId = cityId                   // optional but better
+            )
+
             val banners = repository.getBanners()
 
             Pair(vendors, banners)
 
         }, { result ->
 
-            val vendors = result?.first
+            val vendors = result?.first ?: emptyList()
             val banners = result?.second ?: emptyList()
 
-            if (vendors.isNullOrEmpty()) {
+            binding.rcyVendors.adapter = VendorAdapter(
+                vendors = vendors,
+                banners = banners
+            ) { vendor ->
 
-                Toast.makeText(requireContext(), "No vendors found", Toast.LENGTH_SHORT).show()
-                // Show empty state in RecyclerView
-                binding.rcyVendors.adapter = VendorAdapter(
-                    vendors = emptyList(),
-                    banners = banners
-                ) { vendor ->
-                    // Navigation disabled for empty state
-                }
+                val action =
+                    HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
+                        bannerTitle = vendor.companyName,
+                        bannerSubtitle = vendor.description,
+                        bannerTerms = vendor.title,
+                        vendorId = vendor.id
+                    )
 
-            } else {
-
-                binding.rcyVendors.adapter = VendorAdapter(
-                    vendors = vendors,
-                    banners = banners
-                ) { vendor ->
-
-                    // Enable navigation for search results
-                    val action =
-                        HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
-                            bannerTitle = vendor.companyName,
-                            bannerSubtitle = vendor.description,
-                            bannerTerms = vendor.title,
-                            vendorId = vendor.id
-                        )
-
-                    findNavController().navigate(action)
-                }
+                findNavController().navigate(action)
             }
         })
     }
