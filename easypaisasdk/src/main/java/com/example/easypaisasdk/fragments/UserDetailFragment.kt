@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -76,7 +77,7 @@ class UserDetailFragment : Fragment() {
 
         // Back button
         binding.back.setOnClickListener {
-            requireActivity().onBackPressed()
+            findNavController().navigate(R.id.action_userDetailFragment_to_homeFragment)
         }
     }
 

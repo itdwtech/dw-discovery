@@ -45,7 +45,7 @@
                 android:maxLines="2"
                 android:textSize="12sp"/>
 
-            <com.example.easypaisasdk.reusables.TextViewThin
+            <com.example.easypaisasdk.reusables.TextViewRegular
                 android:id="@+id/txtTerms"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
