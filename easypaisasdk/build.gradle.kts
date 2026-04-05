@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         //applicationId = "com.example.easypaisasdk"
-        minSdk = 23
+        minSdk = 26
         targetSdk = 36
         /*versionCode = 1
         versionName = "1.0"*/
@@ -58,7 +58,7 @@ android {
 }
 
 dependencies {
-    implementation("com.google.android.material:material:1.9.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -70,7 +70,8 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0")
+   // implementation("com.google.android.material:material:1.9.0")
+   // implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
