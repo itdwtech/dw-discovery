@@ -79,6 +79,11 @@ class UserDetailFragment : Fragment() {
         binding.back.setOnClickListener {
             findNavController().navigate(R.id.action_userDetailFragment_to_homeFragment)
         }
+        requireActivity().window.statusBarColor =
+            requireContext().getColor(R.color.dim_gray)
+
+        requireActivity().window.navigationBarColor =
+            requireContext().getColor(R.color.dim_gray)
     }
 
     private fun loadBranches() {
@@ -115,48 +120,55 @@ class UserDetailFragment : Fragment() {
     private fun loadVendorDetail() {
 
         lifecycleScope.launch {
+            binding.loaderLayout.visibility = View.VISIBLE
 
-            val vendor = repository.getFullVendor(args.vendorId, 1)
-            val banners = repository.getBanners() ?: emptyList()
+            try {
+                val vendor = repository.getFullVendor(args.vendorId, 1)
+                val banners = repository.getBanners() ?: emptyList()
 
-            vendor?.let {
+                vendor?.let {
 
-                vendorDetail = it
+                    vendorDetail = it
 
 
 
-                binding.title.text = it.companyName
-                binding.offerTitle.text = it.title
-                binding.offerDesc.text = it.description
-                loadCards()
-                loadBranches()
+                    binding.title.text = it.companyName
+                    binding.offerTitle.text = it.title
+                    binding.offerDesc.text = it.description
+                    loadCards()
+                    loadBranches()
 
-                val num = if (it.branchesCount == 0) "0"
-                else String.format("%02d", it.branchesCount)
+                    val num = if (it.branchesCount == 0) "0"
+                    else String.format("%02d", it.branchesCount)
 
-                binding.outletCount.text = "$num Outlets"
+                    binding.outletCount.text = "$num Outlets"
 
-                // Outlets adapter image
-                outletsAdapter.updateVendorUrl(it.logoUrl)
+                    // Outlets adapter image
+                    outletsAdapter.updateVendorUrl(it.logoUrl)
 
-                // Find banner for vendor
-                val banner = banners.firstOrNull { b ->
-                    b.vendorId == it.id
+                    // Find banner for vendor
+                    val banner = banners.firstOrNull { b ->
+                        b.vendorId == it.id
+                    }
+
+                    // ✅ ROUNDED IMAGE LOADING
+                    Glide.with(requireContext())
+                        .load(banner?.imageUrl ?: it.logoUrl)
+                        .apply(
+                            RequestOptions()
+                                .transform(
+                                    CenterCrop(),
+                                    RoundedCorners(24) // 👈 Rounded corners
+                                )
+                        )
+                        .placeholder(R.drawable.ic_banner)
+                        .error(R.drawable.ic_banner)
+                        .into(binding.bannerImage)
                 }
-
-                // ✅ ROUNDED IMAGE LOADING
-                Glide.with(requireContext())
-                    .load(banner?.imageUrl ?: it.logoUrl)
-                    .apply(
-                        RequestOptions()
-                            .transform(
-                                CenterCrop(),
-                                RoundedCorners(24) // 👈 Rounded corners
-                            )
-                    )
-                    .placeholder(R.drawable.ic_banner)
-                    .error(R.drawable.ic_banner)
-                    .into(binding.bannerImage)
+            } catch (e: Exception) {
+                println("Error loading vendor detail: ${e.message}")
+            } finally {
+                binding.loaderLayout.visibility = View.GONE
             }
         }
     }

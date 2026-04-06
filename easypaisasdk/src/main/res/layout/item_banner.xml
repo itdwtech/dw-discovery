@@ -7,7 +7,7 @@
     app:cardCornerRadius="14dp"
     app:cardElevation="1dp"
     app:strokeColor="@color/white"
-    app:cardBackgroundColor="@color/dim_gray"
+    app:cardBackgroundColor="@color/white"
     app:cardUseCompatPadding="true"
     app:cardPreventCornerOverlap="true">
 
