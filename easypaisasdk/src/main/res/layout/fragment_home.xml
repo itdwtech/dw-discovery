@@ -6,7 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    android:padding="16dp"
     tools:context=".fragments.HomeFragment">
 
     <ImageButton
@@ -15,6 +14,7 @@
         android:layout_height="40dp"
         android:background="@drawable/image_bg"
         android:src="@drawable/ic_backs"
+        android:layout_marginStart="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
@@ -49,6 +49,7 @@
             android:id="@+id/lv_shimmer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
             android:paddingStart="8dp"
             android:paddingEnd="8dp">
 
@@ -296,6 +297,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/offers_discount"
                 android:textColor="@color/black"
+                android:layout_marginStart="16dp"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
@@ -312,17 +314,20 @@
                 app:tabIndicatorFullWidth="true"
                 app:tabTextColor="#9E9E9E"
                 app:tabSelectedTextColor="@color/black"
+                android:layout_marginHorizontal="16dp"
                 app:tabRippleColor="@android:color/transparent" />
 
 
             <androidx.core.widget.NestedScrollView
                 android:id="@+id/nested_scroll"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:background="@color/d_gray">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
                     android:orientation="vertical">
 
                     <!-- City Title -->
@@ -370,7 +375,8 @@
                         android:id="@+id/lv_featured_vendor"
                         android:layout_width="match_parent"
                         android:layout_height="298dp"
-                        app:cardBackgroundColor="@color/dim_gray"
+                        app:cardBackgroundColor="@color/white"
+                        app:strokeColor="@color/dim_gray"
                         android:layout_marginTop="16dp"
                         app:cardCornerRadius="16dp">
 
