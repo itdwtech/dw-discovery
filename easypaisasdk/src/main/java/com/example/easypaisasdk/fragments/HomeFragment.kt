@@ -20,7 +20,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.checkSelfPermission
@@ -138,7 +137,6 @@ class HomeFragment : Fragment() {
         binding.back.setOnClickListener {
             requireActivity().finishAffinity()
         }
-
     }
 
     // New method to hide UI elements when searching
@@ -543,7 +541,8 @@ class HomeFragment : Fragment() {
         lifecycleScope.launch {
 
             val vendors = repository.getListOfVendors(
-                categoryId = categoryId
+                categoryId = categoryId,
+                cityId = cityId   // ✅ city filter added
             ) ?: emptyList()
 
             val banners = repository.getBanners() ?: emptyList()
