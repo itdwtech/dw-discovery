@@ -9,6 +9,7 @@ import io.grpc.StatusRuntimeException
 import io.grpc.okhttp.OkHttpChannelBuilder
 import io.grpc.stub.MetadataUtils
 import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 object GrpcStubClient {
     private const val API_KEY = "8e18fcbf-bbec-4898-b142-b8ae7da90e13"
@@ -22,6 +23,7 @@ object GrpcStubClient {
             .build()
     }
 
+     @OptIn(ExperimentalEncodingApi::class)
      val stub: DiscoveryServiceGrpcKt.DiscoveryServiceCoroutineStub by lazy {
         val headers = Metadata()
         val apiKeyKey = Metadata.Key.of("x-api-key", Metadata.ASCII_STRING_MARSHALLER)
@@ -35,6 +37,7 @@ object GrpcStubClient {
         )
     }
 
+    @OptIn(ExperimentalEncodingApi::class)
     val stubMerge: DiscoveryServiceMergedGrpcKt.DiscoveryServiceMergedCoroutineStub by lazy {
         val headers = Metadata()
         val apiKeyKey = Metadata.Key.of("x-api-key", Metadata.ASCII_STRING_MARSHALLER)
