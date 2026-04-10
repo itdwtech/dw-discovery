@@ -296,7 +296,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.example.easypaisasdk.reusables.TextViewBold
+            <com.discountworld.easypaisasdk.reusables.TextViewBold
                 android:id="@+id/offers_and_discounts"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -345,7 +345,7 @@
                         android:gravity="center_vertical"
                         android:weightSum="1">
 
-                        <com.example.easypaisasdk.reusables.TextViewBold
+                        <com.discountworld.easypaisasdk.reusables.TextViewBold
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:text="@string/in_your_city_discounts"
@@ -354,7 +354,7 @@
                             android:textSize="16sp"
                             android:layout_weight="0.8" />
 
-                        <com.example.easypaisasdk.reusables.TextViewMedium
+                        <com.discountworld.easypaisasdk.reusables.TextViewMedium
                             android:id="@+id/seeAllCities"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -404,7 +404,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content">
 
-                                <com.example.easypaisasdk.reusables.TextViewBold
+                                <com.discountworld.easypaisasdk.reusables.TextViewBold
                                     android:id="@+id/txtTitle"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
@@ -412,7 +412,7 @@
                                     android:textStyle="bold"
                                     android:textSize="16sp"/>
 
-                                <com.example.easypaisasdk.reusables.TextViewRegular
+                                <com.discountworld.easypaisasdk.reusables.TextViewRegular
                                     android:id="@+id/txtSubtitle"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
@@ -423,7 +423,7 @@
                                     android:maxLines="2"
                                     android:textSize="12sp"/>
 
-                                <com.example.easypaisasdk.reusables.TextViewRegular
+                                <com.discountworld.easypaisasdk.reusables.TextViewRegular
                                     android:id="@+id/txtTerms"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
@@ -436,7 +436,7 @@
                     </com.google.android.material.card.MaterialCardView>
 
                     <!-- Top Brands -->
-                    <com.example.easypaisasdk.reusables.TextViewBold
+                    <com.discountworld.easypaisasdk.reusables.TextViewBold
                         android:id="@+id/tv_top_brands"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

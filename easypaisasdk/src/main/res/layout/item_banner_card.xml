@@ -26,7 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <com.example.easypaisasdk.reusables.TextViewBold
+            <com.discountworld.easypaisasdk.reusables.TextViewBold
                 android:id="@+id/txtTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -35,7 +35,7 @@
                 android:textColor="@color/black"
                 android:textSize="16sp"/>
 
-            <com.example.easypaisasdk.reusables.TextViewMedium
+            <com.discountworld.easypaisasdk.reusables.TextViewMedium
                 android:id="@+id/txtSubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -46,7 +46,7 @@
                 android:maxLines="2"
                 android:textSize="12sp"/>
 
-            <com.example.easypaisasdk.reusables.TextViewRegular
+            <com.discountworld.easypaisasdk.reusables.TextViewRegular
                 android:id="@+id/txtTerms"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

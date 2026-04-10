@@ -33,7 +33,7 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <com.example.easypaisasdk.reusables.TextViewBold
+            <com.discountworld.easypaisasdk.reusables.TextViewBold
                 android:id="@+id/tvName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -41,7 +41,7 @@
                 android:textStyle="bold"
                 android:textSize="16sp"/>
 
-            <com.example.easypaisasdk.reusables.TextViewRegular
+            <com.discountworld.easypaisasdk.reusables.TextViewRegular
                 android:id="@+id/tvAddress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -1,5 +1,3 @@
-import com.google.protobuf.gradle.*
-
 plugins {
     id("com.android.library")
     alias(libs.plugins.kotlin.android)
@@ -8,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.easypaisasdk"
+    namespace = "com.discountworld.easypaisasdk"
     compileSdk = 36
 
     defaultConfig {
@@ -89,17 +87,12 @@ dependencies {
     implementation("io.grpc:grpc-stub:1.52.1")
     implementation("io.grpc:grpc-protobuf:1.52.1")
     implementation("io.grpc:grpc-okhttp:1.52.1")
-    implementation("io.grpc:protoc-gen-grpc-kotlin:1.3.0")
     implementation("io.grpc:grpc-kotlin-stub:1.3.0")
     implementation("com.google.protobuf:protobuf-kotlin:3.21.12")
 
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 
 }
-
-// Source - https://stackoverflow.com/a/75279798
-// Posted by Konrad Sikorski
-// Retrieved 2026-03-05, License - CC BY-SA 4.0
 
 protobuf {
     protoc {
@@ -127,3 +120,4 @@ protobuf {
     }
 
 }
+

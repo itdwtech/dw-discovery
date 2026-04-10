@@ -24,7 +24,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Title -->
-    <com.example.easypaisasdk.reusables.TextViewBold
+    <com.discountworld.easypaisasdk.reusables.TextViewBold
         android:id="@+id/title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -95,7 +95,7 @@
                     android:background="@color/white">
 
                     <!-- Offer Title -->
-                    <com.example.easypaisasdk.reusables.TextViewBold
+                    <com.discountworld.easypaisasdk.reusables.TextViewBold
                         android:id="@+id/offerTitle"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -109,7 +109,7 @@
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <!-- Offer Description -->
-                    <com.example.easypaisasdk.reusables.TextViewRegular
+                    <com.discountworld.easypaisasdk.reusables.TextViewRegular
                         android:id="@+id/offerDesc"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -124,7 +124,7 @@
                         app:layout_constraintEnd_toEndOf="parent" />
 
                     <!-- Outlet pill -->
-                    <com.example.easypaisasdk.reusables.TextViewMedium
+                    <com.discountworld.easypaisasdk.reusables.TextViewMedium
                         android:id="@+id/outletCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -145,7 +145,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Discounts on Cards Title -->
-            <com.example.easypaisasdk.reusables.TextViewBold
+            <com.discountworld.easypaisasdk.reusables.TextViewBold
                 android:id="@+id/tv_discount_card"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -172,7 +172,7 @@
                 tools:listitem="@layout/item_card" />
 
             <!-- Outlets Title -->
-            <com.example.easypaisasdk.reusables.TextViewBold
+            <com.discountworld.easypaisasdk.reusables.TextViewBold
                 android:id="@+id/tv_outlets"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -8,7 +8,7 @@
     <!-- Home Fragment -->
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.easypaisasdk.fragments.HomeFragment"
+        android:name="com.discountworld.easypaisasdk.fragments.HomeFragment"
         android:label="HomeFragment"
         tools:layout="@layout/fragment_home">
 
@@ -25,7 +25,7 @@
     <!-- User Detail Fragment -->
     <fragment
         android:id="@+id/userDetailFragment"
-        android:name="com.example.easypaisasdk.fragments.UserDetailFragment"
+        android:name="com.discountworld.easypaisasdk.fragments.UserDetailFragment"
         android:label="UserDetailFragment"
         tools:layout="@layout/fragment_user_detail">
 
@@ -53,7 +53,7 @@
 
     <fragment
         android:id="@+id/searchFragment"
-        android:name="com.example.easypaisasdk.fragments.SearchFragment"
+        android:name="com.discountworld.easypaisasdk.fragments.SearchFragment"
         android:label="UserDetailFragment"
         tools:layout="@layout/fragment_search">
 

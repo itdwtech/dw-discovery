@@ -26,7 +26,7 @@
             android:scaleType="centerCrop"/>
 
         <!-- Text -->
-        <com.example.easypaisasdk.reusables.TextViewBold
+        <com.discountworld.easypaisasdk.reusables.TextViewBold
             android:id="@+id/txtBanner"
             android:layout_width="138dp"
             android:layout_height="16dp"
