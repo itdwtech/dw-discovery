@@ -1,13 +1,10 @@
 package com.discountworld.easypaisasdk.adapters
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.discountworld.discovery.City
-import com.discountworld.easypaisasdk.R
-import com.discountworld.easypaisasdk.databinding.ItemCityBinding
+import com.discountworld.easypaisasdk.databinding.DwDiscoveryItemCityBinding
 
 class CityAdapter(
     private val cities: List<City>,
@@ -15,11 +12,11 @@ class CityAdapter(
     private val onCityClick: (City) -> Unit
 ) : RecyclerView.Adapter<CityAdapter.CityViewHolder>() {
 
-    inner class CityViewHolder(val binding: ItemCityBinding) :
+    inner class CityViewHolder(val binding: DwDiscoveryItemCityBinding) :
         RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CityViewHolder {
-        val binding = ItemCityBinding.inflate(
+        val binding = DwDiscoveryItemCityBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
@@ -29,21 +26,11 @@ class CityAdapter(
 
     override fun onBindViewHolder(holder: CityViewHolder, position: Int) {
         val city = cities[position]
-        holder.binding.txtCity.text = city.name
 
-        if (showImage) {
-            holder.binding.imgCity.visibility = View.VISIBLE
-
-            // safely get first image (if exists)
-            val image = city.imagesList?.getOrNull(0)?.imageUrl
-
-            Glide.with(holder.binding.root.context)
-                .load(image)
-                .placeholder(R.drawable.ic_islamabad)
-                .into(holder.binding.imgCity)
-        } else {
-            holder.binding.imgCity.visibility = View.GONE
-        }
+        holder.binding.name = city.name
+        holder.binding.showImage = showImage
+        holder.binding.imageUrl = city.imagesList?.getOrNull(0)?.imageUrl
+        holder.binding.executePendingBindings()
 
         holder.binding.root.setOnClickListener {
             onCityClick(city)

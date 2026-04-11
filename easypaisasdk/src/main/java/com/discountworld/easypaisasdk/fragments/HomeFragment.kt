@@ -30,8 +30,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.discountworld.easypaisasdk.R
 import com.discountworld.easypaisasdk.adapters.*
-import com.discountworld.easypaisasdk.databinding.BottomSheetCityBinding
-import com.discountworld.easypaisasdk.databinding.FragmentHomeBinding
+import com.discountworld.easypaisasdk.databinding.DwDiscoveryBottomSheetCityBinding
+import com.discountworld.easypaisasdk.databinding.DwDiscoveryFragmentHomeBinding
 import com.discountworld.easypaisasdk.managers.CoroutineTask
 import com.discountworld.easypaisasdk.repositories.HomeRepository
 import com.discountworld.easypaisasdk.utils.LocationUtility
@@ -43,7 +43,7 @@ import toast
 
 class HomeFragment : Fragment() {
 
-    private var _binding: FragmentHomeBinding? = null
+    private var _binding: DwDiscoveryFragmentHomeBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var txtLocation: TextView
@@ -73,7 +73,7 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        _binding = DwDiscoveryFragmentHomeBinding.inflate(inflater, container, false)
         return binding.root
 
     }
@@ -377,8 +377,8 @@ class HomeFragment : Fragment() {
                 // ✅ Banner Image (from Banner API)
                 Glide.with(requireContext())
                     .load(banner?.imageUrl ?: vendor.logoUrl) // fallback added
-                    .placeholder(R.drawable.ic_banner)
-                    .error(R.drawable.ic_banner)
+                    .placeholder(R.drawable.dw_discovery_ic_banner)
+                    .error(R.drawable.dw_discovery_ic_banner)
                     .centerCrop()
                     .into(binding.imgBanner)
 
@@ -400,7 +400,7 @@ class HomeFragment : Fragment() {
                 // Optional empty state
                 binding.txtTitle.text = "No Data"
                 binding.txtSubtitle.text = ""
-                binding.imgBanner.setImageResource(R.drawable.ic_banner)
+                binding.imgBanner.setImageResource(R.drawable.dw_discovery_ic_banner)
             }
 
             shimmerStopped()
@@ -482,9 +482,9 @@ class HomeFragment : Fragment() {
 
     private fun showCityPopup() {
 
-        val dialog = Dialog(requireContext(), R.style.CenterDialogTheme)
+        val dialog = Dialog(requireContext(), R.style.DwDiscovery_CenterDialogTheme)
 
-        val dialogBinding = BottomSheetCityBinding.inflate(layoutInflater)
+        val dialogBinding = DwDiscoveryBottomSheetCityBinding.inflate(layoutInflater)
 
         dialog.setContentView(dialogBinding.root)
 
@@ -519,7 +519,7 @@ class HomeFragment : Fragment() {
         divider.setDrawable(
             ContextCompat.getDrawable(
                 requireContext(),
-                R.drawable.divider
+                R.drawable.dw_discovery_divider
             )!!
         )
 

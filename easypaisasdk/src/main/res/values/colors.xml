@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="green">#00A859 </color>
-    <color name="gray">#808080 </color>
-    <color name="lightgreen">#E7F4EB </color>
-    <color name="lightgray">#5F6368 </color>
-    <color name="Black">#1F1F1F </color>
-    <color name="dim_gray">#F8F8F8 </color>
-    <color name="d_gray">#F8F8F8 </color>
+    <color name="dw_discovery_black">#FF000000</color>
+    <color name="dw_discovery_white">#FFFFFFFF</color>
+    <color name="dw_discovery_green">#00A859 </color>
+    <color name="dw_discovery_gray">#808080 </color>
+    <color name="dw_discovery_lightgreen">#E7F4EB </color>
+    <color name="dw_discovery_lightgray">#5F6368 </color>
+    <color name="dw_discovery_text_black">#1F1F1F </color>
+    <color name="dw_discovery_dim_gray">#F8F8F8 </color>
+    <color name="dw_discovery_d_gray">#F8F8F8 </color>
 </resources>

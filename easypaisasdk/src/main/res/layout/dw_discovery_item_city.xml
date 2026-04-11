@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="android.view.View" />
+        <variable name="name" type="String" />
+        <variable name="imageUrl" type="String" />
+        <variable name="showImage" type="boolean" />
+    </data>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="170dp"
+        android:layout_height="146dp"
+        android:layout_marginEnd="12dp"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="1dp"
+        app:cardBackgroundColor="@color/dw_discovery_white"
+        app:strokeColor="@color/dw_discovery_white"
+        app:cardUseCompatPadding="true"
+        app:cardPreventCornerOverlap="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <ImageView
+                android:id="@+id/imgCity"
+                android:layout_width="138dp"
+                android:layout_height="93dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/dw_discovery_bg_light_green_rounded"
+                android:scaleType="centerCrop"
+                android:src="@drawable/dw_discovery_ic_islamabad"
+                android:visibility="@{showImage ? View.VISIBLE : View.GONE}"
+                app:dw_discovery_imageUrl="@{imageUrl}" />
+
+            <com.discountworld.easypaisasdk.reusables.TextViewBold
+                android:id="@+id/txtCity"
+                android:layout_width="138dp"
+                android:layout_height="16dp"
+                android:text="@{name}"
+                android:textColor="@android:color/black"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</layout>

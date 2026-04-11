@@ -11,14 +11,14 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.discountworld.easypaisasdk.adapters.VendorAdapter
-import com.discountworld.easypaisasdk.databinding.FragmentSearchBinding
+import com.discountworld.easypaisasdk.databinding.DwDiscoveryFragmentSearchBinding
 import com.discountworld.easypaisasdk.managers.CoroutineTask
 import com.discountworld.easypaisasdk.repositories.HomeRepository
 import com.discountworld.easypaisasdk.utils.TypeFaceUtils
 
 class SearchFragment : Fragment() {
 
-    private var _binding: FragmentSearchBinding? = null
+    private var _binding: DwDiscoveryFragmentSearchBinding? = null
     private val binding get() = _binding!!
 
     private val repository = HomeRepository()
@@ -31,7 +31,7 @@ class SearchFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        _binding = FragmentSearchBinding.inflate(inflater, container, false)
+        _binding = DwDiscoveryFragmentSearchBinding.inflate(inflater, container, false)
         return binding.root
     }
 

@@ -6,15 +6,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@color/white"
+    android:background="@color/dw_discovery_white"
     tools:context=".fragments.HomeFragment">
 
     <ImageButton
         android:id="@+id/back"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:background="@drawable/image_bg"
-        android:src="@drawable/ic_backs"
+        android:background="@drawable/dw_discovery_image_bg"
+        android:src="@drawable/dw_discovery_ic_backs"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
         app:layout_constraintStart_toStartOf="parent"
@@ -28,15 +28,15 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
-        android:background="@drawable/search_bar_bg"
+        android:background="@drawable/dw_discovery_search_bar_bg"
         android:drawablePadding="8dp"
-        android:hint="@string/search_discounts"
-        android:textColorHint="@color/gray"
-        android:textColor="@color/black"
+        android:hint="@string/dw_discovery_search_discounts"
+        android:textColorHint="@color/dw_discovery_gray"
+        android:textColor="@color/dw_discovery_black"
         android:paddingStart="10dp"
         android:gravity="center_vertical"
         android:maxLines="1"
-        app:drawableStartCompat="@drawable/ic_search"
+        app:drawableStartCompat="@drawable/dw_discovery_ic_search"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/back"
         app:layout_constraintTop_toTopOf="parent" />
@@ -300,8 +300,8 @@
                 android:id="@+id/offers_and_discounts"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/offers_discount"
-                android:textColor="@color/black"
+                android:text="@string/dw_discovery_offers_discount"
+                android:textColor="@color/dw_discovery_black"
                 android:layout_marginStart="16dp"
                 android:textSize="22sp"
                 android:textStyle="bold"
@@ -312,13 +312,13 @@
                 android:id="@+id/category"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/white"
+                android:background="@color/dw_discovery_white"
                 app:tabMode="scrollable"
-                app:tabIndicatorColor="@color/green"
+                app:tabIndicatorColor="@color/dw_discovery_green"
                 app:tabIndicatorHeight="3dp"
                 app:tabIndicatorFullWidth="true"
                 app:tabTextColor="#9E9E9E"
-                app:tabSelectedTextColor="@color/black"
+                app:tabSelectedTextColor="@color/dw_discovery_black"
                 android:layout_marginHorizontal="16dp"
                 app:tabRippleColor="@android:color/transparent" />
 
@@ -327,7 +327,7 @@
                 android:id="@+id/nested_scroll"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/d_gray">
+                android:background="@color/dw_discovery_d_gray">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -348,8 +348,8 @@
                         <com.discountworld.easypaisasdk.reusables.TextViewBold
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="@string/in_your_city_discounts"
-                            android:textColor="@color/black"
+                            android:text="@string/dw_discovery_in_your_city_discounts"
+                            android:textColor="@color/dw_discovery_black"
                             android:textStyle="bold"
                             android:textSize="16sp"
                             android:layout_weight="0.8" />
@@ -358,10 +358,10 @@
                             android:id="@+id/seeAllCities"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="@string/see_all"
+                            android:text="@string/dw_discovery_see_all"
                             android:textStyle="bold"
                             android:textSize="14sp"
-                            android:textColor="@color/green"
+                            android:textColor="@color/dw_discovery_green"
                             android:layout_weight="0.2"
                             android:gravity="end" />
 
@@ -380,8 +380,8 @@
                         android:id="@+id/lv_featured_vendor"
                         android:layout_width="match_parent"
                         android:layout_height="298dp"
-                        app:cardBackgroundColor="@color/white"
-                        app:strokeColor="@color/dim_gray"
+                        app:cardBackgroundColor="@color/dw_discovery_white"
+                        app:strokeColor="@color/dw_discovery_dim_gray"
                         android:layout_marginTop="16dp"
                         app:cardCornerRadius="16dp">
 
@@ -396,7 +396,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="200dp"
                                 android:scaleType="centerCrop"
-                                android:src="@drawable/ic_banner"/>
+                                android:src="@drawable/dw_discovery_ic_banner"/>
 
                             <LinearLayout
                                 android:padding="12dp"
@@ -408,7 +408,7 @@
                                     android:id="@+id/txtTitle"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textColor="@color/black"
+                                    android:textColor="@color/dw_discovery_black"
                                     android:textStyle="bold"
                                     android:textSize="16sp"/>
 
@@ -416,7 +416,7 @@
                                     android:id="@+id/txtSubtitle"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textColor="@color/black"
+                                    android:textColor="@color/dw_discovery_black"
                                     android:layout_marginTop="5dp"
                                     android:layout_marginBottom="5dp"
                                     android:ellipsize="end"
@@ -427,8 +427,8 @@
                                     android:id="@+id/txtTerms"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/terms_applied"
-                                    android:textColor="@color/green"
+                                    android:text="@string/dw_discovery_terms_applied"
+                                    android:textColor="@color/dw_discovery_green"
                                     android:textSize="12sp"/>
 
                             </LinearLayout>
@@ -441,7 +441,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Top Brands"
-                        android:textColor="@color/black"
+                        android:textColor="@color/dw_discovery_black"
                         android:textStyle="bold"
                         android:textSize="16sp"
                         android:layout_marginTop="16dp"/>

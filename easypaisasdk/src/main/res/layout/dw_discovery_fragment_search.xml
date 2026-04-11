@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/dw_discovery_white"
     android:padding="16dp"
     tools:context=".fragments.SearchFragment">
 
@@ -12,8 +12,8 @@
         android:id="@+id/back"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:background="@drawable/image_bg"
-        android:src="@drawable/ic_backs"
+        android:background="@drawable/dw_discovery_image_bg"
+        android:src="@drawable/dw_discovery_ic_backs"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
@@ -23,13 +23,13 @@
         android:layout_width="0dp"
         android:layout_height="40dp"
         android:layout_marginHorizontal="10dp"
-        android:background="@drawable/search_bar_bg"
+        android:background="@drawable/dw_discovery_search_bar_bg"
         android:drawablePadding="8dp"
-        android:hint="@string/search_discounts"
-        android:textColorHint="@color/gray"
-        android:textColor="@color/black"
+        android:hint="@string/dw_discovery_search_discounts"
+        android:textColorHint="@color/dw_discovery_gray"
+        android:textColor="@color/dw_discovery_black"
         android:paddingStart="10dp"
-        app:drawableStartCompat="@drawable/ic_search"
+        app:drawableStartCompat="@drawable/dw_discovery_ic_search"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/back"
         app:layout_constraintTop_toTopOf="parent" />
@@ -45,7 +45,7 @@
         app:layout_constraintTop_toBottomOf="@id/back"
         android:divider="@android:color/transparent"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/item_banner_card" />
+        tools:listitem="@layout/dw_discovery_item_banner_card" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

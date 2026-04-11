@@ -21,13 +21,13 @@ import com.discountworld.discovery.VendorFullDetail
 import com.discountworld.easypaisasdk.R
 import com.discountworld.easypaisasdk.adapters.CardsAdapter
 import com.discountworld.easypaisasdk.adapters.OutletsAdapter
-import com.discountworld.easypaisasdk.databinding.FragmentUserDetailBinding
+import com.discountworld.easypaisasdk.databinding.DwDiscoveryFragmentUserDetailBinding
 import com.discountworld.easypaisasdk.repositories.DetailRepository
 import kotlinx.coroutines.launch
 
 class UserDetailFragment : Fragment() {
 
-    private var _binding: FragmentUserDetailBinding? = null
+    private var _binding: DwDiscoveryFragmentUserDetailBinding? = null
     private val binding get() = _binding!!
 
     private val repository = DetailRepository()
@@ -42,7 +42,7 @@ class UserDetailFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentUserDetailBinding.inflate(inflater, container, false)
+        _binding = DwDiscoveryFragmentUserDetailBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -79,10 +79,10 @@ class UserDetailFragment : Fragment() {
             findNavController().navigate(R.id.action_userDetailFragment_to_homeFragment)
         }
         requireActivity().window.statusBarColor =
-            requireContext().getColor(R.color.dim_gray)
+            requireContext().getColor(R.color.dw_discovery_dim_gray)
 
         requireActivity().window.navigationBarColor =
-            requireContext().getColor(R.color.dim_gray)
+            requireContext().getColor(R.color.dw_discovery_dim_gray)
     }
 
     private fun loadBranches() {
@@ -160,8 +160,8 @@ class UserDetailFragment : Fragment() {
                                     RoundedCorners(24) // 👈 Rounded corners
                                 )
                         )
-                        .placeholder(R.drawable.ic_banner)
-                        .error(R.drawable.ic_banner)
+                        .placeholder(R.drawable.dw_discovery_ic_banner)
+                        .error(R.drawable.dw_discovery_ic_banner)
                         .into(binding.bannerImage)
                 }
             } catch (e: Exception) {
@@ -174,8 +174,8 @@ class UserDetailFragment : Fragment() {
 
     private fun showTermsPopup(terms: String) {
 
-        val dialog = Dialog(requireContext(), R.style.CenterDialogTheme)
-        dialog.setContentView(R.layout.dialog_terms_conditions)
+        val dialog = Dialog(requireContext(), R.style.DwDiscovery_CenterDialogTheme)
+        dialog.setContentView(R.layout.dw_discovery_dialog_terms_conditions)
 
         val tvTerms = dialog.findViewById<TextView>(R.id.tvTerms)
 

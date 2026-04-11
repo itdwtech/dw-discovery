@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable name="cardTitle" type="String" />
+        <variable name="cardDate" type="String" />
+        <variable name="cardTerms" type="String" />
+        <variable name="cardImageUrl" type="String" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="@color/dw_discovery_white"
+        android:background="@drawable/dw_discovery_rounded_bg">
+
+        <ImageView
+            android:id="@+id/bankCardImage"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/dw_discovery_ic_bank_card"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="10dp"
+            app:dw_discovery_imageUrl="@{cardImageUrl}"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.discountworld.easypaisasdk.reusables.TextViewBold
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{cardTitle}"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/dw_discovery_black"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/bankCardImage"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.discountworld.easypaisasdk.reusables.TextViewRegular
+            android:id="@+id/description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{cardDate}"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/dw_discovery_black"
+            android:textSize="14sp"
+            android:textStyle="normal"
+            app:layout_constraintStart_toEndOf="@+id/bankCardImage"
+            app:layout_constraintTop_toBottomOf="@+id/title" />
+
+        <com.discountworld.easypaisasdk.reusables.TextViewThin
+            android:id="@+id/terms"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{cardTerms}"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/dw_discovery_black"
+            android:textSize="14sp"
+            android:textStyle="normal"
+            app:layout_constraintStart_toEndOf="@+id/bankCardImage"
+            app:layout_constraintTop_toBottomOf="@+id/description" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

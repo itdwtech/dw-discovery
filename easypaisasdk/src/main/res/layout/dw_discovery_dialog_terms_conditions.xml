@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
     app:cardCornerRadius="16dp"
-    android:backgroundTint="@color/white"
+    android:backgroundTint="@color/dw_discovery_white"
     app:cardElevation="4dp">
 
     <LinearLayout
@@ -20,11 +20,11 @@
             android:id="@+id/tvTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/terms_conditions"
+            android:text="@string/dw_discovery_terms_conditions"
             android:textStyle="bold"
             android:textSize="16sp"
             android:textAlignment="center"
-            android:textColor="@color/Black"
+            android:textColor="@color/dw_discovery_text_black"
             android:layout_marginBottom="8dp"/>
 
         <!-- Scrollable Terms -->
@@ -36,7 +36,7 @@
                 android:id="@+id/tvTerms"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/Black"
+                android:textColor="@color/dw_discovery_text_black"
                 android:layout_marginVertical="16dp"
                 android:textSize="14sp"
                 android:layout_marginHorizontal="12dp"

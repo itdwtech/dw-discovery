@@ -4,16 +4,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.discountworld.easypaisasdk.databinding.ActivityDiscoveryBinding
+import com.discountworld.easypaisasdk.databinding.DwDiscoveryActivityDiscoveryBinding
 
 class DiscoveryActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityDiscoveryBinding
+    private lateinit var binding: DwDiscoveryActivityDiscoveryBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityDiscoveryBinding.inflate(layoutInflater)
+        binding = DwDiscoveryActivityDiscoveryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         enableEdgeToEdge()

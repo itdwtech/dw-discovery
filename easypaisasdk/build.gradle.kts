@@ -1,6 +1,7 @@
 plugins {
     id("com.android.library")
     alias(libs.plugins.kotlin.android)
+    kotlin("kapt")
     id("androidx.navigation.safeargs.kotlin") version "2.9.7"
     id("com.google.protobuf") version "0.9.4"
 }
@@ -30,6 +31,7 @@ android {
     }
     buildFeatures {
         dataBinding = true
+        viewBinding = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -39,9 +41,6 @@ android {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         }
-    }
-    buildFeatures {
-        viewBinding = true
     }
 
     sourceSets {
