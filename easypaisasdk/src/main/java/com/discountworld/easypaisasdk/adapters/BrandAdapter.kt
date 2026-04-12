@@ -3,6 +3,7 @@ package com.discountworld.easypaisasdk.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.discountworld.discovery.VendorSummary
 import com.discountworld.easypaisasdk.databinding.DwDiscoveryItemBannerBinding
 
@@ -26,9 +27,11 @@ class BrandAdapter(
     override fun onBindViewHolder(holder: BrandViewHolder, position: Int) {
         val brand = vendor[position]
 
-        holder.binding.name = brand.companyName
-        holder.binding.imageUrl = brand.logoUrl
-        holder.binding.executePendingBindings()
+        holder.binding.txtBanner.text = brand.companyName
+
+        Glide.with(holder.itemView.context)
+            .load(brand.logoUrl)
+            .into(holder.binding.imgBanner)
 
         holder.binding.root.setOnClickListener {
             onClick(brand)

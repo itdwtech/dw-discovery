@@ -3,9 +3,11 @@ package com.discountworld.easypaisasdk.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.discountworld.discovery.Banner
 import com.discountworld.discovery.VendorSummary
+import com.discountworld.easypaisasdk.R
 import com.discountworld.easypaisasdk.databinding.DwDiscoveryItemBannerCardBinding
+import com.bumptech.glide.Glide
+import com.discountworld.discovery.Banner
 
 class VendorAdapter(
     private val vendors: List<VendorSummary>,
@@ -29,10 +31,15 @@ class VendorAdapter(
         val vendor = vendors[position]
         val banner = banners?.firstOrNull { it.vendorId == vendor.id }
 
-        holder.binding.title = vendor.title ?: ""
-        holder.binding.subtitle = "with easypaisa premium debit card "
-        holder.binding.imageUrl = banner?.imageUrl ?: vendor.logoUrl
-        holder.binding.executePendingBindings()
+        holder.binding.txtTitle.text = vendor.title ?: ""
+        holder.binding.txtSubtitle.text = "with easypaisa premium debit card "
+
+        Glide.with(holder.binding.root.context)
+            .load(banner?.imageUrl ?: vendor.logoUrl)
+            .placeholder(R.drawable.dw_discovery_ic_banner)
+            .error(R.drawable.dw_discovery_ic_banner)
+            .centerCrop()
+            .into(holder.binding.imgBanner)
 
         holder.binding.root.setOnClickListener {
             onClick(vendor)

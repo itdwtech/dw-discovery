@@ -1,7 +1,6 @@
 plugins {
     id("com.android.library")
     alias(libs.plugins.kotlin.android)
-    kotlin("kapt")
     id("androidx.navigation.safeargs.kotlin") version "2.9.7"
     id("com.google.protobuf") version "0.9.4"
 }
@@ -30,7 +29,6 @@ android {
         }
     }
     buildFeatures {
-        dataBinding = true
         viewBinding = true
     }
     compileOptions {

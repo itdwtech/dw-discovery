@@ -3,7 +3,9 @@ package com.discountworld.easypaisasdk.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.discountworld.discovery.Branch
+import com.discountworld.easypaisasdk.R
 import com.discountworld.easypaisasdk.databinding.DwDiscoveryItemOutletsBinding
 
 class OutletsAdapter(private var list: List<Branch>) :
@@ -25,11 +27,14 @@ class OutletsAdapter(private var list: List<Branch>) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val store = list[position]
-
-        holder.binding.name = store.name
-        holder.binding.address = store.address
-        holder.binding.logoUrl = brandUrl
-        holder.binding.executePendingBindings()
+        with(holder.binding) {
+            tvName.text = store.name
+            tvAddress.text = store.address
+            Glide.with(holder.binding.root.context)
+                .load(brandUrl)
+                .placeholder(R.drawable.dw_discovery_ic_outlets)
+                .into(imgLogo)
+        }
     }
 
     override fun getItemCount(): Int = list.size

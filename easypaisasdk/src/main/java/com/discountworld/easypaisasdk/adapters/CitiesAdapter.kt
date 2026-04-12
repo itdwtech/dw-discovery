@@ -25,9 +25,7 @@ class CitiesAdapter(
 
     override fun onBindViewHolder(holder: CityViewHolder, position: Int) {
         val city = cities[position]
-
-        holder.binding.name = city.name
-        holder.binding.executePendingBindings()
+        holder.binding.txtCity.text = city.name
 
         holder.binding.root.setOnClickListener {
             onCityClick(city)
