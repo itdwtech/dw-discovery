@@ -223,7 +223,7 @@ class HomeFragment : Fragment() {
                     setupBrands()
                     loadFeaturedVendor()
                     setupVendorsList()
-                    requireContext().toast("Selected city is ${city.name}")
+                    //requireContext().toast("Selected city is ${city.name}")
                 }
                 binding.rcyCities.adapter = cityAdapter
             }
