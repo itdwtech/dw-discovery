@@ -13,14 +13,14 @@
         <item name="android:windowIsFloating">true</item>
         <item name="android:backgroundDimEnabled">true</item>
     </style>
-    <style name="DwDiscovery.TermsText">
+    <style name="DwDiscovery_TermsText">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textSize">13sp</item>
         <item name="android:textColor">@color/dw_discovery_text_black</item>
         <item name="android:layout_marginBottom">8dp</item>
     </style>
-    <style name="DwDiscovery.RoundedImage">
+    <style name="DwDiscovery_RoundedImage">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">12dp</item>
     </style>
