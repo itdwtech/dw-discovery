@@ -215,8 +215,14 @@ class HomeFragment : Fragment() {
         }, { cities ->
 
             if (!cities.isNullOrEmpty()) {
-                cityAdapter = CityAdapter(cities){ city ->
+                // Default to first city if location hasn't resolved yet
+                if (cityId == null) {
+                    cityId = cities.first().id
+                }
+
+                cityAdapter = CityAdapter(cities, selectedCityId = cityId){ city ->
                     cityId = city.id
+                    cityAdapter?.setSelectedCity(cityId)
                     setupBrands()
                     loadFeaturedVendor()
                     setupVendorsList()
@@ -501,6 +507,7 @@ class HomeFragment : Fragment() {
             if (city != null) {
                 cityId = city.id
                 txtLocation.text = city.name
+                cityAdapter?.setSelectedCity(cityId)
                 Log.d("grpc", "Nearest City: ${city.name}")
 
             }
@@ -529,8 +536,9 @@ class HomeFragment : Fragment() {
         }, { cities ->
 
             if (!cities.isNullOrEmpty()) {
-                dialogBinding.rvAllCities.adapter = CitiesAdapter(cities){ city ->
+                dialogBinding.rvAllCities.adapter = CitiesAdapter(cities, selectedCityId = cityId){ city ->
                     cityId = city.id
+                    cityAdapter?.setSelectedCity(cityId)
                     setupBrands()
                     loadFeaturedVendor()
                     setupVendorsList()
