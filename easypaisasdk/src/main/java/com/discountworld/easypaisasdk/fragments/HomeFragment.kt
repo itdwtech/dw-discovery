@@ -167,12 +167,13 @@ class HomeFragment : Fragment() {
         binding.seeAllCities.visibility = View.VISIBLE
 
         val selectedTabPosition = binding.category.selectedTabPosition
+        val categoryIndex = selectedTabPosition - 1
 
-        if (selectedTabPosition == 0) {
+        if (selectedTabPosition <= 0 || categoryIndex >= categoriesList.size) {
             selectedCategoryId = null
             setupVendorsList()
         } else {
-            selectedCategoryId = categoriesList[selectedTabPosition - 1].id
+            selectedCategoryId = categoriesList[categoryIndex].id
             loadVendorsByCategory(selectedCategoryId!!)
         }
     }
