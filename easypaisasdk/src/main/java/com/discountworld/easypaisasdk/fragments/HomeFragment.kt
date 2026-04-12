@@ -56,6 +56,17 @@ class HomeFragment : Fragment() {
     private var isSearching = false
 
     private var selectedCategoryId: Long? = null
+    private var selectedTabPosition: Int = 0
+    private var isInitialLoad = true
+
+    // Cached adapters and data (survive view destruction on back stack)
+    private var cityAdapter: CityAdapter? = null
+    private var brandAdapter: BrandAdapter? = null
+    private var vendorAdapter: VendorAdapter? = null
+    private var cachedFeaturedVendor: com.discountworld.discovery.VendorSummary? = null
+    private var cachedBannerUrl: String? = null
+    // Cache vendor adapters keyed by (cityId, categoryId)
+    private val vendorCache = mutableMapOf<Pair<Long?, Long?>, VendorAdapter>()
 
 
     private val requestPermissionLauncher =
@@ -87,28 +98,29 @@ class HomeFragment : Fragment() {
         sharedPreferences =
             requireActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
+        // Prevent Android from restoring EditText text (triggers TextWatcher too early)
+        binding.search.isSaveEnabled = false
 
-        shimmerStarted()
-        checkLocationPermissionAndFetch()
         setupStatusBar()
-        loadCategories()
-        loadCities()
-        setupBrands()
-        loadFeaturedVendor()
-        setupVendorsList()
-//      setupBanners()
+
+        if (isInitialLoad) {
+            shimmerStarted()
+            checkLocationPermissionAndFetch()
+            loadCategories()
+            loadCities()
+            setupBrands()
+            loadFeaturedVendor()
+            setupVendorsList()
+            isInitialLoad = false
+        } else {
+            // Returning from detail screen — re-attach cached data to new views, no API calls
+            restoreFromCache()
+        }
 
         binding.seeAllCities.setOnClickListener {
             showCityPopup()
         }
 
-        binding.card.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_userDetailFragment)
-        }
-
-//        binding.search.setOnClickListener {
-//            findNavController().navigate(R.id.action_homeFragment_to_searchFragment)
-//        }
         binding.search.addTextChangedListener(object : TextWatcher {
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -203,13 +215,14 @@ class HomeFragment : Fragment() {
         }, { cities ->
 
             if (!cities.isNullOrEmpty()) {
-                binding.rcyCities.adapter = CityAdapter(cities){ city ->
+                cityAdapter = CityAdapter(cities){ city ->
                     cityId = city.id
                     setupBrands()
                     loadFeaturedVendor()
                     setupVendorsList()
                     requireContext().toast("Selected city is ${city.name}")
                 }
+                binding.rcyCities.adapter = cityAdapter
             }
 
         })
@@ -243,6 +256,7 @@ class HomeFragment : Fragment() {
                 binding.category.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
 
                     override fun onTabSelected(tab: TabLayout.Tab) {
+                        selectedTabPosition = tab.position
 
                         val typeface = TypeFaceUtils.get(requireContext(), FONT_BOLD)
                         (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
@@ -306,7 +320,7 @@ class HomeFragment : Fragment() {
         }, { vendors ->
 
             if(!vendors.isNullOrEmpty()){
-                binding.rcyTopBrands.adapter = BrandAdapter(vendors) { vendor ->
+                brandAdapter = BrandAdapter(vendors) { vendor ->
                     val action = HomeFragmentDirections
                         .actionHomeFragmentToUserDetailFragment(
                             bannerTitle = vendor.companyName,
@@ -317,6 +331,7 @@ class HomeFragment : Fragment() {
 
                     findNavController().navigate(action)
                 }
+                binding.rcyTopBrands.adapter = brandAdapter
             }
         })
     }
@@ -324,12 +339,20 @@ class HomeFragment : Fragment() {
 
         binding.rcyVendors.layoutManager = LinearLayoutManager(requireContext())
 
+        val key = Pair(cityId, null as Long?)
+        val cached = vendorCache[key]
+        if (cached != null) {
+            vendorAdapter = cached
+            binding.rcyVendors.adapter = vendorAdapter
+            return
+        }
+
         lifecycleScope.launch {
 
             val vendors = repository.getListOfVendors(cityId = cityId) ?: emptyList()
             val banners = repository.getBanners() ?: emptyList()
 
-            binding.rcyVendors.adapter = VendorAdapter(
+            vendorAdapter = VendorAdapter(
                 vendors = vendors,
                 banners = banners
             ) { vendor ->
@@ -344,6 +367,8 @@ class HomeFragment : Fragment() {
 
                 findNavController().navigate(action)
             }
+            vendorCache[key] = vendorAdapter!!
+            binding.rcyVendors.adapter = vendorAdapter
         }
     }
 
@@ -371,13 +396,16 @@ class HomeFragment : Fragment() {
 
             if (vendor != null) {
 
+                cachedFeaturedVendor = vendor
+                cachedBannerUrl = banner?.imageUrl ?: vendor.logoUrl
+
                 // ✅ Vendor Data (Title + Description)
                 binding.txtTitle.text = vendor.title ?: ""
                 binding.txtSubtitle.text = "with easypaisa premium debit card "
 
                 // ✅ Banner Image (from Banner API)
                 Glide.with(requireContext())
-                    .load(banner?.imageUrl ?: vendor.logoUrl) // fallback added
+                    .load(cachedBannerUrl)
                     .placeholder(R.drawable.dw_discovery_ic_banner)
                     .error(R.drawable.dw_discovery_ic_banner)
                     .centerCrop()
@@ -536,16 +564,23 @@ class HomeFragment : Fragment() {
     }
     private fun loadVendorsByCategory(categoryId: Long) {
 
+        val key = Pair(cityId, categoryId as Long?)
+        val cached = vendorCache[key]
+        if (cached != null) {
+            binding.rcyVendors.adapter = cached
+            return
+        }
+
         lifecycleScope.launch {
 
             val vendors = repository.getListOfVendors(
                 categoryId = categoryId,
-                cityId = cityId   // ✅ city filter added
+                cityId = cityId
             ) ?: emptyList()
 
             val banners = repository.getBanners() ?: emptyList()
 
-            binding.rcyVendors.adapter = VendorAdapter(
+            val adapter = VendorAdapter(
                 vendors = vendors,
                 banners = banners
             ) { vendor ->
@@ -560,6 +595,8 @@ class HomeFragment : Fragment() {
 
                 findNavController().navigate(action)
             }
+            vendorCache[key] = adapter
+            binding.rcyVendors.adapter = adapter
         }
     }
 
@@ -567,6 +604,104 @@ class HomeFragment : Fragment() {
         val params = view.layoutParams as ViewGroup.MarginLayoutParams
         params.setMargins(left.toPx(), top.toPx(), right.toPx(), bottom.toPx())
         view.layoutParams = params
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun restoreFromCache() {
+        // Re-attach cached adapters to new views — no API calls
+        binding.rcyCities.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        cityAdapter?.let { binding.rcyCities.adapter = it }
+
+        binding.rcyTopBrands.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        brandAdapter?.let { binding.rcyTopBrands.adapter = it }
+
+        binding.rcyVendors.layoutManager = LinearLayoutManager(requireContext())
+        vendorAdapter?.let { binding.rcyVendors.adapter = it }
+
+        // Restore featured vendor
+        cachedFeaturedVendor?.let { vendor ->
+            binding.txtTitle.text = vendor.title ?: ""
+            binding.txtSubtitle.text = "with easypaisa premium debit card "
+
+            Glide.with(requireContext())
+                .load(cachedBannerUrl)
+                .placeholder(R.drawable.dw_discovery_ic_banner)
+                .error(R.drawable.dw_discovery_ic_banner)
+                .centerCrop()
+                .into(binding.imgBanner)
+
+            binding.card.setOnClickListener {
+                val action = HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
+                    bannerTitle = vendor.companyName ?: "",
+                    bannerSubtitle = vendor.description ?: "",
+                    bannerTerms = vendor.title ?: "",
+                    vendorId = vendor.id
+                )
+                findNavController().navigate(action)
+            }
+        }
+
+        // Restore category tabs
+        if (categoriesList.isNotEmpty()) {
+            binding.category.removeAllTabs()
+            binding.category.addTab(binding.category.newTab().setText("All"))
+            categoriesList.forEach {
+                binding.category.addTab(binding.category.newTab().setText(it.name))
+            }
+            binding.category.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab) {
+                    selectedTabPosition = tab.position
+
+                    val typeface = TypeFaceUtils.get(requireContext(), FONT_BOLD)
+                    (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
+
+                    val isVisible = if (tab.position == 0) View.VISIBLE else View.GONE
+                    binding.lvCity.visibility = isVisible
+                    binding.lvFeaturedVendor.visibility = isVisible
+                    binding.rcyCities.visibility = isVisible
+                    binding.rcyTopBrands.visibility = isVisible
+                    binding.tvTopBrands.visibility = isVisible
+
+                    if (tab.position == 0) {
+                        binding.search.setText("")
+                        selectedCategoryId = null
+                        addMargin(binding.rcyVendors, 0, 0, 0, 0)
+                    } else {
+                        selectedCategoryId = categoriesList[tab.position - 1].id
+                        addMargin(binding.rcyVendors, 16, 0, 0, 0)
+                    }
+
+                    val searchText = binding.search.text.toString()
+                    if (searchText.isNotEmpty()) {
+                        findVendor(searchText)
+                        return
+                    }
+
+                    if (tab.position == 0) {
+                        setupVendorsList()
+                    } else {
+                        loadVendorsByCategory(selectedCategoryId!!)
+                    }
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab) {
+                    val typeface = TypeFaceUtils.get(requireContext(), FONT_REG)
+                    (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
+                }
+
+                override fun onTabReselected(tab: TabLayout.Tab) {}
+            })
+
+            // Restore previously selected tab
+            if (selectedTabPosition in 0 until binding.category.tabCount) {
+                binding.category.getTabAt(selectedTabPosition)?.select()
+            }
+        }
+
+        // Show content immediately — no shimmer
+        shimmerStopped()
     }
 
     private fun shimmerStarted(){

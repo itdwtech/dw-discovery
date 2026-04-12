@@ -6,10 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
-    <application
-        android:allowBackup="false"
-        android:label="@string/dw_discovery_app_name"
-        android:supportsRtl="true">
+    <application>
         <activity
             android:name="com.discountworld.easypaisasdk.activities.DiscoveryActivity"
             android:exported="true">
