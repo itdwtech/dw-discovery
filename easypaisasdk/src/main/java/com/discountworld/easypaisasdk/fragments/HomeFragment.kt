@@ -59,14 +59,18 @@ class HomeFragment : Fragment() {
     private var selectedTabPosition: Int = 0
     private var isInitialLoad = true
 
-    // Cached adapters and data (survive view destruction on back stack)
+    // Cached adapters (survive view destruction on back stack)
     private var cityAdapter: CityAdapter? = null
     private var brandAdapter: BrandAdapter? = null
     private var vendorAdapter: VendorAdapter? = null
     private var cachedFeaturedVendor: com.discountworld.discovery.VendorSummary? = null
     private var cachedBannerUrl: String? = null
-    // Cache vendor adapters keyed by (cityId, categoryId)
-    private val vendorCache = mutableMapOf<Pair<Long?, Long?>, VendorAdapter>()
+
+    // Data caches keyed by cityId or (cityId, categoryId)
+    private var cachedBanners: List<com.discountworld.discovery.Banner>? = null
+    private val vendorDataCache = mutableMapOf<Pair<Long?, Long?>, List<com.discountworld.discovery.VendorSummary>>()
+    private val brandDataCache = mutableMapOf<Long?, List<com.discountworld.discovery.VendorSummary>>()
+    private val featuredDataCache = mutableMapOf<Long?, Pair<com.discountworld.discovery.VendorSummary?, String?>>()
 
 
     private val requestPermissionLauncher =
@@ -319,6 +323,13 @@ class HomeFragment : Fragment() {
         binding.rcyTopBrands.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
 
+        val cached = brandDataCache[cityId]
+        if (cached != null) {
+            brandAdapter = createBrandAdapter(cached)
+            binding.rcyTopBrands.adapter = brandAdapter
+            return
+        }
+
         CoroutineTask.ioThenMain({
 
             repository.getListOfVendors(featured = true, cityId = cityId)
@@ -326,29 +337,33 @@ class HomeFragment : Fragment() {
         }, { vendors ->
 
             if(!vendors.isNullOrEmpty()){
-                brandAdapter = BrandAdapter(vendors) { vendor ->
-                    val action = HomeFragmentDirections
-                        .actionHomeFragmentToUserDetailFragment(
-                            bannerTitle = vendor.companyName,
-                            bannerSubtitle = vendor.description,
-                            bannerTerms = vendor.title,
-                            vendorId = vendor.id
-                        )
-
-                    findNavController().navigate(action)
-                }
+                brandDataCache[cityId] = vendors
+                brandAdapter = createBrandAdapter(vendors)
                 binding.rcyTopBrands.adapter = brandAdapter
             }
         })
+    }
+
+    private fun createBrandAdapter(vendors: List<com.discountworld.discovery.VendorSummary>): BrandAdapter {
+        return BrandAdapter(vendors) { vendor ->
+            val action = HomeFragmentDirections
+                .actionHomeFragmentToUserDetailFragment(
+                    bannerTitle = vendor.companyName,
+                    bannerSubtitle = vendor.description,
+                    bannerTerms = vendor.title,
+                    vendorId = vendor.id
+                )
+            findNavController().navigate(action)
+        }
     }
     private fun setupVendorsList() {
 
         binding.rcyVendors.layoutManager = LinearLayoutManager(requireContext())
 
         val key = Pair(cityId, null as Long?)
-        val cached = vendorCache[key]
-        if (cached != null) {
-            vendorAdapter = cached
+        val cachedVendors = vendorDataCache[key]
+        if (cachedVendors != null) {
+            vendorAdapter = createVendorAdapter(cachedVendors, cachedBanners ?: emptyList())
             binding.rcyVendors.adapter = vendorAdapter
             return
         }
@@ -356,30 +371,27 @@ class HomeFragment : Fragment() {
         lifecycleScope.launch {
 
             val vendors = repository.getListOfVendors(cityId = cityId) ?: emptyList()
-            val banners = repository.getBanners() ?: emptyList()
-
-            vendorAdapter = VendorAdapter(
-                vendors = vendors,
-                banners = banners
-            ) { vendor ->
-
-                val action = HomeFragmentDirections
-                    .actionHomeFragmentToUserDetailFragment(
-                        bannerTitle = vendor.companyName,
-                        bannerSubtitle = vendor.description,
-                        bannerTerms = vendor.title,
-                        vendorId = vendor.id
-                    )
-
-                findNavController().navigate(action)
+            if (cachedBanners == null) {
+                cachedBanners = repository.getBanners() ?: emptyList()
             }
-            vendorCache[key] = vendorAdapter!!
+
+            vendorDataCache[key] = vendors
+            vendorAdapter = createVendorAdapter(vendors, cachedBanners!!)
             binding.rcyVendors.adapter = vendorAdapter
         }
     }
 
     @SuppressLint("SetTextI18n")
     private fun loadFeaturedVendor() {
+
+        val cached = featuredDataCache[cityId]
+        if (cached != null) {
+            cachedFeaturedVendor = cached.first
+            cachedBannerUrl = cached.second
+            bindFeaturedVendor()
+            shimmerStopped()
+            return
+        }
 
         CoroutineTask.ioThenMain({
 
@@ -401,45 +413,50 @@ class HomeFragment : Fragment() {
             val banner = banners?.firstOrNull()
 
             if (vendor != null) {
-
                 cachedFeaturedVendor = vendor
                 cachedBannerUrl = banner?.imageUrl ?: vendor.logoUrl
-
-                // ✅ Vendor Data (Title + Description)
-                binding.txtTitle.text = vendor.title ?: ""
-                binding.txtSubtitle.text = "with easypaisa premium debit card "
-
-                // ✅ Banner Image (from Banner API)
-                Glide.with(requireContext())
-                    .load(cachedBannerUrl)
-                    .placeholder(R.drawable.dw_discovery_ic_banner)
-                    .error(R.drawable.dw_discovery_ic_banner)
-                    .centerCrop()
-                    .into(binding.imgBanner)
-
-                // ✅ Click Navigation (Vendor data)
-                binding.card.setOnClickListener {
-
-                    val action =
-                        HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
-                            bannerTitle = vendor.companyName ?: "",
-                            bannerSubtitle = vendor.description ?: "",
-                            bannerTerms = vendor.title ?: "",
-                            vendorId = vendor.id
-                        )
-
-                    findNavController().navigate(action)
+                featuredDataCache[cityId] = Pair(vendor, cachedBannerUrl)
+                if (cachedBanners == null && banners != null) {
+                    cachedBanners = banners
                 }
-
             } else {
-                // Optional empty state
-                binding.txtTitle.text = "No Data"
-                binding.txtSubtitle.text = ""
-                binding.imgBanner.setImageResource(R.drawable.dw_discovery_ic_banner)
+                cachedFeaturedVendor = null
+                cachedBannerUrl = null
             }
 
+            bindFeaturedVendor()
             shimmerStopped()
         })
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun bindFeaturedVendor() {
+        val vendor = cachedFeaturedVendor
+        if (vendor != null) {
+            binding.txtTitle.text = vendor.title ?: ""
+            binding.txtSubtitle.text = "with easypaisa premium debit card "
+
+            Glide.with(requireContext())
+                .load(cachedBannerUrl)
+                .placeholder(R.drawable.dw_discovery_ic_banner)
+                .error(R.drawable.dw_discovery_ic_banner)
+                .centerCrop()
+                .into(binding.imgBanner)
+
+            binding.card.setOnClickListener {
+                val action = HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
+                    bannerTitle = vendor.companyName ?: "",
+                    bannerSubtitle = vendor.description ?: "",
+                    bannerTerms = vendor.title ?: "",
+                    vendorId = vendor.id
+                )
+                findNavController().navigate(action)
+            }
+        } else {
+            binding.txtTitle.text = "No Data"
+            binding.txtSubtitle.text = ""
+            binding.imgBanner.setImageResource(R.drawable.dw_discovery_ic_banner)
+        }
     }
 
     private fun checkLocationPermissionAndFetch() {
@@ -573,9 +590,10 @@ class HomeFragment : Fragment() {
     private fun loadVendorsByCategory(categoryId: Long) {
 
         val key = Pair(cityId, categoryId as Long?)
-        val cached = vendorCache[key]
-        if (cached != null) {
-            binding.rcyVendors.adapter = cached
+        val cachedVendors = vendorDataCache[key]
+        if (cachedVendors != null) {
+            val adapter = createVendorAdapter(cachedVendors, cachedBanners ?: emptyList())
+            binding.rcyVendors.adapter = adapter
             return
         }
 
@@ -586,25 +604,28 @@ class HomeFragment : Fragment() {
                 cityId = cityId
             ) ?: emptyList()
 
-            val banners = repository.getBanners() ?: emptyList()
-
-            val adapter = VendorAdapter(
-                vendors = vendors,
-                banners = banners
-            ) { vendor ->
-
-                val action =
-                    HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
-                        bannerTitle = vendor.companyName,
-                        bannerSubtitle = vendor.description,
-                        bannerTerms = vendor.title,
-                        vendorId = vendor.id
-                    )
-
-                findNavController().navigate(action)
+            if (cachedBanners == null) {
+                cachedBanners = repository.getBanners() ?: emptyList()
             }
-            vendorCache[key] = adapter
+
+            vendorDataCache[key] = vendors
+            val adapter = createVendorAdapter(vendors, cachedBanners!!)
             binding.rcyVendors.adapter = adapter
+        }
+    }
+
+    private fun createVendorAdapter(
+        vendors: List<com.discountworld.discovery.VendorSummary>,
+        banners: List<com.discountworld.discovery.Banner>
+    ): VendorAdapter {
+        return VendorAdapter(vendors = vendors, banners = banners) { vendor ->
+            val action = HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
+                bannerTitle = vendor.companyName,
+                bannerSubtitle = vendor.description,
+                bannerTerms = vendor.title,
+                vendorId = vendor.id
+            )
+            findNavController().navigate(action)
         }
     }
 
