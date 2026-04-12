@@ -76,14 +76,8 @@ class UserDetailFragment : Fragment() {
 
         // Back button
         binding.back.setOnClickListener {
-            //findNavController().navigate(R.id.action_userDetailFragment_to_homeFragment)
             requireActivity().onBackPressed()
         }
-        requireActivity().window.statusBarColor =
-            requireContext().getColor(R.color.dw_discovery_dim_gray)
-
-        requireActivity().window.navigationBarColor =
-            requireContext().getColor(R.color.dw_discovery_dim_gray)
     }
 
     private fun loadBranches() {

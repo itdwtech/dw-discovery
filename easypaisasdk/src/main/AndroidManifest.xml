@@ -9,7 +9,8 @@
     <application>
         <activity
             android:name="com.discountworld.easypaisasdk.activities.DiscoveryActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/DwDiscovery.AppTheme">
         </activity>
     </application>
 

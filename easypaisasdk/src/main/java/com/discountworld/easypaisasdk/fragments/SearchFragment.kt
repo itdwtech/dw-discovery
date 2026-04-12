@@ -1,6 +1,6 @@
 package com.discountworld.easypaisasdk.fragments
 
-import Constants.Companion.FONT_REG
+import com.discountworld.easypaisasdk.variables.Constants.Companion.FONT_REG
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher

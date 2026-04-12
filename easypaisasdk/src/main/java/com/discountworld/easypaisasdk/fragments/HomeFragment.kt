@@ -1,7 +1,7 @@
 package com.discountworld.easypaisasdk.fragments
 
-import Constants.Companion.FONT_BOLD
-import Constants.Companion.FONT_REG
+import com.discountworld.easypaisasdk.variables.Constants.Companion.FONT_BOLD
+import com.discountworld.easypaisasdk.variables.Constants.Companion.FONT_REG
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Dialog
@@ -38,8 +38,8 @@ import com.discountworld.easypaisasdk.utils.LocationUtility
 import com.discountworld.easypaisasdk.utils.TypeFaceUtils
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.launch
-import toPx
-import toast
+import com.discountworld.easypaisasdk.utils.toPx
+import com.discountworld.easypaisasdk.utils.toast
 
 class HomeFragment : Fragment() {
 
@@ -100,7 +100,7 @@ class HomeFragment : Fragment() {
         txtLocation = binding.txtLocation
 
         sharedPreferences =
-            requireActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+            requireActivity().getSharedPreferences("dw_discovery_prefs", Context.MODE_PRIVATE)
 
         // Prevent Android from restoring EditText text (triggers TextWatcher too early)
         binding.search.isSaveEnabled = false
@@ -110,14 +110,9 @@ class HomeFragment : Fragment() {
         if (isInitialLoad) {
             shimmerStarted()
             checkLocationPermissionAndFetch()
-            loadCategories()
-            loadCities()
-            setupBrands()
-            loadFeaturedVendor()
-            setupVendorsList()
+            initialLoad()
             isInitialLoad = false
         } else {
-            // Returning from detail screen — re-attach cached data to new views, no API calls
             restoreFromCache()
         }
 
@@ -193,7 +188,7 @@ class HomeFragment : Fragment() {
             loadVendorsByCategory(selectedCategoryId!!)
         }
     }
-
+    
     private fun setupStatusBar() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -201,10 +196,44 @@ class HomeFragment : Fragment() {
             requireActivity().window.statusBarColor = Color.WHITE
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requireActivity().window.decorView.systemUiVisibility = 0
+                requireActivity().window.decorView.systemUiVisibility =
+                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
             }
         }
+    }
 
+    private fun initialLoad() {
+        // Load cities FIRST (warms gRPC channel + sets cityId),
+        // then load everything else that depends on cityId
+        binding.rcyCities.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+
+        lifecycleScope.launch {
+            // Step 1: fetch cities (this also establishes the gRPC connection)
+            val cities = repository.getListOfCities(true)
+
+            if (!cities.isNullOrEmpty()) {
+                if (cityId == null) {
+                    cityId = cities.first().id
+                }
+
+                cityAdapter = CityAdapter(cities, selectedCityId = cityId) { city ->
+                    cityId = city.id
+                    cityAdapter?.setSelectedCity(cityId)
+                    setupBrands()
+                    loadFeaturedVendor()
+                    setupVendorsList()
+                    requireContext().toast("Selected city is ${city.name}")
+                }
+                binding.rcyCities.adapter = cityAdapter
+            }
+
+            // Step 2: now cityId is set — load everything else
+            loadCategories()
+            setupBrands()
+            loadFeaturedVendor()
+            setupVendorsList()
+        }
     }
 
     private fun loadCities() {

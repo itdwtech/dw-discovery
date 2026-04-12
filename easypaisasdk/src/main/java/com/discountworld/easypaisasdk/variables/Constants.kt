@@ -1,3 +1,5 @@
+package com.discountworld.easypaisasdk.variables
+
 class Constants {
     companion object{
         const val REQUEST_PERMISSION_CODE = 1

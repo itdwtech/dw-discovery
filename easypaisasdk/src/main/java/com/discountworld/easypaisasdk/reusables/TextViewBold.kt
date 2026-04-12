@@ -1,6 +1,6 @@
 package com.discountworld.easypaisasdk.reusables
 
-import Constants.Companion.FONT_BOLD
+import com.discountworld.easypaisasdk.variables.Constants.Companion.FONT_BOLD
 import android.content.Context
 import android.util.AttributeSet
 import androidx.appcompat.widget.AppCompatTextView

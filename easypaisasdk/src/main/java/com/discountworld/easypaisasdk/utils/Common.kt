@@ -1,3 +1,5 @@
+package com.discountworld.easypaisasdk.utils
+
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -16,7 +18,7 @@ fun isAtLeastVersion(version: Int): Boolean {
     return Build.VERSION.SDK_INT >= version
 }
 
-fun Context.nativeLocale() = Locale(getStringPreference(Constants.APP_LOCALE))
+fun Context.nativeLocale() = Locale(getStringPreference(com.discountworld.easypaisasdk.variables.Constants.APP_LOCALE))
 
 fun Context.toast(message: String){
     Toast.makeText(this, message, Toast.LENGTH_LONG).show()

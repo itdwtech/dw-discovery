@@ -2,10 +2,10 @@
 <resources>
     <!-- Base application theme -->
     <style name="DwDiscovery.AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <!-- Make status bar white -->
         <item name="android:statusBarColor">@android:color/white</item>
-        <!-- Make status bar icons dark (so they are visible on white) -->
+        <item name="android:navigationBarColor">@android:color/white</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 
     <style name="DwDiscovery.CenterDialogTheme" parent="Theme.AppCompat.Dialog">

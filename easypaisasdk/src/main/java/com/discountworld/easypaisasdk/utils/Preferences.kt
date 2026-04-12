@@ -1,8 +1,9 @@
+package com.discountworld.easypaisasdk.utils
 
 import android.content.Context
 import android.content.SharedPreferences
 
-private val PREFS_NAME = "preferenceName"
+private val PREFS_NAME = "dw_discovery_prefs"
 
 fun Context.setPreference(key : String , value : String) : Boolean {
     val sharedPreferences: SharedPreferences = this.getSharedPreferences(PREFS_NAME,Context.MODE_PRIVATE)

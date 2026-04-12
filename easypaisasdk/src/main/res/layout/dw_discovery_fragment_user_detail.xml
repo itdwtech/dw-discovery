@@ -202,12 +202,12 @@
             <!-- Terms Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTerms"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Read Terms and Conditions"
                 android:textSize="14sp"
                 android:textColor="@color/dw_discovery_black"
-                android:backgroundTint="@android:color/transparent"
                 app:cornerRadius="24dp"
                 app:strokeColor="@color/dw_discovery_green"
                 app:strokeWidth="1dp"

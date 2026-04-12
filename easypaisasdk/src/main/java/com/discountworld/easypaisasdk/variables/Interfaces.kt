@@ -1,3 +1,5 @@
+package com.discountworld.easypaisasdk.variables
+
 interface FilterCallback{
     fun onChangeFilter(type : String)
 }
