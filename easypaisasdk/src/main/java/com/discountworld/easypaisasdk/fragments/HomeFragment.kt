@@ -132,7 +132,7 @@ class HomeFragment : Fragment() {
         })
 
         binding.back.setOnClickListener {
-            requireActivity().finishAffinity()
+            requireActivity().onBackPressed()
         }
     }
 
