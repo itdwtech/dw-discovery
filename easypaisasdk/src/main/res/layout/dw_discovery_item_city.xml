@@ -1,8 +1,8 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="170dp"
-    android:layout_height="146dp"
+    android:layout_width="130dp"
+    android:layout_height="110dp"
     android:layout_marginEnd="12dp"
     app:cardCornerRadius="14dp"
     app:cardElevation="1dp"
@@ -19,16 +19,17 @@
 
         <ImageView
             android:id="@+id/imgCity"
-            android:layout_width="138dp"
-            android:layout_height="93dp"
+            android:layout_width="90dp"
+            android:layout_height="60dp"
             android:layout_marginTop="8dp"
             android:background="@drawable/dw_discovery_bg_light_green_rounded"
             android:scaleType="centerCrop"/>
 
         <com.discountworld.easypaisasdk.reusables.TextViewBold
             android:id="@+id/txtCity"
-            android:layout_width="138dp"
-            android:layout_height="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
             android:textColor="@android:color/black"
             android:textSize="12sp"
             android:layout_marginTop="4dp" />

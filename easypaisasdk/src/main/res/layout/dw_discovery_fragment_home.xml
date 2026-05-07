@@ -33,6 +33,7 @@
         android:hint="@string/dw_discovery_search_discounts"
         android:textColorHint="@color/dw_discovery_gray"
         android:textColor="@color/dw_discovery_black"
+        android:textSize="14sp"
         android:paddingStart="10dp"
         android:gravity="center_vertical"
         android:maxLines="1"
@@ -320,7 +321,8 @@
                 app:tabTextColor="#9E9E9E"
                 app:tabSelectedTextColor="@color/dw_discovery_black"
                 android:layout_marginHorizontal="16dp"
-                app:tabRippleColor="@android:color/transparent" />
+                app:tabRippleColor="@android:color/transparent"
+                app:tabTextAppearance="@style/TabLayoutTextStyle" />
 
 
             <androidx.core.widget.NestedScrollView
@@ -382,7 +384,6 @@
                         android:layout_height="298dp"
                         app:cardBackgroundColor="@color/dw_discovery_white"
                         app:strokeColor="@color/dw_discovery_dim_gray"
-                        android:layout_marginTop="16dp"
                         app:cardCornerRadius="16dp">
 
                         <LinearLayout

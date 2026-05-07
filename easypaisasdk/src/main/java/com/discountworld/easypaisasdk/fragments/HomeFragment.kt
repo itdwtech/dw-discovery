@@ -188,7 +188,7 @@ class HomeFragment : Fragment() {
             loadVendorsByCategory(selectedCategoryId!!)
         }
     }
-    
+
     private fun setupStatusBar() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -288,7 +288,7 @@ class HomeFragment : Fragment() {
                 // API categories
                 categories.forEach {
                     binding.category.addTab(
-                        binding.category.newTab().setText(it.name)
+                        binding.category.newTab().setText(it.name.toTitleCase())
                     )
                 }
 
@@ -706,7 +706,9 @@ class HomeFragment : Fragment() {
             binding.category.removeAllTabs()
             binding.category.addTab(binding.category.newTab().setText("All"))
             categoriesList.forEach {
-                binding.category.addTab(binding.category.newTab().setText(it.name))
+                binding.category.addTab(
+                    binding.category.newTab().setText(it.name.toTitleCase())
+                )
             }
             binding.category.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {
@@ -818,4 +820,7 @@ class HomeFragment : Fragment() {
         _binding = null
 
     }
+}
+fun String.toTitleCase(): String {
+    return this.lowercase().replaceFirstChar { it.uppercaseChar() }
 }
