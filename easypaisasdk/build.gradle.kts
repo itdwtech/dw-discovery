@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("androidx.navigation.safeargs.kotlin") version "2.9.7"
     id("com.google.protobuf") version "0.9.4"
+    id("maven-publish")
 }
 
 android {
