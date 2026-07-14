@@ -75,6 +75,7 @@ class HomeFragment : Fragment() {
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (_binding == null) return@registerForActivityResult
             if (isGranted) {
                 fetchLocation()
             } else {
@@ -127,7 +128,6 @@ class HomeFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
 
                 val text = s.toString()
-
                 if (text.isNotEmpty()) {
 
                     enterSearchMode()
@@ -157,7 +157,7 @@ class HomeFragment : Fragment() {
         binding.rcyCities.visibility = View.GONE
         binding.rcyTopBrands.visibility = View.GONE
         binding.tvTopBrands.visibility = View.GONE
-//        binding.category.visibility = View.GONE  // Hide categories tab
+        binding.category.visibility = View.GONE  // Hide categories tab
         binding.seeAllCities.visibility = View.GONE  // Hide "See All Cities" button
 
         // Show only search results area
@@ -191,7 +191,7 @@ class HomeFragment : Fragment() {
 
     private fun setupStatusBar() {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
             requireActivity().window.statusBarColor = Color.WHITE
 
@@ -208,9 +208,14 @@ class HomeFragment : Fragment() {
         binding.rcyCities.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
 
-        lifecycleScope.launch {
+        // viewLifecycleOwner.lifecycleScope: auto-cancelled on onDestroyView,
+        // so this coroutine won't resume and touch a null binding.
+        viewLifecycleOwner.lifecycleScope.launch {
             // Step 1: fetch cities (this also establishes the gRPC connection)
             val cities = repository.getListOfCities(true)
+
+            // Extra safety: view may have been torn down while the call was in flight
+            if (_binding == null) return@launch
 
             if (!cities.isNullOrEmpty()) {
                 if (cityId == null) {
@@ -218,6 +223,7 @@ class HomeFragment : Fragment() {
                 }
 
                 cityAdapter = CityAdapter(cities, selectedCityId = cityId) { city ->
+                    if (_binding == null) return@CityAdapter
                     cityId = city.id
                     cityAdapter?.setSelectedCity(cityId)
                     setupBrands()
@@ -237,7 +243,6 @@ class HomeFragment : Fragment() {
     }
 
     private fun loadCities() {
-
         binding.rcyCities.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
 
@@ -247,6 +252,8 @@ class HomeFragment : Fragment() {
 
         }, { cities ->
 
+            if (_binding == null) return@ioThenMain
+
             if (!cities.isNullOrEmpty()) {
                 // Default to first city if location hasn't resolved yet
                 if (cityId == null) {
@@ -254,6 +261,7 @@ class HomeFragment : Fragment() {
                 }
 
                 cityAdapter = CityAdapter(cities, selectedCityId = cityId){ city ->
+                    if (_binding == null) return@CityAdapter
                     cityId = city.id
                     cityAdapter?.setSelectedCity(cityId)
                     setupBrands()
@@ -276,6 +284,8 @@ class HomeFragment : Fragment() {
 
         }, { categories ->
 
+            if (_binding == null) return@ioThenMain
+
             if (categories != null) {
 
                 categoriesList = categories
@@ -295,6 +305,8 @@ class HomeFragment : Fragment() {
                 binding.category.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
 
                     override fun onTabSelected(tab: TabLayout.Tab) {
+                        if (_binding == null) return
+
                         selectedTabPosition = tab.position
 
                         val typeface = TypeFaceUtils.get(requireContext(), FONT_BOLD)
@@ -337,6 +349,7 @@ class HomeFragment : Fragment() {
                     }
 
                     override fun onTabUnselected(tab: TabLayout.Tab) {
+                        if (_binding == null) return
                         val typeface = TypeFaceUtils.get(requireContext(), FONT_REG)
                         (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
                     }
@@ -348,7 +361,6 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupBrands() {
-
         binding.rcyTopBrands.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
 
@@ -365,6 +377,8 @@ class HomeFragment : Fragment() {
 
         }, { vendors ->
 
+            if (_binding == null) return@ioThenMain
+
             if(!vendors.isNullOrEmpty()){
                 brandDataCache[cityId] = vendors
                 brandAdapter = createBrandAdapter(vendors)
@@ -375,6 +389,7 @@ class HomeFragment : Fragment() {
 
     private fun createBrandAdapter(vendors: List<com.discountworld.discovery.VendorSummary>): BrandAdapter {
         return BrandAdapter(vendors) { vendor ->
+            if (_binding == null) return@BrandAdapter
             val action = HomeFragmentDirections
                 .actionHomeFragmentToUserDetailFragment(
                     bannerTitle = vendor.companyName,
@@ -397,12 +412,17 @@ class HomeFragment : Fragment() {
             return
         }
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
 
             val vendors = repository.getListOfVendors(cityId = cityId) ?: emptyList()
+
+            if (_binding == null) return@launch
+
             if (cachedBanners == null) {
                 cachedBanners = repository.getBanners() ?: emptyList()
             }
+
+            if (_binding == null) return@launch
 
             vendorDataCache[key] = vendors
             vendorAdapter = createVendorAdapter(vendors, cachedBanners!!)
@@ -435,6 +455,8 @@ class HomeFragment : Fragment() {
 
         }, { result ->
 
+            if (_binding == null) return@ioThenMain
+
             val vendors = result?.first
             val banners = result?.second
 
@@ -460,6 +482,8 @@ class HomeFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     private fun bindFeaturedVendor() {
+        if (_binding == null) return
+
         val vendor = cachedFeaturedVendor
         if (vendor != null) {
             binding.txtTitle.text = vendor.title ?: ""
@@ -518,6 +542,8 @@ class HomeFragment : Fragment() {
 
                     override fun onLocationSuccess(latitude: Double, longitude: Double) {
 
+                        if (_binding == null) return
+
                         sharedPreferences.edit()
                             .putFloat("latitude", latitude.toFloat())
                             .putFloat("longitude", longitude.toFloat())
@@ -529,6 +555,7 @@ class HomeFragment : Fragment() {
 
                     override fun onFailure(message: String) {
 
+                        if (_binding == null) return
                         txtLocation.text = message
 
                     }
@@ -550,6 +577,8 @@ class HomeFragment : Fragment() {
 
         }, { city ->
 
+            if (_binding == null) return@ioThenMain
+
             if (city != null) {
                 cityId = city.id
                 txtLocation.text = city.name
@@ -563,6 +592,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun showCityPopup() {
+        if (_binding == null) return
 
         val dialog = Dialog(requireContext(), R.style.DwDiscovery_CenterDialogTheme)
 
@@ -581,13 +611,17 @@ class HomeFragment : Fragment() {
 
         }, { cities ->
 
+            // Fragment's own view may be gone even though the dialog is separate;
+            // guard before touching fragment state (cityId, cityAdapter, setupBrands, etc.)
             if (!cities.isNullOrEmpty()) {
                 dialogBinding.rvAllCities.adapter = CitiesAdapter(cities, selectedCityId = cityId){ city ->
-                    cityId = city.id
-                    cityAdapter?.setSelectedCity(cityId)
-                    setupBrands()
-                    loadFeaturedVendor()
-                    setupVendorsList()
+                    if (_binding != null) {
+                        cityId = city.id
+                        cityAdapter?.setSelectedCity(cityId)
+                        setupBrands()
+                        loadFeaturedVendor()
+                        setupVendorsList()
+                    }
                     dialog.dismiss()
                 }
             }
@@ -616,6 +650,7 @@ class HomeFragment : Fragment() {
         dialog.show()
 
     }
+
     private fun loadVendorsByCategory(categoryId: Long) {
 
         val key = Pair(cityId, categoryId as Long?)
@@ -626,16 +661,20 @@ class HomeFragment : Fragment() {
             return
         }
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
 
             val vendors = repository.getListOfVendors(
                 categoryId = categoryId,
                 cityId = cityId
             ) ?: emptyList()
 
+            if (_binding == null) return@launch
+
             if (cachedBanners == null) {
                 cachedBanners = repository.getBanners() ?: emptyList()
             }
+
+            if (_binding == null) return@launch
 
             vendorDataCache[key] = vendors
             val adapter = createVendorAdapter(vendors, cachedBanners!!)
@@ -648,6 +687,7 @@ class HomeFragment : Fragment() {
         banners: List<com.discountworld.discovery.Banner>
     ): VendorAdapter {
         return VendorAdapter(vendors = vendors, banners = banners) { vendor ->
+            if (_binding == null) return@VendorAdapter
             val action = HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
                 bannerTitle = vendor.companyName,
                 bannerSubtitle = vendor.description,
@@ -666,6 +706,8 @@ class HomeFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     private fun restoreFromCache() {
+        if (_binding == null) return
+
         // Re-attach cached adapters to new views — no API calls
         binding.rcyCities.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -712,6 +754,8 @@ class HomeFragment : Fragment() {
             }
             binding.category.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {
+                    if (_binding == null) return
+
                     selectedTabPosition = tab.position
 
                     val typeface = TypeFaceUtils.get(requireContext(), FONT_BOLD)
@@ -747,6 +791,7 @@ class HomeFragment : Fragment() {
                 }
 
                 override fun onTabUnselected(tab: TabLayout.Tab) {
+                    if (_binding == null) return
                     val typeface = TypeFaceUtils.get(requireContext(), FONT_REG)
                     (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
                 }
@@ -765,12 +810,14 @@ class HomeFragment : Fragment() {
     }
 
     private fun shimmerStarted(){
+        if (_binding == null) return
         binding.lvShimmer.startShimmer()
         binding.lvShimmer.visibility = View.VISIBLE
         binding.lvMain.visibility = View.GONE
     }
 
     private fun shimmerStopped(){
+        if (_binding == null) return
         binding.lvShimmer.stopShimmer()
         binding.lvShimmer.visibility = View.GONE
         binding.lvMain.visibility = View.VISIBLE
@@ -792,6 +839,8 @@ class HomeFragment : Fragment() {
 
         }, { result ->
 
+            if (_binding == null) return@ioThenMain
+
             val vendors = result?.first ?: emptyList()
             val banners = result?.second ?: emptyList()
 
@@ -799,6 +848,8 @@ class HomeFragment : Fragment() {
                 vendors = vendors,
                 banners = banners
             ) { vendor ->
+
+                if (_binding == null) return@VendorAdapter
 
                 val action =
                     HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
