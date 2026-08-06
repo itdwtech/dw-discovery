@@ -29,6 +29,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "App"
-include(":app")
+//include(":app")
 include(":easypaisasdk")
 include(":prototype")
+include(":dwapp")
