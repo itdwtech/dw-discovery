@@ -37,7 +37,11 @@
         android:id="@+id/nav_home"
         android:name="com.discountworld.dwapp.fragments.HomeFragment"
         android:label="HomeFragment"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_nav_home_to_nav_delivery"
+            app:destination="@id/nav_delivery" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_locations"
@@ -55,7 +59,12 @@
         android:id="@+id/nav_delivery"
         android:name="com.discountworld.dwapp.fragments.DeliveryFragment"
         android:label="DeliveryFragment"
-        tools:layout="@layout/fragment_delivery" />
+        tools:layout="@layout/fragment_delivery">
+        <argument
+            android:name="showSearch"
+            android:defaultValue="true"
+            app:argType="boolean" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_history"

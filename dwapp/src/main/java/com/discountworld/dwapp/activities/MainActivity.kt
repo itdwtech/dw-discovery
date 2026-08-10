@@ -21,10 +21,18 @@ class MainActivity : AppCompatActivity() {
         val navController = navHostFragment.navController
         binding.bottomNavigation.setupWithNavController(navController)
 
-        navController.addOnDestinationChangedListener { _, destination, _ ->
+        navController.addOnDestinationChangedListener { _, destination, arguments ->
             when (destination.id) {
-                R.id.nav_home, R.id.nav_locations, R.id.nav_promos, R.id.nav_delivery, R.id.nav_history -> {
+                R.id.nav_home, R.id.nav_locations, R.id.nav_promos, R.id.nav_history -> {
                     binding.bottomNavigation.visibility = View.VISIBLE
+                }
+                R.id.nav_delivery -> {
+                    val showSearch = arguments?.getBoolean("showSearch", true) ?: true
+                    if (showSearch) {
+                        binding.bottomNavigation.visibility = View.VISIBLE
+                    } else {
+                        binding.bottomNavigation.visibility = View.GONE
+                    }
                 }
                 else -> {
                     binding.bottomNavigation.visibility = View.GONE

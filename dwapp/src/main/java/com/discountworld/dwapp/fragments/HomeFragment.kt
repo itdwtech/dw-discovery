@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.navigation.fragment.findNavController
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.adapters.*
 import com.discountworld.dwapp.databinding.FragmentHomeBinding
@@ -37,13 +38,20 @@ class HomeFragment : Fragment() {
 
         setupRecyclerViews()
         setupSlider()
+
+        binding.imgSearch.setOnClickListener {
+            val bundle = Bundle().apply {
+                putBoolean("showSearch", false)
+            }
+            findNavController().navigate(R.id.action_nav_home_to_nav_delivery, bundle)
+        }
     }
 
     private fun setupSlider() {
         val sliderImages = listOf(
-            R.drawable.ic_placeholder,
-            R.drawable.ic_placeholder,
-            R.drawable.ic_placeholder
+            R.drawable.ic_almasjewellers,
+            R.drawable.ic_beatsandcuts,
+            R.drawable.ic_anamta_comfort
         )
 
         val adapter = SliderAdapter(sliderImages)
@@ -68,26 +76,26 @@ class HomeFragment : Fragment() {
         
         // Horizontal Scroll for Banners
         binding.topBannerRV.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        val bannerImages = listOf(R.drawable.ic_placeholder, R.drawable.ic_placeholder)
+        val bannerImages = listOf(R.drawable.ic_almasjewellers, R.drawable.ic_beatsandcuts)
         binding.topBannerRV.adapter = BannerAdapter(bannerImages)
 
         // Top Picks For You
         binding.bannerRV.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         val topPicks = listOf(
-            TopPick(R.drawable.ic_placeholder, "14th Street Pizza"),
-            TopPick(R.drawable.ic_placeholder, "Broadway Pizza"),
-            TopPick(R.drawable.ic_placeholder, "Pizza Hut")
+            TopPick(R.drawable.ic_almasjewellers, "14th Street Pizza"),
+            TopPick(R.drawable.ic_beatsandcuts, "Broadway Pizza"),
+            TopPick(R.drawable.ic_anamta_comfort, "Pizza Hut")
         )
         binding.bannerRV.adapter = TopPicksAdapter(topPicks)
 
         // Popular Brands
         binding.popularDiscRV.layoutManager = LinearLayoutManager(requireContext())
         val popularBrands = listOf(
-            PopularBrand(R.drawable.ic_placeholder, "Big Bash - Phase 5", "Food"),
-            PopularBrand(R.drawable.ic_placeholder, "Transfit Gym & Fitness - Clifton", "Fitness"),
-            PopularBrand(R.drawable.ic_placeholder, "Pengs Salon Bukhari", "Salon & Spa"),
-            PopularBrand(R.drawable.ic_placeholder, "Sindbad Extreme Bounce", "Leisure"),
-            PopularBrand(R.drawable.ic_placeholder, "Mandi Al Khaleej - PECHS", "Food")
+            PopularBrand(R.drawable.ic_allurebeauty, "Big Bash - Phase 5", "Food"),
+            PopularBrand(R.drawable.ic_allurebeauty, "Transfit Gym & Fitness - Clifton", "Fitness"),
+            PopularBrand(R.drawable.ic_allurebeauty, "Pengs Salon Bukhari", "Salon & Spa"),
+            PopularBrand(R.drawable.ic_allurebeauty, "Sindbad Extreme Bounce", "Leisure"),
+            PopularBrand(R.drawable.ic_allurebeauty, "Mandi Al Khaleej - PECHS", "Food")
         )
         binding.popularDiscRV.adapter = PopularBrandsAdapter(popularBrands)
     }
