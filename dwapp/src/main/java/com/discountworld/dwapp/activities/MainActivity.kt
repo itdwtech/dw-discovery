@@ -27,12 +27,15 @@ class MainActivity : AppCompatActivity() {
                     binding.bottomNavigation.visibility = View.VISIBLE
                 }
                 R.id.nav_delivery -> {
-                    val showSearch = arguments?.getBoolean("showSearch", true) ?: true
-                    if (showSearch) {
-                        binding.bottomNavigation.visibility = View.VISIBLE
-                    } else {
+                    val hideBottomNav = arguments?.getBoolean("hideBottomNav", false) ?: false
+                    if (hideBottomNav) {
                         binding.bottomNavigation.visibility = View.GONE
+                    } else {
+                        binding.bottomNavigation.visibility = View.VISIBLE
                     }
+                }
+                R.id.nav_brand_detail -> {
+                    binding.bottomNavigation.visibility = View.GONE
                 }
                 else -> {
                     binding.bottomNavigation.visibility = View.GONE

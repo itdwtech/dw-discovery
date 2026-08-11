@@ -3,6 +3,8 @@ package com.discountworld.dwapp.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import androidx.navigation.findNavController
+import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemDeliveryDealBinding
 import com.discountworld.dwapp.models.DeliveryDeal
 
@@ -20,6 +22,10 @@ class DeliveryDealsAdapter(private val list: List<DeliveryDeal>) : RecyclerView.
         holder.binding.ivDealLogo.setImageResource(item.logo)
         holder.binding.tvDealName.text = item.name
         holder.binding.tvDealCategory.text = item.category
+
+        holder.itemView.setOnClickListener {
+            it.findNavController().navigate(R.id.nav_brand_detail)
+        }
     }
 
     override fun getItemCount(): Int = list.size

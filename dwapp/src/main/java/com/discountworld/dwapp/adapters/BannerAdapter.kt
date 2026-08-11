@@ -5,7 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.discountworld.dwapp.databinding.ItemBannerBinding
 
-class BannerAdapter(private val images: List<Int>) : RecyclerView.Adapter<BannerAdapter.BannerViewHolder>() {
+class BannerAdapter(
+    private val images: List<Int>,
+    private val onItemClick: () -> Unit = {}
+) : RecyclerView.Adapter<BannerAdapter.BannerViewHolder>() {
 
     class BannerViewHolder(val binding: ItemBannerBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -16,6 +19,9 @@ class BannerAdapter(private val images: List<Int>) : RecyclerView.Adapter<Banner
 
     override fun onBindViewHolder(holder: BannerViewHolder, position: Int) {
         holder.binding.bannerIM.setImageResource(images[position])
+        holder.itemView.setOnClickListener {
+            onItemClick()
+        }
     }
 
     override fun getItemCount(): Int = images.size

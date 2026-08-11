@@ -40,11 +40,35 @@ class HomeFragment : Fragment() {
         setupSlider()
 
         binding.imgSearch.setOnClickListener {
-            val bundle = Bundle().apply {
-                putBoolean("showSearch", false)
-            }
-            findNavController().navigate(R.id.action_nav_home_to_nav_delivery, bundle)
+            navigateToDelivery(showSearch = false)
         }
+
+        binding.imgEcommerce.setOnClickListener {
+            navigateToDelivery(showSearch = true)
+        }
+
+        binding.imgDelivery.setOnClickListener {
+            navigateToDelivery(showSearch = true)
+        }
+
+        val categories = listOf(
+            binding.food, binding.saloon, binding.leisure, binding.Fitness,
+            binding.Retail, binding.Health, binding.Education, binding.travel
+        )
+
+        categories.forEach { category ->
+            category.setOnClickListener {
+                navigateToDelivery(showSearch = true)
+            }
+        }
+    }
+
+    private fun navigateToDelivery(showSearch: Boolean) {
+        val bundle = Bundle().apply {
+            putBoolean("showSearch", showSearch)
+            putBoolean("hideBottomNav", true)
+        }
+        findNavController().navigate(R.id.action_nav_home_to_nav_delivery, bundle)
     }
 
     private fun setupSlider() {
@@ -54,7 +78,9 @@ class HomeFragment : Fragment() {
             R.drawable.ic_anamta_comfort
         )
 
-        val adapter = SliderAdapter(sliderImages)
+        val adapter = SliderAdapter(sliderImages) {
+            navigateToDelivery(showSearch = true)
+        }
         binding.pager.adapter = adapter
 
         // Setup dots (TabLayout)
@@ -77,7 +103,9 @@ class HomeFragment : Fragment() {
         // Horizontal Scroll for Banners
         binding.topBannerRV.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         val bannerImages = listOf(R.drawable.ic_almasjewellers, R.drawable.ic_beatsandcuts)
-        binding.topBannerRV.adapter = BannerAdapter(bannerImages)
+        binding.topBannerRV.adapter = BannerAdapter(bannerImages) {
+            navigateToDelivery(showSearch = true)
+        }
 
         // Top Picks For You
         binding.bannerRV.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
