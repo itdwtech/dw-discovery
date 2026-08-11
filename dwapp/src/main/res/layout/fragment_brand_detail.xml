@@ -54,11 +54,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_4sdp"
-                android:background="@drawable/bg_category_unselected"
-                android:paddingHorizontal="@dimen/_8sdp"
-                android:paddingVertical="@dimen/_2sdp"
-                android:text="Food"
-                android:textColor="@color/purple_primary"
+                android:text="Salon &amp; Spa"
+                android:textColor="@color/black"
                 android:textSize="@dimen/_10ssp"
                 app:layout_constraintStart_toStartOf="@+id/tvBrandName"
                 app:layout_constraintTop_toBottomOf="@+id/tvBrandName" />
@@ -67,25 +64,44 @@
                 android:id="@+id/tvAddress"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_marginTop="@dimen/_4sdp"
                 android:layout_marginEnd="@dimen/_16sdp"
-                android:text="Plot # 21-C, 2nd Commercial Ln, Phase V Zamzama Commercial Area Defence V Karachi, Karachi City, Sindh 75500"
-                android:textColor="@color/gray_text"
+                android:text="address of the venders"
+                android:textColor="@color/purple_primary"
                 android:textSize="@dimen/_12ssp"
-                app:layout_constraintEnd_toStartOf="@+id/ivInfo"
+                app:layout_constraintEnd_toStartOf="@+id/llInfo"
                 app:layout_constraintStart_toStartOf="@+id/tvBrandName"
                 app:layout_constraintTop_toBottomOf="@+id/tvCategory" />
 
-            <ImageView
-                android:id="@+id/ivInfo"
-                android:layout_width="@dimen/_24sdp"
-                android:layout_height="@dimen/_24sdp"
+            <LinearLayout
+                android:id="@+id/llInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/_16sdp"
-                android:src="@drawable/ic_info"
+                android:background="@drawable/button_bg"
+                android:backgroundTint="@color/purple_primary"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="@dimen/_12sdp"
+                android:paddingVertical="@dimen/_4sdp"
                 app:layout_constraintBottom_toBottomOf="@+id/tvAddress"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/tvAddress"
-                app:tint="@color/orange_primary" />
+                app:layout_constraintTop_toTopOf="@+id/tvAddress">
+
+                <ImageView
+                    android:layout_width="@dimen/_14sdp"
+                    android:layout_height="@dimen/_14sdp"
+                    android:src="@drawable/ic_info"
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_4sdp"
+                    android:text="info"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_10ssp" />
+            </LinearLayout>
 
             <View
                 android:id="@+id/vIndicator"
@@ -93,7 +109,7 @@
                 android:layout_height="@dimen/_20sdp"
                 android:layout_marginStart="@dimen/_16sdp"
                 android:layout_marginTop="@dimen/_24sdp"
-                android:background="@color/orange_primary"
+                android:background="@color/purple_primary"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvAddress" />
 
@@ -128,7 +144,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/_16sdp"
         android:src="@drawable/baseline_phone_24"
-        app:backgroundTint="@color/orange_primary"
+        app:backgroundTint="@color/purple_primary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:tint="@color/white" />

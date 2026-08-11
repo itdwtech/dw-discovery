@@ -38,10 +38,10 @@ class BrandDetailFragment : Fragment() {
     private fun setupRecyclerView() {
         binding.rvOffers.layoutManager = LinearLayoutManager(requireContext())
         val dummyOffers = listOf(
-            Offer("Buy 1 Get 1 Free on any Pizza", "50%"),
-            Offer("Flat 30% OFF on all Side Orders", "30%"),
-            Offer("Get a free drink with any Large Pizza", "Free"),
-            Offer("Buy 2 Medium Pizzas for Rs. 1500", "Rs.1500")
+            Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1"),
+            Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1"),
+            Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1"),
+            Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1")
         )
         binding.rvOffers.adapter = OffersAdapter(dummyOffers)
     }
