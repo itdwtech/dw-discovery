@@ -117,7 +117,7 @@ class UserDetailFragment : Fragment() {
             binding.loaderLayout.visibility = View.VISIBLE
 
             try {
-                val vendor = repository.getFullVendor(args.vendorId, 1)
+                val vendor = repository.getFullVendor(args.vendorId, args.cityId)
                 val banners = repository.getBanners() ?: emptyList()
 
                 vendor?.let {

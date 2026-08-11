@@ -373,7 +373,7 @@ class HomeFragment : Fragment() {
 
         CoroutineTask.ioThenMain({
 
-            repository.getListOfVendors(featured = true, cityId = cityId)
+            repository.getTopBrands(cityId = cityId)
 
         }, { vendors ->
 
@@ -395,7 +395,8 @@ class HomeFragment : Fragment() {
                     bannerTitle = vendor.companyName,
                     bannerSubtitle = vendor.description,
                     bannerTerms = vendor.title,
-                    vendorId = vendor.id
+                    vendorId = vendor.id,
+                    cityId = cityId ?: 1
                 )
             findNavController().navigate(action)
         }
@@ -414,7 +415,7 @@ class HomeFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
 
-            val vendors = repository.getListOfVendors(cityId = cityId) ?: emptyList()
+            val vendors = repository.getVendorsList(cityId = cityId) ?: emptyList()
 
             if (_binding == null) return@launch
 
@@ -444,10 +445,7 @@ class HomeFragment : Fragment() {
 
         CoroutineTask.ioThenMain({
 
-            val vendors = repository.getListOfVendors(
-                featured = true,
-                cityId = cityId
-            )
+            val vendors = repository.getTopBrands(cityId = cityId)
 
             val banners = repository.getBanners()
 
@@ -501,7 +499,8 @@ class HomeFragment : Fragment() {
                     bannerTitle = vendor.companyName ?: "",
                     bannerSubtitle = vendor.description ?: "",
                     bannerTerms = vendor.title ?: "",
-                    vendorId = vendor.id
+                    vendorId = vendor.id,
+                    cityId = cityId ?: 1
                 )
                 findNavController().navigate(action)
             }
@@ -663,7 +662,7 @@ class HomeFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
 
-            val vendors = repository.getListOfVendors(
+            val vendors = repository.getVendorsList(
                 categoryId = categoryId,
                 cityId = cityId
             ) ?: emptyList()
@@ -692,7 +691,8 @@ class HomeFragment : Fragment() {
                 bannerTitle = vendor.companyName,
                 bannerSubtitle = vendor.description,
                 bannerTerms = vendor.title,
-                vendorId = vendor.id
+                vendorId = vendor.id,
+                cityId = cityId ?: 1
             )
             findNavController().navigate(action)
         }
@@ -737,7 +737,8 @@ class HomeFragment : Fragment() {
                     bannerTitle = vendor.companyName ?: "",
                     bannerSubtitle = vendor.description ?: "",
                     bannerTerms = vendor.title ?: "",
-                    vendorId = vendor.id
+                    vendorId = vendor.id,
+                    cityId = cityId ?: 1
                 )
                 findNavController().navigate(action)
             }
@@ -827,10 +828,10 @@ class HomeFragment : Fragment() {
 
         CoroutineTask.ioThenMain({
 
-            val vendors = repository.getListOfVendors(
+            val vendors = repository.getVendorsList(
                 search = text,
-                categoryId = selectedCategoryId,   // 🔥 MAIN FIX
-                cityId = cityId                   // optional but better
+                categoryId = selectedCategoryId,
+                cityId = cityId
             )
 
             val banners = repository.getBanners()
@@ -856,7 +857,8 @@ class HomeFragment : Fragment() {
                         bannerTitle = vendor.companyName,
                         bannerSubtitle = vendor.description,
                         bannerTerms = vendor.title,
-                        vendorId = vendor.id
+                        vendorId = vendor.id,
+                        cityId = cityId ?: 1
                     )
 
                 findNavController().navigate(action)

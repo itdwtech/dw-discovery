@@ -10,6 +10,7 @@ import com.discountworld.discovery.ListCitiesRequest
 import com.discountworld.discovery.ListVendorsRequest
 import com.discountworld.discovery.PaginationRequest
 import com.discountworld.discovery.ResolveCityRequest
+import com.discountworld.discovery.SearchVendorsRequest
 import com.discountworld.discovery.VendorSummary
 import com.discountworld.easypaisasdk.managers.GrpcStubClient
 import com.discountworld.easypaisasdk.managers.GrpcStubClient.grpcCall
@@ -17,6 +18,7 @@ import com.discountworld.easypaisasdk.managers.GrpcStubClient.grpcCall
 class HomeRepository {
 
     val stub = GrpcStubClient.stub
+    val stubMerge = GrpcStubClient.stubMerge
 
     suspend fun getCityByCoordinates(lat: Float, lng: Float): City?{
         val geo = GeoPoint.newBuilder()
@@ -55,6 +57,46 @@ class HomeRepository {
             return response.categoriesList
         }.onFailure { throwable ->
             println("gRPC failed: ${throwable.message}")
+        }
+        return null
+    }
+
+    suspend fun getTopBrands(cityId: Long?): List<VendorSummary>? {
+        return getListOfVendors(cityId = cityId, featured = true)
+    }
+
+    suspend fun getVendorsList(
+        cityId: Long? = null,
+        categoryId: Long? = null,
+        search: String? = null
+    ): List<VendorSummary>? {
+        val pagination = PaginationRequest.newBuilder()
+            .setPage(1)
+            .setSize(20)
+            .build()
+
+        val request = SearchVendorsRequest.newBuilder()
+            .setPagination(pagination)
+
+        cityId?.let { request.cityId = it }
+        categoryId?.let { request.categoryId = it }
+        search?.let { request.search = it }
+
+        val result = grpcCall { stubMerge.searchVendors(request.build()) }
+        result.onSuccess { response ->
+            return response.vendorsList.map { item ->
+                VendorSummary.newBuilder()
+                    .setId(item.id)
+                    .setCompanyName(item.companyName)
+                    .setLogoUrl(item.logoUrl)
+                    .setDescription(item.description)
+                    .setFeatured(item.featured)
+                    .addAllCategories(item.categoriesList)
+                    .setTitle(item.title)
+                    .build()
+            }
+        }.onFailure {
+            println("SearchVendors failed: ${it.message}")
         }
         return null
     }

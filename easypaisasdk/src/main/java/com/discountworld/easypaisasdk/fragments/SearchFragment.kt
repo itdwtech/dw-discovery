@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.discountworld.easypaisasdk.adapters.VendorAdapter
 import com.discountworld.easypaisasdk.databinding.DwDiscoveryFragmentSearchBinding
 import com.discountworld.easypaisasdk.managers.CoroutineTask
@@ -22,6 +23,7 @@ class SearchFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val repository = HomeRepository()
+    private val args: SearchFragmentArgs by navArgs()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,7 +92,8 @@ class SearchFragment : Fragment() {
                             bannerTitle = vendor.companyName,
                             bannerSubtitle = vendor.description,
                             bannerTerms = vendor.title,
-                            vendorId = vendor.id
+                            vendorId = vendor.id,
+                            cityId = args.cityId
                         )
 
                     findNavController().navigate(action)

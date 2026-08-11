@@ -45,6 +45,10 @@
             android:name="vendorId"
             app:argType="long" />
 
+        <argument
+            android:name="cityId"
+            app:argType="long" />
+
         <action
             android:id="@+id/action_userDetailFragment_to_homeFragment"
             app:destination="@id/homeFragment" />
@@ -59,6 +63,10 @@
 
         <argument
             android:name="categoryId"
+            app:argType="long" />
+
+        <argument
+            android:name="cityId"
             app:argType="long" />
 
         <action
