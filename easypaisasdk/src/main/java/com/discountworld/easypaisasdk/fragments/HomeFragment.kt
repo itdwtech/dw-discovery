@@ -70,7 +70,6 @@ class HomeFragment : Fragment() {
     private var cachedBanners: List<com.discountworld.discovery.Banner>? = null
     private val vendorDataCache = mutableMapOf<Pair<Long?, Long?>, List<com.discountworld.discovery.VendorSummary>>()
     private val brandDataCache = mutableMapOf<Long?, List<com.discountworld.discovery.VendorSummary>>()
-    private val featuredDataCache = mutableMapOf<Long?, Pair<com.discountworld.discovery.VendorSummary?, String?>>()
 
 
     private val requestPermissionLauncher =
@@ -227,7 +226,6 @@ class HomeFragment : Fragment() {
                     cityId = city.id
                     cityAdapter?.setSelectedCity(cityId)
                     setupBrands()
-                    loadFeaturedVendor()
                     setupVendorsList()
                     //requireContext().toast("Selected city is ${city.name}")
                 }
@@ -237,7 +235,6 @@ class HomeFragment : Fragment() {
             // Step 2: now cityId is set — load everything else
             loadCategories()
             setupBrands()
-            loadFeaturedVendor()
             setupVendorsList()
         }
     }
@@ -265,7 +262,6 @@ class HomeFragment : Fragment() {
                     cityId = city.id
                     cityAdapter?.setSelectedCity(cityId)
                     setupBrands()
-                    loadFeaturedVendor()
                     setupVendorsList()
                     requireContext().toast("Selected city is ${city.name}")
                 }
@@ -410,6 +406,12 @@ class HomeFragment : Fragment() {
         if (cachedVendors != null) {
             vendorAdapter = createVendorAdapter(cachedVendors, cachedBanners ?: emptyList())
             binding.rcyVendors.adapter = vendorAdapter
+
+            // Set first vendor as featured
+            if (cachedVendors.isNotEmpty()) {
+                updateFeaturedFromList(cachedVendors[0])
+            }
+            shimmerStopped()
             return
         }
 
@@ -428,54 +430,19 @@ class HomeFragment : Fragment() {
             vendorDataCache[key] = vendors
             vendorAdapter = createVendorAdapter(vendors, cachedBanners!!)
             binding.rcyVendors.adapter = vendorAdapter
+
+            // Set first vendor as featured
+            if (vendors.isNotEmpty()) {
+                updateFeaturedFromList(vendors[0])
+            }
+            shimmerStopped()
         }
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun loadFeaturedVendor() {
-
-        val cached = featuredDataCache[cityId]
-        if (cached != null) {
-            cachedFeaturedVendor = cached.first
-            cachedBannerUrl = cached.second
-            bindFeaturedVendor()
-            shimmerStopped()
-            return
-        }
-
-        CoroutineTask.ioThenMain({
-
-            val vendors = repository.getTopBrands(cityId = cityId)
-
-            val banners = repository.getBanners()
-
-            Pair(vendors, banners)
-
-        }, { result ->
-
-            if (_binding == null) return@ioThenMain
-
-            val vendors = result?.first
-            val banners = result?.second
-
-            val vendor = vendors?.firstOrNull()
-            val banner = banners?.firstOrNull()
-
-            if (vendor != null) {
-                cachedFeaturedVendor = vendor
-                cachedBannerUrl = banner?.imageUrl ?: vendor.logoUrl
-                featuredDataCache[cityId] = Pair(vendor, cachedBannerUrl)
-                if (cachedBanners == null && banners != null) {
-                    cachedBanners = banners
-                }
-            } else {
-                cachedFeaturedVendor = null
-                cachedBannerUrl = null
-            }
-
-            bindFeaturedVendor()
-            shimmerStopped()
-        })
+    private fun updateFeaturedFromList(vendor: com.discountworld.discovery.VendorSummary) {
+        cachedFeaturedVendor = vendor
+        cachedBannerUrl = cachedBanners?.firstOrNull { it.vendorId == vendor.id }?.imageUrl ?: vendor.logoUrl
+        bindFeaturedVendor()
     }
 
     @SuppressLint("SetTextI18n")
@@ -618,7 +585,6 @@ class HomeFragment : Fragment() {
                         cityId = city.id
                         cityAdapter?.setSelectedCity(cityId)
                         setupBrands()
-                        loadFeaturedVendor()
                         setupVendorsList()
                     }
                     dialog.dismiss()
@@ -678,6 +644,11 @@ class HomeFragment : Fragment() {
             vendorDataCache[key] = vendors
             val adapter = createVendorAdapter(vendors, cachedBanners!!)
             binding.rcyVendors.adapter = adapter
+
+            // Update featured from list even when category changes
+            if (vendors.isNotEmpty()) {
+                updateFeaturedFromList(vendors[0])
+            }
         }
     }
 
