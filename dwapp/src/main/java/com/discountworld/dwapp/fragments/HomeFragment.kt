@@ -1,17 +1,23 @@
 package com.discountworld.dwapp.fragments
 
+import android.app.Dialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.navigation.fragment.findNavController
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.adapters.*
+import com.discountworld.dwapp.databinding.DialogCitySelectionBinding
 import com.discountworld.dwapp.databinding.FragmentHomeBinding
+import com.discountworld.dwapp.models.City
 import com.discountworld.dwapp.models.PopularBrand
 import com.discountworld.dwapp.models.TopPick
 import com.google.android.material.tabs.TabLayoutMediator
@@ -61,6 +67,57 @@ class HomeFragment : Fragment() {
                 navigateToDelivery(showSearch = true)
             }
         }
+
+        binding.cities.setOnClickListener {
+            showCityPopup()
+        }
+    }
+
+    private fun showCityPopup() {
+        val dialog = Dialog(requireContext())
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        val dialogBinding = DialogCitySelectionBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogBinding.root)
+        dialog.setCancelable(false)
+        dialog.setCanceledOnTouchOutside(false)
+
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        val cities = listOf(
+            City("Karachi"),
+            City("Lahore"),
+            City("Islamabad"),
+            City("Rawalpindi"),
+            City("Faisalabad"),
+            City("Multan"),
+            City("Peshawar"),
+            City("Peshawar")
+        )
+
+        val adapter = CitySelectionAdapter(cities) { city ->
+            // Handle city selection here
+            dialog.dismiss()
+        }
+
+        dialogBinding.rvCities.layoutManager = LinearLayoutManager(requireContext())
+        dialogBinding.rvCities.adapter = adapter
+
+        // Show scroll after 3 cities by fixing height
+        if (cities.size > 3) {
+            val params = dialogBinding.rvCities.layoutParams
+            params.height = (resources.displayMetrics.density * 180).toInt() // Approx 3 items height
+            dialogBinding.rvCities.layoutParams = params
+        }
+
+        dialogBinding.ivClose.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun navigateToDelivery(showSearch: Boolean) {

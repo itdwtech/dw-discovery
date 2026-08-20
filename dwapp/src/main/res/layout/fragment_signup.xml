@@ -8,6 +8,7 @@
     tools:context=".fragments.SignupFragment">
 
     <!-- Header -->
+    <!--
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clHeader"
         android:layout_width="match_parent"
@@ -62,7 +63,6 @@
             android:layout_height="wrap_content"
             android:padding="24dp">
 
-            <!-- Email -->
             <TextView
                 android:id="@+id/tvEmailLabel"
                 android:layout_width="wrap_content"
@@ -96,7 +96,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/etEmail" />
 
-            <!-- Mobile Number -->
             <TextView
                 android:id="@+id/tvMobileLabel"
                 android:layout_width="wrap_content"
@@ -131,7 +130,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/etMobile" />
 
-            <!-- City -->
             <TextView
                 android:id="@+id/tvCityLabel"
                 android:layout_width="wrap_content"
@@ -166,7 +164,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tvCityValue" />
 
-            <!-- Current Address -->
             <TextView
                 android:id="@+id/tvAddressLabel"
                 android:layout_width="wrap_content"
@@ -201,7 +198,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/etAddress" />
 
-            <!-- Password -->
             <TextView
                 android:id="@+id/tvPasswordLabel"
                 android:layout_width="wrap_content"
@@ -236,7 +232,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/etPassword" />
 
-            <!-- Confirm Password -->
             <TextView
                 android:id="@+id/tvConfirmPasswordLabel"
                 android:layout_width="wrap_content"
@@ -271,7 +266,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/etConfirmPassword" />
 
-            <!-- Membership No -->
             <TextView
                 android:id="@+id/tvMembershipLabel"
                 android:layout_width="wrap_content"
@@ -306,7 +300,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/etMembership" />
 
-            <!-- Referral Code -->
             <TextView
                 android:id="@+id/tvReferralLabel"
                 android:layout_width="wrap_content"
@@ -341,7 +334,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/etReferral" />
 
-            <!-- Register Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRegister"
                 android:layout_width="0dp"
@@ -357,7 +349,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/viewReferralUnderline" />
 
-            <!-- Footer -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -388,5 +379,6 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>
+    -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

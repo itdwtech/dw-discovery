@@ -13,11 +13,12 @@
         android:icon="@drawable/ic_nav_promo"
         android:title="Promos" />
     <item
-        android:id="@+id/nav_delivery"
-        android:icon="@drawable/ic_nav_delivery"
-        android:title="Delivery" />
-    <item
         android:id="@+id/nav_history"
         android:icon="@drawable/ic_nav_history"
         android:title="History" />
+
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/ic_nav_profile"
+        android:title="Profile" />
 </menu>

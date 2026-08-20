@@ -39,6 +39,9 @@
         android:label="HomeFragment"
         tools:layout="@layout/fragment_home">
         <action
+            android:id="@+id/action_nav_home_to_nav_profile"
+            app:destination="@id/nav_profile" />
+        <action
             android:id="@+id/action_nav_home_to_nav_delivery"
             app:destination="@id/nav_delivery" />
     </fragment>
@@ -54,6 +57,12 @@
         android:name="com.discountworld.dwapp.fragments.PromosFragment"
         android:label="PromosFragment"
         tools:layout="@layout/fragment_promos" />
+
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.discountworld.dwapp.fragments.ProfileFragment"
+        android:label="ProfileFragment"
+        tools:layout="@layout/fragment_profile" />
 
     <fragment
         android:id="@+id/nav_delivery"

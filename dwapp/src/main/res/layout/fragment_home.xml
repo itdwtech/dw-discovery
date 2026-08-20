@@ -38,6 +38,15 @@
 
             </LinearLayout>
 
+            <ImageView
+                android:id="@+id/cities"
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_20sdp"
+                android:src="@drawable/ic_cities"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="@dimen/_20sdp"
+                android:layout_alignParentEnd="true" />
+
         </RelativeLayout>
 
         <androidx.core.widget.NestedScrollView

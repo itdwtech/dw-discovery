@@ -4,205 +4,134 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
     android:background="@color/white"
     tools:context=".fragments.LoginFragment">
 
-    <!-- Header -->
-    <TextView
-        android:id="@+id/tvSignInHeader"
+    <LinearLayout
+        android:id="@+id/llWelcome"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Sign In"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        android:textStyle="bold"
+        android:layout_marginTop="80dp"
+        android:gravity="center"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome to"
+            android:textColor="#1A1C3D"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Discount world"
+            android:textColor="@color/purple_primary"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Please enter your credentials to continue."
+            android:textColor="@color/gray_text"
+            android:textSize="14sp" />
+
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/tvSkip"
+        android:id="@+id/tvCnicLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Skip"
-        android:textColor="@color/purple_primary"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="60dp"
+        android:text="Enter your CNIC"
+        android:textColor="#1A1C3D"
         android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@id/tvSignInHeader"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvSignInHeader" />
-
-    <!-- Welcome Text -->
-    <TextView
-        android:id="@+id/tvWelcome"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
-        android:text="Welcome to Discount world"
-        android:textColor="@color/black"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvSignInHeader" />
-
-    <!-- Email Field -->
-    <TextView
-        android:id="@+id/tvEmailLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:text="Email"
-        android:textColor="@color/black"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvWelcome" />
+        app:layout_constraintTop_toBottomOf="@id/llWelcome" />
 
-    <EditText
-        android:id="@+id/etEmail"
+    <RelativeLayout
+        android:id="@+id/rlCnicInput"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@null"
-        android:hint="Email Address"
-        android:inputType="textEmailAddress"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:textSize="16sp"
+        android:layout_height="56dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/bg_login_input"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvEmailLabel" />
+        app:layout_constraintTop_toBottomOf="@id/tvCnicLabel">
 
-    <View
-        android:id="@+id/viewEmailUnderline"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="@color/divider_color"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etEmail" />
+        <EditText
+            android:id="@+id/etCnic"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_toStartOf="@+id/ivUserIcon"
+            android:background="@null"
+            android:hint="00000-0000000-0"
+            android:inputType="number"
+            android:textColor="@color/black"
+            android:textColorHint="#BDC1D1"
+            android:textSize="18sp" />
 
-    <!-- Password Field -->
+        <ImageView
+            android:id="@+id/ivUserIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_nav_profile"
+            app:tint="#9E9E9E" />
+
+    </RelativeLayout>
+
     <TextView
-        android:id="@+id/tvPasswordLabel"
+        android:id="@+id/tvCnicFormat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Password"
-        android:textColor="@color/black"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/viewEmailUnderline" />
+        android:layout_marginTop="8dp"
+        android:text="Format: 12345-1234567-1"
+        android:textColor="@color/gray_text"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="@id/rlCnicInput"
+        app:layout_constraintTop_toBottomOf="@id/rlCnicInput" />
 
-    <EditText
-        android:id="@+id/etPassword"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@null"
-        android:hint="Password"
-        android:inputType="textPassword"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvPasswordLabel" />
-
-    <View
-        android:id="@+id/viewPasswordUnderline"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="@color/divider_color"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etPassword" />
-
-    <!-- Forgot Password -->
-    <TextView
-        android:id="@+id/tvForgotPassword"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Forgot Password"
-        android:textColor="@color/purple_primary"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/viewPasswordUnderline" />
-
-    <!-- Sign In Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSignIn"
         android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="32dp"
-        android:text="SignIn"
+        android:layout_height="64dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="24dp"
+        android:text="Sign In"
         android:textAllCaps="false"
         android:textColor="@color/white"
         android:textSize="18sp"
+        android:textStyle="bold"
         app:backgroundTint="@color/purple_primary"
-        app:cornerRadius="8dp"
+        app:cornerRadius="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvForgotPassword" />
-
-    <!-- Separator -->
-    <View
-        android:id="@+id/viewSeparatorLeft"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="@color/divider_color"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintBottom_toBottomOf="@id/tvOr"
-        app:layout_constraintEnd_toStartOf="@id/tvOr"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvOr" />
+        app:layout_constraintTop_toBottomOf="@id/tvCnicFormat" />
 
     <TextView
-        android:id="@+id/tvOr"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="Or"
+        android:layout_marginBottom="24dp"
+        android:text="© 2023 Discount World. All rights reserved."
         android:textColor="@color/gray_text"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnSignIn" />
-
-    <View
-        android:id="@+id/viewSeparatorRight"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="@color/divider_color"
-        android:layout_marginStart="8dp"
-        app:layout_constraintBottom_toBottomOf="@id/tvOr"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/tvOr"
-        app:layout_constraintTop_toTopOf="@id/tvOr" />
-
-    <!-- Footer -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvOr">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="New to Discount World? "
-            android:textColor="@color/black" />
-
-        <TextView
-            android:id="@+id/tvSignUp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sign Up"
-            android:textColor="@color/purple_primary"
-            android:textStyle="bold" />
-
-    </LinearLayout>
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
