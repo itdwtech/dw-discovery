@@ -11,6 +11,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.FragmentProfileBinding
+import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.repositories.RedemptionRepository
 import kotlinx.coroutines.launch
 
@@ -20,6 +21,7 @@ class ProfileFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val repository = RedemptionRepository()
+    private lateinit var sessionManager: SessionManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,6 +34,7 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        sessionManager = SessionManager(requireContext())
         loadProfile()
 
         binding.btnSaveChanges.setOnClickListener {
@@ -39,6 +42,7 @@ class ProfileFragment : Fragment() {
         }
 
         binding.btnLogout.setOnClickListener {
+            sessionManager.clearSession()
             val navOptions = NavOptions.Builder()
                 .setPopUpTo(R.id.nav_graph, true) // Clear backstack
                 .build()

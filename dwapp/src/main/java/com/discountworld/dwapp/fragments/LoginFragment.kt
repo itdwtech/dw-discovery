@@ -14,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.FragmentLoginBinding
 import com.discountworld.dwapp.managers.RedemptionStubClient
+import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.repositories.RedemptionRepository
 import kotlinx.coroutines.launch
 
@@ -23,6 +24,7 @@ class LoginFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val repository = RedemptionRepository()
+    private lateinit var sessionManager: SessionManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,6 +36,16 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        sessionManager = SessionManager(requireContext())
+
+        // Check if already logged in
+        if (sessionManager.isLoggedIn()) {
+            val token = sessionManager.getAuthToken()!!
+            RedemptionStubClient.setToken(token)
+            findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+            return
+        }
 
         setupCnicFormatting()
 
@@ -60,7 +72,7 @@ class LoginFragment : Fragment() {
             
             if (response != null) {
                 // Login successful
-                RedemptionStubClient.setToken(response.accessToken)
+                sessionManager.saveAuthToken(response.accessToken)
                 Toast.makeText(requireContext(), "Welcome ${response.customer.fullName}", Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
             } else {
