@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package discount.v1;
+
+option java_multiple_files = true;
+option java_package = "com.discountworld.discount";
+
+import "google/protobuf/timestamp.proto";
+
+// ─────────────────────────────────────────────
+// Customer Messages
+// ─────────────────────────────────────────────
+
+message Customer {
+  int64 id = 1;
+  int64 client_id = 2;
+  string cnic = 3;
+  string email = 4;
+  string full_name = 5;
+  string phone_number = 6;
+  bool active = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message CustomerCnicAuthRequest {
+  string cnic = 1;
+}
+
+message CustomerCnicAuthResponse {
+  string access_token = 1;
+  Customer customer = 2;
+  bool is_new_customer = 3;
+}
+
+message GetCustomerProfileRequest {}
+
+message UpdateCustomerProfileRequest {
+  string email = 1;
+  string full_name = 2;
+  string phone_number = 3;
+}
+
+message ListCustomersRequest {
+  int64 client_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string search = 4;
+}
+
+message ListCustomersResponse {
+  repeated Customer customers = 1;
+  int32 total_count = 2;
+}
+
+// ─────────────────────────────────────────────
+// Category Messages
+// ─────────────────────────────────────────────
+
+message RedemptionCategory {
+  int64 id = 1;
+  string name = 2;
+  string description = 3;
+  string image_url = 4;
+  int32 sort_order = 5;
+}
+
+message ListRedemptionCategoriesRequest {}
+
+message ListRedemptionCategoriesResponse {
+  repeated RedemptionCategory categories = 1;
+}
+
+// ─────────────────────────────────────────────
+// City Messages
+// ─────────────────────────────────────────────
+
+message RedemptionCity {
+  int64 id = 1;
+  string name = 2;
+  string country = 3;
+  bool featured = 4;
+}
+
+message ListRedemptionCitiesRequest {
+  optional bool featured_only = 1;
+}
+
+message ListRedemptionCitiesResponse {
+  repeated RedemptionCity cities = 1;
+}
+
+// ─────────────────────────────────────────────
+// Unified Redemption Service (Mobile App)
+// ─────────────────────────────────────────────
+
+service RedemptionService {
+  // Customer Auth & Profile
+  rpc AuthenticateByCnic(CustomerCnicAuthRequest) returns (CustomerCnicAuthResponse);
+  rpc GetCustomerProfile(GetCustomerProfileRequest) returns (Customer);
+  rpc UpdateCustomerProfile(UpdateCustomerProfileRequest) returns (Customer);
+  rpc ListCustomers(ListCustomersRequest) returns (ListCustomersResponse);
+
+
+  // Categories & Cities (Client-scoped)
+  rpc ListCategories(ListRedemptionCategoriesRequest) returns (ListRedemptionCategoriesResponse);
+  rpc ListCities(ListRedemptionCitiesRequest) returns (ListRedemptionCitiesResponse);
+}

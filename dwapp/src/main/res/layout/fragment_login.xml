@@ -78,7 +78,7 @@
             android:layout_toStartOf="@+id/ivUserIcon"
             android:background="@null"
             android:hint="00000-0000000-0"
-            android:inputType="number"
+            android:inputType="phone"
             android:textColor="@color/black"
             android:textColorHint="#BDC1D1"
             android:textSize="18sp" />

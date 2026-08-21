@@ -11,21 +11,26 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.navigation.fragment.findNavController
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.adapters.*
 import com.discountworld.dwapp.databinding.DialogCitySelectionBinding
 import com.discountworld.dwapp.databinding.FragmentHomeBinding
-import com.discountworld.dwapp.models.City
 import com.discountworld.dwapp.models.PopularBrand
 import com.discountworld.dwapp.models.TopPick
+import com.discountworld.dwapp.repositories.RedemptionRepository
 import com.google.android.material.tabs.TabLayoutMediator
+import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
+
+    private val redemptionRepository = RedemptionRepository()
 
     private val sliderHandler = Handler(Looper.getMainLooper())
     private lateinit var sliderRunnable: Runnable
@@ -57,67 +62,78 @@ class HomeFragment : Fragment() {
             navigateToDelivery(showSearch = true)
         }
 
-        val categories = listOf(
-            binding.food, binding.saloon, binding.leisure, binding.Fitness,
-            binding.Retail, binding.Health, binding.Education, binding.travel
-        )
-
-        categories.forEach { category ->
-            category.setOnClickListener {
-                navigateToDelivery(showSearch = true)
-            }
+        binding.cities.setOnClickListener {
+            android.util.Log.d("CityPopup", "Cities icon clicked")
+            showCityPopup()
         }
 
-        binding.cities.setOnClickListener {
-            showCityPopup()
+        loadCategories()
+    }
+
+    private fun loadCategories() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val categories = redemptionRepository.listCategories() ?: emptyList()
+            
+            if (categories.isNotEmpty()) {
+                val adapter = HomeCategoryAdapter(categories) { category ->
+                    navigateToDelivery(showSearch = true)
+                }
+                
+                binding.categoryRV.layoutManager = GridLayoutManager(requireContext(), 2, GridLayoutManager.HORIZONTAL, false)
+                binding.categoryRV.adapter = adapter
+            }
         }
     }
 
     private fun showCityPopup() {
-        val dialog = Dialog(requireContext())
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        val dialogBinding = DialogCitySelectionBinding.inflate(layoutInflater)
-        dialog.setContentView(dialogBinding.root)
-        dialog.setCancelable(false)
-        dialog.setCanceledOnTouchOutside(false)
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Show a simple toast to indicate loading if needed, or just fetch
+            val cities = redemptionRepository.listCities()
 
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        dialog.window?.setLayout(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
+            if (cities == null) {
+                android.widget.Toast.makeText(requireContext(), "Failed to load cities", android.widget.Toast.LENGTH_SHORT).show()
+                return@launch
+            }
 
-        val cities = listOf(
-            City("Karachi"),
-            City("Lahore"),
-            City("Islamabad"),
-            City("Rawalpindi"),
-            City("Faisalabad"),
-            City("Multan"),
-            City("Peshawar"),
-            City("Peshawar")
-        )
+            if (cities.isEmpty()) {
+                android.widget.Toast.makeText(requireContext(), "No cities found", android.widget.Toast.LENGTH_SHORT).show()
+                return@launch
+            }
 
-        val adapter = CitySelectionAdapter(cities) { city ->
-            // Handle city selection here
-            dialog.dismiss()
+            val dialog = Dialog(requireContext())
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+            val dialogBinding = DialogCitySelectionBinding.inflate(layoutInflater)
+            dialog.setContentView(dialogBinding.root)
+            dialog.setCancelable(false)
+            dialog.setCanceledOnTouchOutside(false)
+
+            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            dialog.window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+
+            val adapter = CitySelectionAdapter(cities) { city ->
+                // Handle city selection here
+                dialog.dismiss()
+            }
+
+            dialogBinding.rvCities.layoutManager = LinearLayoutManager(requireContext())
+            dialogBinding.rvCities.adapter = adapter
+
+            // Show scroll after 3 cities by fixing height
+            if (cities.size > 3) {
+                val params = dialogBinding.rvCities.layoutParams
+                params.height = (resources.displayMetrics.density * 180).toInt() // Approx 3 items height
+                dialogBinding.rvCities.layoutParams = params
+            }
+
+            dialogBinding.ivClose.setOnClickListener {
+                dialog.dismiss()
+            }
+
+            dialog.show()
         }
-
-        dialogBinding.rvCities.layoutManager = LinearLayoutManager(requireContext())
-        dialogBinding.rvCities.adapter = adapter
-
-        // Show scroll after 3 cities by fixing height
-        if (cities.size > 3) {
-            val params = dialogBinding.rvCities.layoutParams
-            params.height = (resources.displayMetrics.density * 180).toInt() // Approx 3 items height
-            dialogBinding.rvCities.layoutParams = params
-        }
-
-        dialogBinding.ivClose.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
     }
 
     private fun navigateToDelivery(showSearch: Boolean) {

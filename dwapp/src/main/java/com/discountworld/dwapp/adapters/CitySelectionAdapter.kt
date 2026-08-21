@@ -3,12 +3,12 @@ package com.discountworld.dwapp.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.discountworld.discount.RedemptionCity
 import com.discountworld.dwapp.databinding.ItemCitySelectionBinding
-import com.discountworld.dwapp.models.City
 
 class CitySelectionAdapter(
-    private val cities: List<City>,
-    private val onCitySelected: (City) -> Unit
+    private val cities: List<RedemptionCity>,
+    private val onCitySelected: (RedemptionCity) -> Unit
 ) : RecyclerView.Adapter<CitySelectionAdapter.ViewHolder>() {
 
     class ViewHolder(val binding: ItemCitySelectionBinding) : RecyclerView.ViewHolder(binding.root)
