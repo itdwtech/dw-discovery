@@ -81,8 +81,10 @@ class UserDetailFragment : Fragment() {
     }
 
     private fun loadBranches() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val branches = vendorDetail?.branchesList
+
+            if (_binding == null) return@launch
 
             branches?.let {
                 if (it.isNotEmpty()) {
@@ -96,8 +98,10 @@ class UserDetailFragment : Fragment() {
     }
 
     private fun loadCards() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val cardDiscounts = vendorDetail?.cardDiscountsList
+
+            if (_binding == null) return@launch
 
             cardDiscounts?.let {
                 if (it.isNotEmpty()) {
@@ -113,12 +117,15 @@ class UserDetailFragment : Fragment() {
     @SuppressLint("SetTextI18n", "DefaultLocale")
     private fun loadVendorDetail() {
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
+            if (_binding == null) return@launch
             binding.loaderLayout.visibility = View.VISIBLE
 
             try {
                 val vendor = repository.getFullVendor(args.vendorId, args.cityId)
                 val banners = repository.getBanners() ?: emptyList()
+
+                if (_binding == null) return@launch
 
                 vendor?.let {
 
@@ -162,7 +169,7 @@ class UserDetailFragment : Fragment() {
             } catch (e: Exception) {
                 println("Error loading vendor detail: ${e.message}")
             } finally {
-                binding.loaderLayout.visibility = View.GONE
+                _binding?.loaderLayout?.visibility = View.GONE
             }
         }
     }
