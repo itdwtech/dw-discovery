@@ -32,7 +32,7 @@ class VendorAdapter(
         val banner = banners?.firstOrNull { it.vendorId == vendor.id }
 
         holder.binding.txtTitle.text = vendor.title ?: ""
-        holder.binding.txtSubtitle.text = "with easypaisa premium debit card "
+        holder.binding.txtSubtitle.text = vendor.shortDescription ?: ""
 
         Glide.with(holder.binding.root.context)
             .load(banner?.imageUrl ?: vendor.logoUrl)
@@ -40,7 +40,6 @@ class VendorAdapter(
             .error(R.drawable.dw_discovery_ic_banner)
             .centerCrop()
             .into(holder.binding.imgBanner)
-
         holder.binding.root.setOnClickListener {
             onClick(vendor)
         }

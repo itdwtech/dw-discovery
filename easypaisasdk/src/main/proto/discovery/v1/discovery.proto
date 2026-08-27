@@ -59,6 +59,7 @@ message VendorSummary {
   bool featured = 5;
   repeated Category categories = 6;
   string title = 7;
+  string short_description = 8;
 }
 
 message VendorDetail {
@@ -74,6 +75,7 @@ message VendorDetail {
   repeated SocialLink social_links = 10;
   repeated GalleryImage gallery_images = 11;
   string title = 12;
+  string short_description = 13;
 }
 
 message ListVendorsRequest {
@@ -283,6 +285,7 @@ message SearchVendorItem {
   string title = 7;
   repeated Banner banners = 8;
   int32 sort_order = 9;
+  string short_description = 10;
 }
 
 message SearchVendorsRequest {
@@ -322,6 +325,7 @@ message VendorFullDetail {
   repeated Deal deals = 15;
   repeated CardDiscount card_discounts = 16;
   repeated Banner banners = 17;
+  string short_description = 18;
 }
 
 message GetVendorFullRequest {

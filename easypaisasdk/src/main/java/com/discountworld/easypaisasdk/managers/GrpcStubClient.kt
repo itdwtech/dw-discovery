@@ -13,12 +13,16 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 
 object GrpcStubClient {
     private const val API_KEY = "8e18fcbf-bbec-4898-b142-b8ae7da90e13"
+//    private const val API_KEY = "86b23b91-56c1-406e-a50c-ec569e66b57c"
     private const val SERVER_URL = "api.appbiance.com"
+//    private const val SERVER_URL = "192.168.0.102"
     private const val SERVER_PORT = 443
+//    private const val SERVER_PORT = 9090
 
     private val channel: ManagedChannel by lazy {
         OkHttpChannelBuilder
             .forAddress(SERVER_URL, SERVER_PORT)
+//            .usePlaintext()
             .useTransportSecurity()
             .build()
     }

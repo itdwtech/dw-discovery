@@ -93,6 +93,7 @@ class HomeRepository {
                     .setFeatured(item.featured)
                     .addAllCategories(item.categoriesList)
                     .setTitle(item.title)
+                    .setShortDescription(item.shortDescription)
                     .build()
             }
         }.onFailure {

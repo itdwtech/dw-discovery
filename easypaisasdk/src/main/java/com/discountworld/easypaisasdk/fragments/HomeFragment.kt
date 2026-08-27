@@ -217,11 +217,12 @@ class HomeFragment : Fragment() {
             if (_binding == null) return@launch
 
             if (!cities.isNullOrEmpty()) {
+                val sortedCities = cities.sortedBy { it.sortOrder }
                 if (cityId == null) {
-                    cityId = cities.first().id
+                    cityId = sortedCities.first().id
                 }
 
-                cityAdapter = CityAdapter(cities, selectedCityId = cityId) { city ->
+                cityAdapter = CityAdapter(sortedCities, selectedCityId = cityId) { city ->
                     if (_binding == null) return@CityAdapter
                     cityId = city.id
                     cityAdapter?.setSelectedCity(cityId)
@@ -252,12 +253,13 @@ class HomeFragment : Fragment() {
             if (_binding == null) return@ioThenMain
 
             if (!cities.isNullOrEmpty()) {
+                val sortedCities = cities.sortedBy { it.sortOrder }
                 // Default to first city if location hasn't resolved yet
                 if (cityId == null) {
-                    cityId = cities.first().id
+                    cityId = sortedCities.first().id
                 }
 
-                cityAdapter = CityAdapter(cities, selectedCityId = cityId){ city ->
+                cityAdapter = CityAdapter(sortedCities, selectedCityId = cityId){ city ->
                     if (_binding == null) return@CityAdapter
                     cityId = city.id
                     cityAdapter?.setSelectedCity(cityId)
@@ -452,7 +454,7 @@ class HomeFragment : Fragment() {
         val vendor = cachedFeaturedVendor
         if (vendor != null) {
             binding.txtTitle.text = vendor.title ?: ""
-            binding.txtSubtitle.text = "with easypaisa premium debit card "
+            binding.txtSubtitle.text = vendor.shortDescription ?: ""
 
             Glide.with(requireContext())
                 .load(cachedBannerUrl)
@@ -580,7 +582,8 @@ class HomeFragment : Fragment() {
             // Fragment's own view may be gone even though the dialog is separate;
             // guard before touching fragment state (cityId, cityAdapter, setupBrands, etc.)
             if (!cities.isNullOrEmpty()) {
-                dialogBinding.rvAllCities.adapter = CitiesAdapter(cities, selectedCityId = cityId){ city ->
+                val sortedCities = cities.sortedBy { it.sortOrder }
+                dialogBinding.rvAllCities.adapter = CitiesAdapter(sortedCities, selectedCityId = cityId){ city ->
                     if (_binding != null) {
                         cityId = city.id
                         cityAdapter?.setSelectedCity(cityId)
@@ -694,7 +697,7 @@ class HomeFragment : Fragment() {
         // Restore featured vendor
         cachedFeaturedVendor?.let { vendor ->
             binding.txtTitle.text = vendor.title ?: ""
-            binding.txtSubtitle.text = "with easypaisa premium debit card "
+            binding.txtSubtitle.text = vendor.shortDescription ?: ""
 
             Glide.with(requireContext())
                 .load(cachedBannerUrl)

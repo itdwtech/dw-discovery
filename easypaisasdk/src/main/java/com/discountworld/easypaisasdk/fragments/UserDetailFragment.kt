@@ -2,6 +2,8 @@ package com.discountworld.easypaisasdk.fragments
 
 import android.annotation.SuppressLint
 import android.app.Dialog
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -88,10 +90,7 @@ class UserDetailFragment : Fragment() {
 
             branches?.let {
                 if (it.isNotEmpty()) {
-                    binding.tvOutlets.visibility = View.VISIBLE
                     outletsAdapter.updateData(it)
-                } else {
-                    binding.tvOutlets.visibility = View.GONE
                 }
             }
         }
@@ -139,17 +138,51 @@ class UserDetailFragment : Fragment() {
                     loadCards()
                     loadBranches()
 
-                    val num = if (it.branchesCount == 0) "0"
-                    else String.format("%02d", it.branchesCount)
-
-                    binding.outletCount.text = "$num Outlets"
-
-                    // Outlets adapter image
-                    outletsAdapter.updateVendorUrl(it.logoUrl)
-
                     // Find banner for vendor
                     val banner = banners.firstOrNull { b ->
                         b.vendorId == it.id
+                    } ?: it.bannersList.firstOrNull()
+
+                    val webUrl = banner?.linkUrl?.trim()?.takeIf { u -> u.isNotBlank() }
+
+                    if (!webUrl.isNullOrBlank()) {
+                        binding.outletCount.visibility = View.VISIBLE
+                        binding.outletCount.text = "Online"
+                        binding.tvOutlets.visibility = View.VISIBLE
+                        binding.tvOutlets.text = "Website"
+                    } else {
+                        binding.tvOutlets.text = "Outlets"
+                        val num = if (it.branchesCount == 0) "0" else String.format("%02d", it.branchesCount)
+                        binding.outletCount.text = "$num Outlets"
+                        if (it.branchesCount > 0 || it.branchesList.isNotEmpty()) {
+                            binding.outletCount.visibility = View.VISIBLE
+                            binding.tvOutlets.visibility = View.VISIBLE
+                        } else {
+                            binding.outletCount.visibility = View.GONE
+                            binding.tvOutlets.visibility = View.GONE
+                        }
+                    }
+
+                    // Outlets adapter image and web link
+                    outletsAdapter.updateVendorUrl(it.logoUrl)
+                    outletsAdapter.updateWebUrl(webUrl ?: "")
+
+                    // Banner image click listener
+                    binding.rvOutlets.setOnClickListener {
+                        val urlToOpen = webUrl?.trim()
+                        if (!urlToOpen.isNullOrBlank()) {
+                            val formattedUrl = if (!urlToOpen.startsWith("http://") && !urlToOpen.startsWith("https://")) {
+                                "https://$urlToOpen"
+                            } else {
+                                urlToOpen
+                            }
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl))
+                                startActivity(intent)
+                            } catch (e: Exception) {
+                                println("Error opening banner link: ${e.message}")
+                            }
+                        }
                     }
 
                     // ✅ ROUNDED IMAGE LOADING
