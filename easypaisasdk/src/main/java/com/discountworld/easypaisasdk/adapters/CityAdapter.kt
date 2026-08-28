@@ -51,7 +51,8 @@ class CityAdapter(
 
             Glide.with(holder.binding.root.context)
                 .load(image)
-                .placeholder(R.drawable.dw_discovery_ic_islamabad)
+                .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
+                .error(R.drawable.dw_discovery_ic_islamabad)
                 .into(holder.binding.imgCity)
         } else {
             holder.binding.imgCity.visibility = View.GONE

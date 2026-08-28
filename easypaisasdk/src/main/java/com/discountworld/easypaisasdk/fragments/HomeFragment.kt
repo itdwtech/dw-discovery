@@ -37,6 +37,8 @@ import com.discountworld.easypaisasdk.repositories.HomeRepository
 import com.discountworld.easypaisasdk.utils.LocationUtility
 import com.discountworld.easypaisasdk.utils.TypeFaceUtils
 import com.google.android.material.tabs.TabLayout
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import com.discountworld.easypaisasdk.utils.toPx
 import com.discountworld.easypaisasdk.utils.toast
@@ -108,7 +110,6 @@ class HomeFragment : Fragment() {
         setupStatusBar()
 
         if (isInitialLoad) {
-            shimmerStarted()
             checkLocationPermissionAndFetch()
             initialLoad()
             isInitialLoad = false
@@ -202,24 +203,27 @@ class HomeFragment : Fragment() {
     }
 
     private fun initialLoad() {
-        // Load cities FIRST (warms gRPC channel + sets cityId),
-        // then load everything else that depends on cityId
+        binding.loaderLayout.visibility = View.VISIBLE
+
         binding.rcyCities.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.rcyTopBrands.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.rcyVendors.layoutManager = LinearLayoutManager(requireContext())
 
-        // viewLifecycleOwner.lifecycleScope: auto-cancelled on onDestroyView,
-        // so this coroutine won't resume and touch a null binding.
         viewLifecycleOwner.lifecycleScope.launch {
-            // Step 1: fetch cities (this also establishes the gRPC connection)
-            val cities = repository.getListOfCities(true)
+            val citiesDeferred = async(Dispatchers.IO) { repository.getListOfCities(false) }
+            val categoriesDeferred = async(Dispatchers.IO) { repository.getCategories() }
+            val bannersDeferred = async(Dispatchers.IO) { repository.getBanners() }
 
-            // Extra safety: view may have been torn down while the call was in flight
+            val cities = citiesDeferred.await()
             if (_binding == null) return@launch
 
             if (!cities.isNullOrEmpty()) {
                 val sortedCities = cities.sortedBy { it.sortOrder }
                 if (cityId == null) {
-                    cityId = sortedCities.first().id
+                    val islamabadCity = sortedCities.firstOrNull { it.name.contains("Islamabad", ignoreCase = true) }
+                    cityId = islamabadCity?.id ?: sortedCities.first().id
                 }
 
                 cityAdapter = CityAdapter(sortedCities, selectedCityId = cityId) { city ->
@@ -228,133 +232,106 @@ class HomeFragment : Fragment() {
                     cityAdapter?.setSelectedCity(cityId)
                     setupBrands()
                     setupVendorsList()
-                    //requireContext().toast("Selected city is ${city.name}")
                 }
                 binding.rcyCities.adapter = cityAdapter
             }
 
-            // Step 2: now cityId is set — load everything else
-            loadCategories()
-            setupBrands()
-            setupVendorsList()
+            val topBrandsDeferred = async(Dispatchers.IO) { repository.getTopBrands(cityId = cityId) }
+            val vendorsDeferred = async(Dispatchers.IO) { repository.getVendorsList(cityId = cityId) }
+
+            val categories = categoriesDeferred.await()
+            val banners = bannersDeferred.await()
+            if (banners != null) {
+                cachedBanners = banners
+            }
+
+            if (_binding == null) return@launch
+
+            if (categories != null) {
+                categoriesList = categories
+                binding.category.removeAllTabs()
+                binding.category.addTab(binding.category.newTab().setText("All"))
+                categories.forEach {
+                    binding.category.addTab(binding.category.newTab().setText(it.name.toTitleCase()))
+                }
+                setupCategoryTabListener()
+            }
+
+            val topBrands = topBrandsDeferred.await()
+            if (_binding == null) return@launch
+
+            if (!topBrands.isNullOrEmpty()) {
+                brandDataCache[cityId] = topBrands
+                brandAdapter = createBrandAdapter(topBrands)
+                binding.rcyTopBrands.adapter = brandAdapter
+            }
+
+            val vendors = vendorsDeferred.await() ?: emptyList()
+            if (_binding == null) return@launch
+
+            val key = Pair(cityId, null as Long?)
+            vendorDataCache[key] = vendors
+            vendorAdapter = createVendorAdapter(vendors, cachedBanners ?: emptyList())
+            binding.rcyVendors.adapter = vendorAdapter
+
+            if (vendors.isNotEmpty()) {
+                updateFeaturedFromList(vendors[0])
+            }
+
+            binding.loaderLayout.visibility = View.GONE
         }
     }
 
-    private fun loadCities() {
-        binding.rcyCities.layoutManager =
-            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+    private fun setupCategoryTabListener() {
+        binding.category.clearOnTabSelectedListeners()
+        binding.category.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
 
-        CoroutineTask.ioThenMain({
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                if (_binding == null) return
 
-            repository.getListOfCities(true)
+                selectedTabPosition = tab.position
 
-        }, { cities ->
+                val typeface = TypeFaceUtils.get(requireContext(), FONT_BOLD)
+                (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
 
-            if (_binding == null) return@ioThenMain
+                val isVisible = if (tab.position == 0) View.VISIBLE else View.GONE
 
-            if (!cities.isNullOrEmpty()) {
-                val sortedCities = cities.sortedBy { it.sortOrder }
-                // Default to first city if location hasn't resolved yet
-                if (cityId == null) {
-                    cityId = sortedCities.first().id
+                binding.lvCity.visibility = isVisible
+                binding.lvFeaturedVendor.visibility = isVisible
+                binding.rcyCities.visibility = isVisible
+                binding.rcyTopBrands.visibility = isVisible
+                binding.tvTopBrands.visibility = isVisible
+
+                if (tab.position == 0) {
+                    binding.search.setText("")
+                    selectedCategoryId = null
+                    addMargin(binding.rcyVendors, 0, 0, 0, 0)
+                } else {
+                    selectedCategoryId = categoriesList[tab.position - 1].id
+                    addMargin(binding.rcyVendors, 16, 0, 0, 0)
                 }
 
-                cityAdapter = CityAdapter(sortedCities, selectedCityId = cityId){ city ->
-                    if (_binding == null) return@CityAdapter
-                    cityId = city.id
-                    cityAdapter?.setSelectedCity(cityId)
-                    setupBrands()
+                val searchText = binding.search.text.toString()
+
+                if (searchText.isNotEmpty()) {
+                    findVendor(searchText)
+                    return
+                }
+
+                if (tab.position == 0) {
                     setupVendorsList()
-                    requireContext().toast("Selected city is ${city.name}")
+                } else {
+                    loadVendorsByCategory(selectedCategoryId!!)
                 }
-                binding.rcyCities.adapter = cityAdapter
             }
 
-        })
-
-    }
-
-    private fun loadCategories() {
-
-        CoroutineTask.ioThenMain({
-
-            repository.getCategories()
-
-        }, { categories ->
-
-            if (_binding == null) return@ioThenMain
-
-            if (categories != null) {
-
-                categoriesList = categories
-
-                // All Tab
-                binding.category.addTab(
-                    binding.category.newTab().setText("All")
-                )
-
-                // API categories
-                categories.forEach {
-                    binding.category.addTab(
-                        binding.category.newTab().setText(it.name.toTitleCase())
-                    )
-                }
-
-                binding.category.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-
-                    override fun onTabSelected(tab: TabLayout.Tab) {
-                        if (_binding == null) return
-
-                        selectedTabPosition = tab.position
-
-                        val typeface = TypeFaceUtils.get(requireContext(), FONT_BOLD)
-                        (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
-
-                        val isVisible = if (tab.position == 0) View.VISIBLE else View.GONE
-
-                        binding.lvCity.visibility = isVisible
-                        binding.lvFeaturedVendor.visibility = isVisible
-                        binding.rcyCities.visibility = isVisible
-                        binding.rcyTopBrands.visibility = isVisible
-                        binding.tvTopBrands.visibility = isVisible
-
-                        if (tab.position == 0) {
-
-                            // ✅ CLEAR SEARCH WHEN ALL CLICKED
-                            binding.search.setText("")
-
-                            selectedCategoryId = null
-                            addMargin(binding.rcyVendors, 0, 0, 0, 0)
-
-                        } else {
-
-                            selectedCategoryId = categoriesList[tab.position - 1].id
-                            addMargin(binding.rcyVendors, 16, 0, 0, 0)
-                        }
-
-                        val searchText = binding.search.text.toString()
-
-                        if (searchText.isNotEmpty()) {
-                            findVendor(searchText)
-                            return
-                        }
-
-                        if (tab.position == 0) {
-                            setupVendorsList()
-                        } else {
-                            loadVendorsByCategory(selectedCategoryId!!)
-                        }
-                    }
-
-                    override fun onTabUnselected(tab: TabLayout.Tab) {
-                        if (_binding == null) return
-                        val typeface = TypeFaceUtils.get(requireContext(), FONT_REG)
-                        (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
-                    }
-
-                    override fun onTabReselected(tab: TabLayout.Tab) {}
-                })
+            override fun onTabUnselected(tab: TabLayout.Tab) {
+                if (_binding == null) return
+                val typeface = TypeFaceUtils.get(requireContext(), FONT_REG)
+                (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
             }
+
+            override fun onTabReselected(tab: TabLayout.Tab) {}
         })
     }
 
@@ -399,6 +376,7 @@ class HomeFragment : Fragment() {
             findNavController().navigate(action)
         }
     }
+
     private fun setupVendorsList() {
 
         binding.rcyVendors.layoutManager = LinearLayoutManager(requireContext())
@@ -409,13 +387,14 @@ class HomeFragment : Fragment() {
             vendorAdapter = createVendorAdapter(cachedVendors, cachedBanners ?: emptyList())
             binding.rcyVendors.adapter = vendorAdapter
 
-            // Set first vendor as featured
             if (cachedVendors.isNotEmpty()) {
                 updateFeaturedFromList(cachedVendors[0])
             }
-            shimmerStopped()
+            binding.loaderLayout.visibility = View.GONE
             return
         }
+
+        binding.loaderLayout.visibility = View.VISIBLE
 
         viewLifecycleOwner.lifecycleScope.launch {
 
@@ -433,11 +412,10 @@ class HomeFragment : Fragment() {
             vendorAdapter = createVendorAdapter(vendors, cachedBanners!!)
             binding.rcyVendors.adapter = vendorAdapter
 
-            // Set first vendor as featured
             if (vendors.isNotEmpty()) {
                 updateFeaturedFromList(vendors[0])
             }
-            shimmerStopped()
+            binding.loaderLayout.visibility = View.GONE
         }
     }
 
@@ -458,7 +436,7 @@ class HomeFragment : Fragment() {
 
             Glide.with(requireContext())
                 .load(cachedBannerUrl)
-                .placeholder(R.drawable.dw_discovery_ic_banner)
+                .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
                 .error(R.drawable.dw_discovery_ic_banner)
                 .centerCrop()
                 .into(binding.imgBanner)
@@ -548,11 +526,14 @@ class HomeFragment : Fragment() {
             if (_binding == null) return@ioThenMain
 
             if (city != null) {
-                cityId = city.id
+                if (cityId != city.id) {
+                    cityId = city.id
+                    cityAdapter?.setSelectedCity(cityId)
+                    setupBrands()
+                    setupVendorsList()
+                }
                 txtLocation.text = city.name
-                cityAdapter?.setSelectedCity(cityId)
                 Log.d("grpc", "Nearest City: ${city.name}")
-
             }
 
         })
@@ -626,8 +607,11 @@ class HomeFragment : Fragment() {
         if (cachedVendors != null) {
             val adapter = createVendorAdapter(cachedVendors, cachedBanners ?: emptyList())
             binding.rcyVendors.adapter = adapter
+            binding.loaderLayout.visibility = View.GONE
             return
         }
+
+        binding.loaderLayout.visibility = View.VISIBLE
 
         viewLifecycleOwner.lifecycleScope.launch {
 
@@ -652,6 +636,7 @@ class HomeFragment : Fragment() {
             if (vendors.isNotEmpty()) {
                 updateFeaturedFromList(vendors[0])
             }
+            binding.loaderLayout.visibility = View.GONE
         }
     }
 
@@ -701,7 +686,7 @@ class HomeFragment : Fragment() {
 
             Glide.with(requireContext())
                 .load(cachedBannerUrl)
-                .placeholder(R.drawable.dw_discovery_ic_banner)
+                .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
                 .error(R.drawable.dw_discovery_ic_banner)
                 .centerCrop()
                 .into(binding.imgBanner)
@@ -727,78 +712,18 @@ class HomeFragment : Fragment() {
                     binding.category.newTab().setText(it.name.toTitleCase())
                 )
             }
-            binding.category.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-                override fun onTabSelected(tab: TabLayout.Tab) {
-                    if (_binding == null) return
-
-                    selectedTabPosition = tab.position
-
-                    val typeface = TypeFaceUtils.get(requireContext(), FONT_BOLD)
-                    (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
-
-                    val isVisible = if (tab.position == 0) View.VISIBLE else View.GONE
-                    binding.lvCity.visibility = isVisible
-                    binding.lvFeaturedVendor.visibility = isVisible
-                    binding.rcyCities.visibility = isVisible
-                    binding.rcyTopBrands.visibility = isVisible
-                    binding.tvTopBrands.visibility = isVisible
-
-                    if (tab.position == 0) {
-                        binding.search.setText("")
-                        selectedCategoryId = null
-                        addMargin(binding.rcyVendors, 0, 0, 0, 0)
-                    } else {
-                        selectedCategoryId = categoriesList[tab.position - 1].id
-                        addMargin(binding.rcyVendors, 16, 0, 0, 0)
-                    }
-
-                    val searchText = binding.search.text.toString()
-                    if (searchText.isNotEmpty()) {
-                        findVendor(searchText)
-                        return
-                    }
-
-                    if (tab.position == 0) {
-                        setupVendorsList()
-                    } else {
-                        loadVendorsByCategory(selectedCategoryId!!)
-                    }
-                }
-
-                override fun onTabUnselected(tab: TabLayout.Tab) {
-                    if (_binding == null) return
-                    val typeface = TypeFaceUtils.get(requireContext(), FONT_REG)
-                    (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
-                }
-
-                override fun onTabReselected(tab: TabLayout.Tab) {}
-            })
+            setupCategoryTabListener()
 
             // Restore previously selected tab
             if (selectedTabPosition in 0 until binding.category.tabCount) {
                 binding.category.getTabAt(selectedTabPosition)?.select()
             }
         }
-
-        // Show content immediately — no shimmer
-        shimmerStopped()
-    }
-
-    private fun shimmerStarted(){
-        if (_binding == null) return
-        binding.lvShimmer.startShimmer()
-        binding.lvShimmer.visibility = View.VISIBLE
-        binding.lvMain.visibility = View.GONE
-    }
-
-    private fun shimmerStopped(){
-        if (_binding == null) return
-        binding.lvShimmer.stopShimmer()
-        binding.lvShimmer.visibility = View.GONE
-        binding.lvMain.visibility = View.VISIBLE
     }
 
     private fun findVendor(text: String) {
+
+        binding.loaderLayout.visibility = View.VISIBLE
 
         CoroutineTask.ioThenMain({
 
@@ -815,6 +740,8 @@ class HomeFragment : Fragment() {
         }, { result ->
 
             if (_binding == null) return@ioThenMain
+
+            binding.loaderLayout.visibility = View.GONE
 
             val vendors = result?.first ?: emptyList()
             val banners = result?.second ?: emptyList()

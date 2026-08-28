@@ -36,7 +36,7 @@ class VendorAdapter(
 
         Glide.with(holder.binding.root.context)
             .load(banner?.imageUrl ?: vendor.logoUrl)
-            .placeholder(R.drawable.dw_discovery_ic_banner)
+            .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
             .error(R.drawable.dw_discovery_ic_banner)
             .centerCrop()
             .into(holder.binding.imgBanner)

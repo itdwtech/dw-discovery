@@ -10,6 +10,8 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ProgressBar
 import android.widget.Toast
+import com.facebook.shimmer.Shimmer
+import com.facebook.shimmer.ShimmerDrawable
 import com.google.android.material.snackbar.Snackbar
 import java.io.InputStream
 import java.util.Locale
@@ -83,4 +85,18 @@ fun Context.loadJSONFromAsset(jsonPath: String?): String? {
 
 fun Int.toPx(): Int =
     (this * Resources.getSystem().displayMetrics.density).toInt()
+
+fun getShimmerDrawable(): ShimmerDrawable {
+    val shimmer = Shimmer.ColorHighlightBuilder()
+        .setBaseColor(android.graphics.Color.parseColor("#E2E2E2"))
+        .setHighlightColor(android.graphics.Color.parseColor("#F5F5F5"))
+        .setDuration(1200L)
+        .setDirection(Shimmer.Direction.LEFT_TO_RIGHT)
+        .setAutoStart(true)
+        .build()
+
+    return ShimmerDrawable().apply {
+        setShimmer(shimmer)
+    }
+}
 
