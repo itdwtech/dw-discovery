@@ -36,6 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Tim Hortons - F9"
+                android:textColor="@color/dw_discovery_black"
                 android:textStyle="bold"
                 android:textSize="16sp"/>
 

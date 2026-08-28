@@ -34,10 +34,10 @@ class CityAdapter(
         val city = cities[position]
         holder.binding.txtCity.text = city.name
 
-        // Highlight selected city with blue border
+        // Highlight selected city with green border
         val card = holder.binding.root as MaterialCardView
         if (city.id == selectedCityId) {
-            card.strokeColor = Color.parseColor("#2196F3")
+            card.strokeColor = Color.parseColor("#00A859")
             card.strokeWidth = 4
         } else {
             card.strokeColor = Color.WHITE

@@ -31,7 +31,7 @@ class CitiesAdapter(
         holder.binding.txtCity.text = city.name
 
         if (city.id == selectedCityId) {
-            holder.binding.txtCity.setTextColor(Color.parseColor("#2196F3"))
+            holder.binding.txtCity.setTextColor(Color.parseColor("#00A859"))
             holder.binding.txtCity.setTypeface(null, Typeface.BOLD)
         } else {
             holder.binding.txtCity.setTextColor(Color.BLACK)
