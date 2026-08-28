@@ -212,7 +212,7 @@ class HomeFragment : Fragment() {
         binding.rcyVendors.layoutManager = LinearLayoutManager(requireContext())
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val citiesDeferred = async(Dispatchers.IO) { repository.getListOfCities(false) }
+            val citiesDeferred = async(Dispatchers.IO) { repository.getListOfCities(true) }
             val categoriesDeferred = async(Dispatchers.IO) { repository.getCategories() }
             val bannersDeferred = async(Dispatchers.IO) { repository.getBanners() }
 
