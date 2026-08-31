@@ -10,16 +10,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.navigation.fragment.findNavController
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.adapters.*
 import com.discountworld.dwapp.databinding.DialogCitySelectionBinding
 import com.discountworld.dwapp.databinding.FragmentHomeBinding
-import com.discountworld.dwapp.models.PopularBrand
+import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.models.TopPick
 import com.discountworld.dwapp.repositories.RedemptionRepository
 import com.google.android.material.tabs.TabLayoutMediator
@@ -31,6 +32,8 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val redemptionRepository = RedemptionRepository()
+    private lateinit var sessionManager: SessionManager
+    private var selectedCityId: Long = 1L
 
     private val sliderHandler = Handler(Looper.getMainLooper())
     private lateinit var sliderRunnable: Runnable
@@ -47,19 +50,18 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        sessionManager = SessionManager(requireContext())
+
         setupRecyclerViews()
         setupSlider()
-
-        binding.imgSearch.setOnClickListener {
-            navigateToDelivery(showSearch = false)
-        }
+        setupSearch()
 
         binding.imgEcommerce.setOnClickListener {
-            navigateToDelivery(showSearch = true)
+            navigateToDelivery(showSearch = true, categoryName = "E-Commerce")
         }
 
         binding.imgDelivery.setOnClickListener {
-            navigateToDelivery(showSearch = true)
+            navigateToDelivery(showSearch = true, categoryName = "Delivery Deals")
         }
 
         binding.cities.setOnClickListener {
@@ -68,26 +70,99 @@ class HomeFragment : Fragment() {
         }
 
         loadCategories()
+        loadInitialCityAndStories()
+    }
+
+    private fun setupSearch() {
+        binding.imgSearch.setOnClickListener {
+            val query = binding.search.text?.toString()?.trim()
+            if (!query.isNullOrEmpty()) {
+                navigateToDelivery(showSearch = true, searchQuery = query)
+            }
+        }
+
+        binding.search.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
+                val query = binding.search.text?.toString()?.trim()
+                if (!query.isNullOrEmpty()) {
+                    navigateToDelivery(showSearch = true, searchQuery = query)
+                }
+                true
+            } else {
+                false
+            }
+        }
     }
 
     private fun loadCategories() {
         viewLifecycleOwner.lifecycleScope.launch {
             val categories = redemptionRepository.listCategories() ?: emptyList()
-            
+
             if (categories.isNotEmpty()) {
                 val adapter = HomeCategoryAdapter(categories) { category ->
-                    navigateToDelivery(showSearch = true)
+                    navigateToDelivery(showSearch = true, categoryName = category.name, categoryId = category.id)
                 }
-                
+
                 binding.categoryRV.layoutManager = GridLayoutManager(requireContext(), 2, GridLayoutManager.HORIZONTAL, false)
                 binding.categoryRV.adapter = adapter
             }
         }
     }
 
+    private fun loadPopularVendors(cityId: Long = selectedCityId) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val response = redemptionRepository.listVendors(page = 1, pageSize = 20, cityId = cityId)
+            val vendors = response?.vendorsList ?: emptyList()
+            if (vendors.isNotEmpty()) {
+                val adapter = PopularBrandsAdapter(vendors)
+                binding.popularDiscRV.adapter = adapter
+            }
+        }
+    }
+
+    private fun loadInitialCityAndStories() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val savedCityId = sessionManager.getSelectedCityId()
+            if (savedCityId != null) {
+                selectedCityId = savedCityId
+            } else {
+                val cities = redemptionRepository.listCities()
+                val defaultCity = cities?.firstOrNull()
+                if (defaultCity != null) {
+                    selectedCityId = defaultCity.id
+                    sessionManager.saveSelectedCityId(selectedCityId)
+                }
+            }
+            loadStories(selectedCityId)
+            loadPopularVendors(selectedCityId)
+        }
+    }
+
+    private fun loadStories(cityId: Long) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            binding.storyShimmerLayout.visibility = View.VISIBLE
+            binding.storyShimmerLayout.startShimmer()
+            binding.storyRV.visibility = View.GONE
+
+            val stories = redemptionRepository.listStories(cityId) ?: emptyList()
+
+            binding.storyShimmerLayout.stopShimmer()
+            binding.storyShimmerLayout.visibility = View.GONE
+
+            if (stories.isNotEmpty()) {
+                binding.storyRV.visibility = View.VISIBLE
+                val adapter = StoryAdapter(stories) { story ->
+                    navigateToDelivery(showSearch = true, categoryName = story.vendorTitle)
+                }
+                binding.storyRV.adapter = adapter
+            } else {
+                binding.storyRV.visibility = View.GONE
+            }
+        }
+    }
+
     private fun showCityPopup() {
         viewLifecycleOwner.lifecycleScope.launch {
-            // Show a simple toast to indicate loading if needed, or just fetch
             val cities = redemptionRepository.listCities()
 
             if (cities == null) {
@@ -114,17 +189,19 @@ class HomeFragment : Fragment() {
             )
 
             val adapter = CitySelectionAdapter(cities) { city ->
-                // Handle city selection here
+                selectedCityId = city.id
+                sessionManager.saveSelectedCityId(city.id)
+                loadStories(city.id)
+                loadPopularVendors(city.id)
                 dialog.dismiss()
             }
 
             dialogBinding.rvCities.layoutManager = LinearLayoutManager(requireContext())
             dialogBinding.rvCities.adapter = adapter
 
-            // Show scroll after 3 cities by fixing height
             if (cities.size > 3) {
                 val params = dialogBinding.rvCities.layoutParams
-                params.height = (resources.displayMetrics.density * 180).toInt() // Approx 3 items height
+                params.height = (resources.displayMetrics.density * 180).toInt()
                 dialogBinding.rvCities.layoutParams = params
             }
 
@@ -136,10 +213,19 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun navigateToDelivery(showSearch: Boolean) {
+    private fun navigateToDelivery(
+        showSearch: Boolean = true,
+        categoryName: String? = null,
+        categoryId: Long? = null,
+        searchQuery: String? = null
+    ) {
         val bundle = Bundle().apply {
             putBoolean("showSearch", showSearch)
             putBoolean("hideBottomNav", true)
+            putLong("cityId", selectedCityId)
+            categoryName?.let { putString("categoryName", it) }
+            categoryId?.let { putLong("categoryId", it) }
+            searchQuery?.let { putString("searchQuery", it) }
         }
         findNavController().navigate(R.id.action_nav_home_to_nav_delivery, bundle)
     }
@@ -165,19 +251,23 @@ class HomeFragment : Fragment() {
                 val currentItem = binding.pager.currentItem
                 val nextItem = if (currentItem == sliderImages.size - 1) 0 else currentItem + 1
                 binding.pager.setCurrentItem(nextItem, true)
-                sliderHandler.postDelayed(sliderRunnable, 3000) // 3 seconds delay
+                sliderHandler.postDelayed(sliderRunnable, 3000)
             }
         }
     }
 
     private fun setupRecyclerViews() {
         binding.storyRV.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        
-        // Horizontal Scroll for Banners
+
+        // Horizontal Scroll for Banners (Ecommerce & Delivery)
         binding.topBannerRV.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        val bannerImages = listOf(R.drawable.ic_almasjewellers, R.drawable.ic_beatsandcuts)
-        binding.topBannerRV.adapter = BannerAdapter(bannerImages) {
-            navigateToDelivery(showSearch = true)
+        val bannerImages = listOf(R.drawable.ecommerce_title, R.drawable.delivery_title)
+        binding.topBannerRV.adapter = BannerAdapter(bannerImages) { position ->
+            if (position == 0) {
+                navigateToDelivery(showSearch = true, categoryName = "E-Commerce")
+            } else {
+                navigateToDelivery(showSearch = true, categoryName = "Delivery Deals")
+            }
         }
 
         // Top Picks For You
@@ -191,14 +281,6 @@ class HomeFragment : Fragment() {
 
         // Popular Brands
         binding.popularDiscRV.layoutManager = LinearLayoutManager(requireContext())
-        val popularBrands = listOf(
-            PopularBrand(R.drawable.ic_allurebeauty, "Big Bash - Phase 5", "Food"),
-            PopularBrand(R.drawable.ic_allurebeauty, "Transfit Gym & Fitness - Clifton", "Fitness"),
-            PopularBrand(R.drawable.ic_allurebeauty, "Pengs Salon Bukhari", "Salon & Spa"),
-            PopularBrand(R.drawable.ic_allurebeauty, "Sindbad Extreme Bounce", "Leisure"),
-            PopularBrand(R.drawable.ic_allurebeauty, "Mandi Al Khaleej - PECHS", "Food")
-        )
-        binding.popularDiscRV.adapter = PopularBrandsAdapter(popularBrands)
     }
 
     override fun onResume() {

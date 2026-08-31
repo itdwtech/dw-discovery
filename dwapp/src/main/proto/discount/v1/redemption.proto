@@ -65,6 +65,11 @@ message RedemptionCategory {
   int32 sort_order = 5;
 }
 
+message RedemptionVendorCategory {
+  int64 id = 1;
+  string name = 2;
+}
+
 message ListRedemptionCategoriesRequest {}
 
 message ListRedemptionCategoriesResponse {
@@ -80,6 +85,7 @@ message RedemptionCity {
   string name = 2;
   string country = 3;
   bool featured = 4;
+  int32 sort_order = 5;
 }
 
 message ListRedemptionCitiesRequest {
@@ -88,6 +94,135 @@ message ListRedemptionCitiesRequest {
 
 message ListRedemptionCitiesResponse {
   repeated RedemptionCity cities = 1;
+}
+
+// ─────────────────────────────────────────────
+// Branch Messages
+// ─────────────────────────────────────────────
+
+message RedemptionBranch {
+  int64 id = 1;
+  string name = 2;
+  string address = 3;
+  int64 city_id = 4;
+  string city_name = 5;
+  double latitude = 6;
+  double longitude = 7;
+  string phone_number = 8;
+}
+
+// ─────────────────────────────────────────────
+// Vendor Messages
+// ─────────────────────────────────────────────
+
+message RedemptionVendorSummary {
+  int64 id = 1;
+  string company_name = 2;
+  string logo_url = 3;
+  string banner_url = 4;
+  string description = 5;
+  bool featured = 6;
+  string title = 7;
+  int32 sort_order = 8;
+  repeated RedemptionVendorCategory categories = 9;
+  bool in_store = 10;
+  bool delivery = 11;
+  bool ecommerce = 12;
+}
+
+message ListRedemptionVendorsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  optional int64 city_id = 3;
+  optional int64 category_id = 4;
+  optional string search = 5;
+  optional bool featured = 6;
+  optional bool in_store = 7;
+  optional bool delivery = 8;
+  optional bool ecommerce = 9;
+}
+
+message ListRedemptionVendorsResponse {
+  repeated RedemptionVendorSummary vendors = 1;
+  int32 total_count = 2;
+}
+
+message RedemptionVendorDetail {
+  int64 id = 1;
+  string company_name = 2;
+  string logo_url = 3;
+  string description = 4;
+  bool featured = 5;
+  string head_office_number = 6;
+  string terms_and_conditions = 7;
+  string title = 8;
+  bool in_store = 9;
+  bool delivery = 10;
+  bool ecommerce = 11;
+  bool show_on_map = 12;
+  repeated RedemptionCategory categories = 13;
+  repeated RedemptionBranch branches = 14;
+  repeated string gallery_images = 15;
+  repeated RedemptionSocialLink social_links = 16;
+}
+
+message GetRedemptionVendorDetailRequest {
+  int64 vendor_id = 1;
+  optional int64 city_id = 2;
+}
+
+message GetRedemptionVendorDetailResponse {
+  RedemptionVendorDetail vendor = 1;
+}
+
+// ─────────────────────────────────────────────
+// Map Messages
+// ─────────────────────────────────────────────
+
+message RedemptionMapPin {
+  int64 branch_id = 1;
+  int64 vendor_id = 2;
+  string vendor_title = 3;
+  string vendor_logo_url = 4;
+  string branch_name = 5;
+  string address = 6;
+  double latitude = 7;
+  double longitude = 8;
+  string phone_number = 9;
+}
+
+message ListMapPinsRequest {
+  int64 city_id = 1;
+  optional int64 category_id = 2;
+}
+
+message ListMapPinsResponse {
+  repeated RedemptionMapPin pins = 1;
+}
+
+message RedemptionSocialLink {
+  int64 id = 1;
+  string platform = 2;
+  string url = 3;
+}
+
+// ─────────────────────────────────────────────
+// Story Messages
+// ─────────────────────────────────────────────
+
+message RedemptionStory {
+  int64 vendor_id = 1;
+  string vendor_title = 2;
+  string vendor_logo_url = 3;
+  int32 story_sort_order = 4;
+}
+
+message ListStoriesRequest {
+  int64 city_id = 1;
+}
+
+message ListStoriesResponse {
+  repeated RedemptionStory stories = 1;
 }
 
 // ─────────────────────────────────────────────
@@ -101,8 +236,17 @@ service RedemptionService {
   rpc UpdateCustomerProfile(UpdateCustomerProfileRequest) returns (Customer);
   rpc ListCustomers(ListCustomersRequest) returns (ListCustomersResponse);
 
-
   // Categories & Cities (Client-scoped)
   rpc ListCategories(ListRedemptionCategoriesRequest) returns (ListRedemptionCategoriesResponse);
   rpc ListCities(ListRedemptionCitiesRequest) returns (ListRedemptionCitiesResponse);
+
+  // Vendors (Client-scoped)
+  rpc ListVendors(ListRedemptionVendorsRequest) returns (ListRedemptionVendorsResponse);
+  rpc GetVendorDetail(GetRedemptionVendorDetailRequest) returns (GetRedemptionVendorDetailResponse);
+
+  // Map View (Client-scoped)
+  rpc ListMapPins(ListMapPinsRequest) returns (ListMapPinsResponse);
+
+  // Stories (Client-scoped)
+  rpc ListStories(ListStoriesRequest) returns (ListStoriesResponse);
 }

@@ -8,6 +8,7 @@ class SessionManager(context: Context) {
 
     companion object {
         private const val KEY_AUTH_TOKEN = "auth_token"
+        private const val KEY_SELECTED_CITY_ID = "selected_city_id"
     }
 
     fun saveAuthToken(token: String) {
@@ -19,8 +20,17 @@ class SessionManager(context: Context) {
         return prefs.getString(KEY_AUTH_TOKEN, null)
     }
 
+    fun saveSelectedCityId(cityId: Long) {
+        prefs.edit().putLong(KEY_SELECTED_CITY_ID, cityId).apply()
+    }
+
+    fun getSelectedCityId(): Long? {
+        val id = prefs.getLong(KEY_SELECTED_CITY_ID, -1L)
+        return if (id != -1L) id else null
+    }
+
     fun clearSession() {
-        prefs.edit().remove(KEY_AUTH_TOKEN).apply()
+        prefs.edit().remove(KEY_AUTH_TOKEN).remove(KEY_SELECTED_CITY_ID).apply()
         RedemptionStubClient.setToken("")
     }
 

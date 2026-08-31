@@ -1,12 +1,20 @@
 package com.discountworld.dwapp.adapters
 
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.discountworld.discount.RedemptionVendorSummary
+import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemPopularBrandBinding
-import com.discountworld.dwapp.models.PopularBrand
 
-class PopularBrandsAdapter(private val list: List<PopularBrand>) : RecyclerView.Adapter<PopularBrandsAdapter.ViewHolder>() {
+class PopularBrandsAdapter(
+    private var list: List<RedemptionVendorSummary> = emptyList(),
+    private val onItemClick: ((RedemptionVendorSummary) -> Unit)? = null
+) : RecyclerView.Adapter<PopularBrandsAdapter.ViewHolder>() {
+
     class ViewHolder(val binding: ItemPopularBrandBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -16,10 +24,44 @@ class PopularBrandsAdapter(private val list: List<PopularBrand>) : RecyclerView.
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = list[position]
-        holder.binding.ivLogo.setImageResource(item.logo)
-        holder.binding.tvBrandTitle.text = item.name
-        holder.binding.tvCategory.text = item.category
+
+        val title = item.title.ifEmpty { item.companyName }
+        holder.binding.tvBrandTitle.text = title
+
+        val types = mutableListOf<String>()
+        if (item.inStore) types.add("In-Store")
+        if (item.ecommerce) types.add("E-Commerce")
+        if (item.delivery) types.add("Delivery")
+
+        val dealType = if (types.isNotEmpty()) {
+            types.joinToString(" & ")
+        } else {
+            item.categoriesList.firstOrNull()?.name ?: "Vendor"
+        }
+        holder.binding.tvCategory.text = dealType
+
+        Glide.with(holder.itemView.context)
+            .load(if (item.logoUrl.isNotEmpty()) item.logoUrl else item.bannerUrl)
+            .placeholder(R.drawable.ic_placeholder)
+            .error(R.drawable.ic_placeholder)
+            .into(holder.binding.ivLogo)
+
+        holder.itemView.setOnClickListener {
+            if (onItemClick != null) {
+                onItemClick.invoke(item)
+            } else {
+                val bundle = Bundle().apply {
+                    putLong("vendor_id", item.id)
+                }
+                it.findNavController().navigate(R.id.nav_brand_detail, bundle)
+            }
+        }
     }
 
     override fun getItemCount(): Int = list.size
+
+    fun updateData(newList: List<RedemptionVendorSummary>) {
+        list = newList
+        notifyDataSetChanged()
+    }
 }

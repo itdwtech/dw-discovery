@@ -77,6 +77,20 @@
             android:name="hideBottomNav"
             android:defaultValue="false"
             app:argType="boolean" />
+        <argument
+            android:name="categoryName"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="categoryId"
+            android:defaultValue="-1L"
+            app:argType="long" />
+        <argument
+            android:name="searchQuery"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
     </fragment>
 
     <fragment

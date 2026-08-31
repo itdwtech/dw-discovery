@@ -7,7 +7,7 @@ import com.discountworld.dwapp.databinding.ItemBannerBinding
 
 class BannerAdapter(
     private val images: List<Int>,
-    private val onItemClick: () -> Unit = {}
+    private val onItemClick: (Int) -> Unit = {}
 ) : RecyclerView.Adapter<BannerAdapter.BannerViewHolder>() {
 
     class BannerViewHolder(val binding: ItemBannerBinding) : RecyclerView.ViewHolder(binding.root)
@@ -20,7 +20,7 @@ class BannerAdapter(
     override fun onBindViewHolder(holder: BannerViewHolder, position: Int) {
         holder.binding.bannerIM.setImageResource(images[position])
         holder.itemView.setOnClickListener {
-            onItemClick()
+            onItemClick(position)
         }
     }
 

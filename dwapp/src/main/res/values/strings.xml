@@ -8,4 +8,6 @@
     <string name="retail">Retail</string>
     <string name="health">Health</string>
     <string name="travel">Travel</string>
+
+    <string name="mapbox_access_token">pk.eyJ1Ijoiam9obmRhbGV5IiwiYSI6ImNrcWFseHpjMjBpM2wyd3F0bDZ2eG8xbTcifQ.-_CpEubByXDnGGP8kwTFXg</string>
 </resources>
