@@ -22,6 +22,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -60,6 +61,11 @@ class HomeFragment : Fragment() {
     private var selectedCategoryId: Long? = null
     private var selectedTabPosition: Int = 0
     private var isInitialLoad = true
+
+    // Pagination variables
+    private var currentPage = 1
+    private var isLoadingPage = false
+    private var hasMorePages = true
 
     // Cached adapters (survive view destruction on back stack)
     private var cityAdapter: CityAdapter? = null
@@ -145,6 +151,14 @@ class HomeFragment : Fragment() {
         binding.back.setOnClickListener {
             requireActivity().onBackPressed()
         }
+
+        binding.nestedScroll.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { v, _, scrollY, _, _ ->
+            if (v.getChildAt(0) != null) {
+                if (scrollY >= (v.getChildAt(0).measuredHeight - v.measuredHeight - 300)) {
+                    loadMoreVendors()
+                }
+            }
+        })
     }
 
     // New method to hide UI elements when searching
@@ -274,6 +288,10 @@ class HomeFragment : Fragment() {
             vendorAdapter = createVendorAdapter(vendors, cachedBanners ?: emptyList())
             binding.rcyVendors.adapter = vendorAdapter
 
+            currentPage = 1
+            hasMorePages = vendors.size >= 10
+            isLoadingPage = false
+
             if (vendors.isNotEmpty()) {
                 updateFeaturedFromList(vendors[0])
             }
@@ -378,6 +396,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupVendorsList() {
+        resetPagination()
 
         binding.rcyVendors.layoutManager = LinearLayoutManager(requireContext())
 
@@ -386,6 +405,9 @@ class HomeFragment : Fragment() {
         if (cachedVendors != null) {
             vendorAdapter = createVendorAdapter(cachedVendors, cachedBanners ?: emptyList())
             binding.rcyVendors.adapter = vendorAdapter
+
+            currentPage = (cachedVendors.size / 10).coerceAtLeast(1)
+            hasMorePages = cachedVendors.size % 10 == 0
 
             if (cachedVendors.isNotEmpty()) {
                 updateFeaturedFromList(cachedVendors[0])
@@ -398,7 +420,7 @@ class HomeFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
 
-            val vendors = repository.getVendorsList(cityId = cityId) ?: emptyList()
+            val vendors = repository.getVendorsList(cityId = cityId, page = 1, pageSize = 10) ?: emptyList()
 
             if (_binding == null) return@launch
 
@@ -412,6 +434,9 @@ class HomeFragment : Fragment() {
             vendorAdapter = createVendorAdapter(vendors, cachedBanners!!)
             binding.rcyVendors.adapter = vendorAdapter
 
+            currentPage = 1
+            hasMorePages = vendors.size >= 10
+
             if (vendors.isNotEmpty()) {
                 updateFeaturedFromList(vendors[0])
             }
@@ -421,7 +446,7 @@ class HomeFragment : Fragment() {
 
     private fun updateFeaturedFromList(vendor: com.discountworld.discovery.VendorSummary) {
         cachedFeaturedVendor = vendor
-        cachedBannerUrl = cachedBanners?.firstOrNull { it.vendorId == vendor.id }?.imageUrl ?: vendor.logoUrl
+        cachedBannerUrl = cachedBanners?.firstOrNull { it.vendorId == vendor.id }?.imageUrl
         bindFeaturedVendor()
     }
 
@@ -600,13 +625,62 @@ class HomeFragment : Fragment() {
 
     }
 
+    private fun resetPagination() {
+        currentPage = 1
+        isLoadingPage = false
+        hasMorePages = true
+    }
+
+    private fun loadMoreVendors() {
+        if (isLoadingPage || !hasMorePages) return
+
+        isLoadingPage = true
+        val nextPage = currentPage + 1
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val searchText = binding.search.text.toString()
+            val search = if (searchText.isNotEmpty()) searchText else null
+
+            val newVendors = repository.getVendorsList(
+                cityId = cityId,
+                categoryId = selectedCategoryId,
+                search = search,
+                page = nextPage,
+                pageSize = 10
+            ) ?: emptyList()
+
+            if (_binding == null) {
+                isLoadingPage = false
+                return@launch
+            }
+
+            if (newVendors.isNotEmpty()) {
+                currentPage = nextPage
+                vendorAdapter?.addVendors(newVendors)
+                val key = Pair(cityId, selectedCategoryId)
+                val existing = vendorDataCache[key] ?: emptyList()
+                vendorDataCache[key] = existing + newVendors
+
+                if (newVendors.size < 10) {
+                    hasMorePages = false
+                }
+            } else {
+                hasMorePages = false
+            }
+            isLoadingPage = false
+        }
+    }
+
     private fun loadVendorsByCategory(categoryId: Long) {
+        resetPagination()
 
         val key = Pair(cityId, categoryId as Long?)
         val cachedVendors = vendorDataCache[key]
         if (cachedVendors != null) {
-            val adapter = createVendorAdapter(cachedVendors, cachedBanners ?: emptyList())
-            binding.rcyVendors.adapter = adapter
+            vendorAdapter = createVendorAdapter(cachedVendors, cachedBanners ?: emptyList())
+            binding.rcyVendors.adapter = vendorAdapter
+            currentPage = (cachedVendors.size / 10).coerceAtLeast(1)
+            hasMorePages = cachedVendors.size % 10 == 0
             binding.loaderLayout.visibility = View.GONE
             return
         }
@@ -617,7 +691,9 @@ class HomeFragment : Fragment() {
 
             val vendors = repository.getVendorsList(
                 categoryId = categoryId,
-                cityId = cityId
+                cityId = cityId,
+                page = 1,
+                pageSize = 10
             ) ?: emptyList()
 
             if (_binding == null) return@launch
@@ -629,8 +705,11 @@ class HomeFragment : Fragment() {
             if (_binding == null) return@launch
 
             vendorDataCache[key] = vendors
-            val adapter = createVendorAdapter(vendors, cachedBanners!!)
-            binding.rcyVendors.adapter = adapter
+            vendorAdapter = createVendorAdapter(vendors, cachedBanners!!)
+            binding.rcyVendors.adapter = vendorAdapter
+
+            currentPage = 1
+            hasMorePages = vendors.size >= 10
 
             // Update featured from list even when category changes
             if (vendors.isNotEmpty()) {
@@ -722,7 +801,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun findVendor(text: String) {
-
+        resetPagination()
         binding.loaderLayout.visibility = View.VISIBLE
 
         CoroutineTask.ioThenMain({
@@ -730,7 +809,9 @@ class HomeFragment : Fragment() {
             val vendors = repository.getVendorsList(
                 search = text,
                 categoryId = selectedCategoryId,
-                cityId = cityId
+                cityId = cityId,
+                page = 1,
+                pageSize = 10
             )
 
             val banners = repository.getBanners()
@@ -746,7 +827,10 @@ class HomeFragment : Fragment() {
             val vendors = result?.first ?: emptyList()
             val banners = result?.second ?: emptyList()
 
-            binding.rcyVendors.adapter = VendorAdapter(
+            currentPage = 1
+            hasMorePages = vendors.size >= 10
+
+            vendorAdapter = VendorAdapter(
                 vendors = vendors,
                 banners = banners
             ) { vendor ->
@@ -764,6 +848,7 @@ class HomeFragment : Fragment() {
 
                 findNavController().navigate(action)
             }
+            binding.rcyVendors.adapter = vendorAdapter
         })
     }
 

@@ -68,11 +68,13 @@ class HomeRepository {
     suspend fun getVendorsList(
         cityId: Long? = null,
         categoryId: Long? = null,
-        search: String? = null
+        search: String? = null,
+        page: Int = 1,
+        pageSize: Int = 10
     ): List<VendorSummary>? {
         val pagination = PaginationRequest.newBuilder()
-            .setPage(1)
-            .setSize(20)
+            .setPage(page)
+            .setSize(pageSize)
             .build()
 
         val request = SearchVendorsRequest.newBuilder()
@@ -104,7 +106,7 @@ class HomeRepository {
 
     suspend fun getListOfVendors(
         page: Int = 1,
-        pageSize: Int = 20,
+        pageSize: Int = 10,
         cityId: Long? = null,
         categoryId: Long? = null,
         search: String? = null,
@@ -143,7 +145,14 @@ class HomeRepository {
     }
     suspend fun getBanners(): List<Banner>? {
 
-        val request = ListBannersRequest.newBuilder().build()
+        val pagination = PaginationRequest.newBuilder()
+            .setPage(1)
+            .setSize(100)
+            .build()
+
+        val request = ListBannersRequest.newBuilder()
+            .setPagination(pagination)
+            .build()
 
         val result = grpcCall { stub.listBanners(request) }
 

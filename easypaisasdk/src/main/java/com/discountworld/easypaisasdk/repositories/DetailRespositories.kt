@@ -79,7 +79,7 @@ class DetailRepository {
 
     suspend fun getListOfBranches(
         page: Int = 1,
-        pageSize: Int = 20,
+        pageSize: Int = 10,
         vendorId: Long? = null,
         cityId: Long? = null
     ): List<Branch>? {
@@ -125,7 +125,7 @@ class DetailRepository {
 
     suspend fun getListOfDeals(
         page: Int = 1,
-        pageSize: Int = 20,
+        pageSize: Int = 10,
         vendorId: Long? = null,
         featured: Boolean? = null
     ): List<Deal>? {
@@ -172,7 +172,7 @@ class DetailRepository {
 
     suspend fun getListOfCardDiscounts(
         page: Int = 1,
-        pageSize: Int = 20,
+        pageSize: Int = 10,
         vendorId: Long? = null,
         featured: Boolean? = null
     ): List<CardDiscount>? {
@@ -219,7 +219,7 @@ class DetailRepository {
 
     suspend fun getListOfProducts(
         page: Int = 1,
-        pageSize: Int = 20,
+        pageSize: Int = 10,
         vendorId: Long? = null,
         categoryId: Long? = null
     ): List<Product>? {
@@ -250,7 +250,7 @@ class DetailRepository {
 
     suspend fun getListOfBanners(
         page: Int = 1,
-        pageSize: Int = 20,
+        pageSize: Int = 10,
         vendorId: Long? = null
     ): List<Banner>? {
 
@@ -279,7 +279,7 @@ class DetailRepository {
 
     suspend fun getListOfCampaigns(
         page: Int = 1,
-        pageSize: Int = 20,
+        pageSize: Int = 10,
         vendorId: Long? = null
     ): List<Campaign>? {
 
@@ -307,7 +307,14 @@ class DetailRepository {
 
     suspend fun getBanners(): List<Banner>? {
 
-        val request = ListBannersRequest.newBuilder().build()
+        val pagination = PaginationRequest.newBuilder()
+            .setPage(1)
+            .setSize(100)
+            .build()
+
+        val request = ListBannersRequest.newBuilder()
+            .setPagination(pagination)
+            .build()
 
         val result = grpcCall { stub.listBanners(request) }
 

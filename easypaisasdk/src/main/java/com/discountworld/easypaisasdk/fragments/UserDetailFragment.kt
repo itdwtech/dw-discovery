@@ -187,7 +187,7 @@ class UserDetailFragment : Fragment() {
 
                     // ✅ ROUNDED IMAGE LOADING
                     Glide.with(requireContext())
-                        .load(banner?.imageUrl ?: it.logoUrl)
+                        .load(banner?.imageUrl)
                         .apply(
                             RequestOptions()
                                 .transform(
