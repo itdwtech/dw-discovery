@@ -6,4 +6,5 @@
     <color name="white">#FFFFFF</color>
     <color name="gray_text">#757575</color>
     <color name="divider_color">#E0E0E0</color>
+    <color name="dw_discovery_lightgray">#E0E0E0</color>
 </resources>

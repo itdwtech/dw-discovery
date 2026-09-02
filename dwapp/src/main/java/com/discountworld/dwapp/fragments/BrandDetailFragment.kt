@@ -51,6 +51,14 @@ class BrandDetailFragment : Fragment() {
             findNavController().navigateUp()
         }
 
+        binding.llInfo.setOnClickListener {
+            val bundle = Bundle().apply {
+                putLong("vendor_id", vendorId)
+                selectedCityId?.let { putLong("city_id", it) }
+            }
+            findNavController().navigate(R.id.nav_brand_info, bundle)
+        }
+
         setupRecyclerView()
     }
 

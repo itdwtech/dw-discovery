@@ -24,6 +24,7 @@ import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.models.TopPick
 import com.discountworld.dwapp.repositories.RedemptionRepository
 import com.google.android.material.tabs.TabLayoutMediator
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
@@ -69,8 +70,7 @@ class HomeFragment : Fragment() {
             showCityPopup()
         }
 
-        loadCategories()
-        loadInitialCityAndStories()
+        loadHomeDataParallel()
     }
 
     private fun setupSearch() {
@@ -94,34 +94,14 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun loadCategories() {
+    private fun loadHomeDataParallel() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val categories = redemptionRepository.listCategories() ?: emptyList()
+            // Start story shimmer immediately
+            binding.storyShimmerLayout.visibility = View.VISIBLE
+            binding.storyShimmerLayout.startShimmer()
+            binding.storyRV.visibility = View.GONE
 
-            if (categories.isNotEmpty()) {
-                val adapter = HomeCategoryAdapter(categories) { category ->
-                    navigateToDelivery(showSearch = true, categoryName = category.name, categoryId = category.id)
-                }
-
-                binding.categoryRV.layoutManager = GridLayoutManager(requireContext(), 2, GridLayoutManager.HORIZONTAL, false)
-                binding.categoryRV.adapter = adapter
-            }
-        }
-    }
-
-    private fun loadPopularVendors(cityId: Long = selectedCityId) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            val response = redemptionRepository.listVendors(page = 1, pageSize = 20, cityId = cityId)
-            val vendors = response?.vendorsList ?: emptyList()
-            if (vendors.isNotEmpty()) {
-                val adapter = PopularBrandsAdapter(vendors)
-                binding.popularDiscRV.adapter = adapter
-            }
-        }
-    }
-
-    private fun loadInitialCityAndStories() {
-        viewLifecycleOwner.lifecycleScope.launch {
+            // Determine City ID first
             val savedCityId = sessionManager.getSelectedCityId()
             if (savedCityId != null) {
                 selectedCityId = savedCityId
@@ -133,19 +113,25 @@ class HomeFragment : Fragment() {
                     sessionManager.saveSelectedCityId(selectedCityId)
                 }
             }
-            loadStories(selectedCityId)
-            loadPopularVendors(selectedCityId)
-        }
-    }
 
-    private fun loadStories(cityId: Long) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            binding.storyShimmerLayout.visibility = View.VISIBLE
-            binding.storyShimmerLayout.startShimmer()
-            binding.storyRV.visibility = View.GONE
+            // Execute Categories, Stories, and Popular Vendors API calls in PARALLEL
+            val categoriesDeferred = async { redemptionRepository.listCategories() }
+            val storiesDeferred = async { redemptionRepository.listStories(selectedCityId) }
+            val vendorsDeferred = async { redemptionRepository.listVendors(page = 1, pageSize = 20, cityId = selectedCityId) }
 
-            val stories = redemptionRepository.listStories(cityId) ?: emptyList()
+            // 1. Process Categories sorted by sortOrder
+            val rawCategories = categoriesDeferred.await() ?: emptyList()
+            if (rawCategories.isNotEmpty()) {
+                val sortedCategories = rawCategories.sortedBy { it.sortOrder }
+                val adapter = HomeCategoryAdapter(sortedCategories) { category ->
+                    navigateToDelivery(showSearch = true, categoryName = category.name, categoryId = category.id)
+                }
+                binding.categoryRV.layoutManager = GridLayoutManager(requireContext(), 4)
+                binding.categoryRV.adapter = adapter
+            }
 
+            // 2. Process Stories
+            val stories = storiesDeferred.await() ?: emptyList()
             binding.storyShimmerLayout.stopShimmer()
             binding.storyShimmerLayout.visibility = View.GONE
 
@@ -157,6 +143,46 @@ class HomeFragment : Fragment() {
                 binding.storyRV.adapter = adapter
             } else {
                 binding.storyRV.visibility = View.GONE
+            }
+
+            // 3. Process Popular Vendors
+            val vendorResponse = vendorsDeferred.await()
+            val vendors = vendorResponse?.vendorsList ?: emptyList()
+            if (vendors.isNotEmpty()) {
+                val adapter = PopularBrandsAdapter(vendors)
+                binding.popularDiscRV.adapter = adapter
+            }
+        }
+    }
+
+    private fun loadCityDataParallel(cityId: Long) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            binding.storyShimmerLayout.visibility = View.VISIBLE
+            binding.storyShimmerLayout.startShimmer()
+            binding.storyRV.visibility = View.GONE
+
+            val storiesDeferred = async { redemptionRepository.listStories(cityId) }
+            val vendorsDeferred = async { redemptionRepository.listVendors(page = 1, pageSize = 20, cityId = cityId) }
+
+            val stories = storiesDeferred.await() ?: emptyList()
+            binding.storyShimmerLayout.stopShimmer()
+            binding.storyShimmerLayout.visibility = View.GONE
+
+            if (stories.isNotEmpty()) {
+                binding.storyRV.visibility = View.VISIBLE
+                val adapter = StoryAdapter(stories) { story ->
+                    navigateToDelivery(showSearch = true, categoryName = story.vendorTitle)
+                }
+                binding.storyRV.adapter = adapter
+            } else {
+                binding.storyRV.visibility = View.GONE
+            }
+
+            val vendorResponse = vendorsDeferred.await()
+            val vendors = vendorResponse?.vendorsList ?: emptyList()
+            if (vendors.isNotEmpty()) {
+                val adapter = PopularBrandsAdapter(vendors)
+                binding.popularDiscRV.adapter = adapter
             }
         }
     }
@@ -188,11 +214,10 @@ class HomeFragment : Fragment() {
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
 
-            val adapter = CitySelectionAdapter(cities) { city ->
+            val adapter = CitySelectionAdapter(cities, selectedCityId) { city ->
                 selectedCityId = city.id
                 sessionManager.saveSelectedCityId(city.id)
-                loadStories(city.id)
-                loadPopularVendors(city.id)
+                loadCityDataParallel(city.id)
                 dialog.dismiss()
             }
 

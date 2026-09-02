@@ -193,9 +193,9 @@
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="@dimen/_8sdp"
                         android:layout_marginRight="@dimen/_8sdp"
-                        android:orientation="horizontal"
+                        android:nestedScrollingEnabled="false"
                         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                        app:spanCount="2"
+                        app:spanCount="4"
                         tools:listitem="@layout/item_home_category" />
 
                     <LinearLayout
