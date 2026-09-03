@@ -1,53 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/white_success_corner"
+    android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="8dp">
+    android:paddingHorizontal="14dp"
+    android:paddingVertical="10dp">
 
-    <ImageView
-        android:id="@+id/ivVendorLogo"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:contentDescription="Vendor Logo"
-        android:scaleType="centerInside"
-        android:src="@drawable/ic_placeholder" />
-
+    <!-- Left Text Container -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:layout_marginStart="8dp"
         android:orientation="vertical">
 
+        <!-- Title: Vendor Name + Branch Name -->
         <TextView
             android:id="@+id/tvVendorTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/black"
-            android:textSize="13sp"
+            android:textSize="15sp"
             android:textStyle="bold"
-            tools:text="14th Street Pizza" />
+            tools:text="BurgerBoss Clifton" />
 
+        <!-- Optional tvBranchName if separate -->
         <TextView
             android:id="@+id/tvBranchName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/purple_primary"
             android:textSize="11sp"
+            android:visibility="gone"
             tools:text="Clifton Branch" />
 
+        <!-- Address Subtitle -->
         <TextView
             android:id="@+id/tvAddress"
-            android:layout_width="160dp"
+            android:layout_width="190dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:textColor="@color/gray_text"
-            android:textSize="11sp"
-            tools:text="Block 4, Clifton, Karachi" />
+            android:textSize="12sp"
+            tools:text="Ocean Towers Food Court, Block 9, Clifton" />
     </LinearLayout>
+
+    <!-- Right Purple (i) Info Icon -->
+    <ImageView
+        android:id="@+id/ivInfoIcon"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_marginStart="16dp"
+        android:contentDescription="Info"
+        android:src="@drawable/ic_info"
+        app:tint="@color/purple_primary" />
+
+    <!-- Retain ivVendorLogo as gone so binding compatibility remains -->
+    <ImageView
+        android:id="@+id/ivVendorLogo"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 
 </LinearLayout>

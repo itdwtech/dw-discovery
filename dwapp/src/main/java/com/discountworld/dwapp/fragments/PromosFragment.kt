@@ -7,19 +7,27 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.adapters.BrandLogosAdapter
 import com.discountworld.dwapp.adapters.SliderAdapter
 import com.discountworld.dwapp.adapters.TopPicksAdapter
 import com.discountworld.dwapp.databinding.FragmentPromosBinding
+import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.models.TopPick
+import com.discountworld.dwapp.repositories.RedemptionRepository
 import com.google.android.material.tabs.TabLayoutMediator
+import kotlinx.coroutines.launch
 
 class PromosFragment : Fragment() {
 
     private var _binding: FragmentPromosBinding? = null
     private val binding get() = _binding!!
+
+    private val redemptionRepository = RedemptionRepository()
+    private lateinit var sessionManager: SessionManager
 
     private val sliderHandler = Handler(Looper.getMainLooper())
     private lateinit var sliderRunnable: Runnable
@@ -35,6 +43,8 @@ class PromosFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        sessionManager = SessionManager(requireContext())
 
         setupPromoSlider()
         setupDiscountsList()
@@ -70,14 +80,23 @@ class PromosFragment : Fragment() {
 
     private fun setupLogosList() {
         binding.rvBrandLogos.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        val list = listOf(
-            TopPick(R.drawable.ic_allurebeauty, "Allure Beauty"),
-            TopPick(R.drawable.ic_allurebeauty, "Allure Beauty"),
-            TopPick(R.drawable.ic_allurebeauty, "Allure Beauty"),
-            TopPick(R.drawable.ic_allurebeauty, "Allure Beauty"),
-            TopPick(R.drawable.ic_allurebeauty, "Allure Beauty")
-        )
-        binding.rvBrandLogos.adapter = BrandLogosAdapter(list)
+        viewLifecycleOwner.lifecycleScope.launch {
+            val selectedCityId = sessionManager.getSelectedCityId() ?: 1L
+            val stories = redemptionRepository.listStories(selectedCityId) ?: emptyList()
+
+            if (stories.isNotEmpty()) {
+                binding.rvBrandLogos.visibility = View.VISIBLE
+                binding.rvBrandLogos.adapter = BrandLogosAdapter(stories) { story ->
+                    val bundle = Bundle().apply {
+                        putLong("vendor_id", story.vendorId)
+                        putLong("city_id", selectedCityId)
+                    }
+                    findNavController().navigate(R.id.action_nav_promos_to_nav_brand_detail, bundle)
+                }
+            } else {
+                binding.rvBrandLogos.visibility = View.GONE
+            }
+        }
     }
 
     override fun onDestroyView() {

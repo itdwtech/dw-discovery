@@ -6,7 +6,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.discountworld.dwapp.databinding.ItemOfferBinding
 import com.discountworld.dwapp.models.Offer
 
-class OffersAdapter(private val list: List<Offer>) : RecyclerView.Adapter<OffersAdapter.ViewHolder>() {
+class OffersAdapter(
+    private val list: List<Offer>,
+    private val onOfferClick: (Offer) -> Unit
+) : RecyclerView.Adapter<OffersAdapter.ViewHolder>() {
+
     class ViewHolder(val binding: ItemOfferBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -18,6 +22,7 @@ class OffersAdapter(private val list: List<Offer>) : RecyclerView.Adapter<Offers
         val item = list[position]
         holder.binding.tvOfferDescription.text = item.description
         holder.binding.tvDiscountAmount.text = item.discount
+        holder.itemView.setOnClickListener { onOfferClick(item) }
     }
 
     override fun getItemCount(): Int = list.size

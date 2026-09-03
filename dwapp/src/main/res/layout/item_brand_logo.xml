@@ -20,7 +20,7 @@
             android:layout_height="match_parent"
             android:padding="12dp"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_placeholder" />
+            android:src="@drawable/ic_allurebeauty" />
     </androidx.cardview.widget.CardView>
 
     <TextView

@@ -50,13 +50,21 @@
         android:id="@+id/nav_locations"
         android:name="com.discountworld.dwapp.fragments.LocationsFragment"
         android:label="LocationsFragment"
-        tools:layout="@layout/fragment_locations" />
+        tools:layout="@layout/fragment_locations">
+        <action
+            android:id="@+id/action_nav_locations_to_nav_brand_detail"
+            app:destination="@id/nav_brand_detail" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_promos"
         android:name="com.discountworld.dwapp.fragments.PromosFragment"
         android:label="PromosFragment"
-        tools:layout="@layout/fragment_promos" />
+        tools:layout="@layout/fragment_promos">
+        <action
+            android:id="@+id/action_nav_promos_to_nav_brand_detail"
+            app:destination="@id/nav_brand_detail" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_profile"

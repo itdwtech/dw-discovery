@@ -11,7 +11,7 @@ import com.discountworld.dwapp.databinding.ItemLocationCategoryBinding
 
 class LocationCategoryAdapter(
     private val categories: List<RedemptionCategory>,
-    private val onCategorySelected: (RedemptionCategory?) -> Unit
+    private val onCategorySelected: (RedemptionCategory) -> Unit
 ) : RecyclerView.Adapter<LocationCategoryAdapter.ViewHolder>() {
 
     private var selectedPosition = 0
@@ -25,11 +25,10 @@ class LocationCategoryAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val context = holder.itemView.context
-        val isAll = position == 0
+        val category = categories[position]
         val isSelected = position == selectedPosition
 
-        val categoryName = if (isAll) "All" else categories[position - 1].name
-        holder.binding.tvCategory.text = categoryName
+        holder.binding.tvCategory.text = category.name
 
         if (isSelected) {
             holder.binding.tvCategory.setBackgroundResource(R.drawable.bg_category_selected)
@@ -47,11 +46,10 @@ class LocationCategoryAdapter(
                 notifyItemChanged(previousPosition)
                 notifyItemChanged(selectedPosition)
 
-                val selectedCategory = if (currentPos == 0) null else categories[currentPos - 1]
-                onCategorySelected(selectedCategory)
+                onCategorySelected(categories[currentPos])
             }
         }
     }
 
-    override fun getItemCount(): Int = categories.size + 1
+    override fun getItemCount(): Int = categories.size
 }

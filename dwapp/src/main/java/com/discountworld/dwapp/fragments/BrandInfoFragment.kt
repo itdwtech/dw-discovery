@@ -3,6 +3,9 @@ package com.discountworld.dwapp.fragments
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
@@ -248,41 +251,11 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
                 val infoWindowBinding = ItemMapInfoWindowBinding.inflate(LayoutInflater.from(ctx))
 
                 val branch = markerMap[marker]
-                infoWindowBinding.tvVendorTitle.text = vendorTitle
+                val branchNameText = branch?.name.orEmpty()
+                val fullTitle = if (branchNameText.isNotEmpty()) "$vendorTitle $branchNameText" else vendorTitle
 
-                if (branch != null && branch.name.isNotEmpty()) {
-                    infoWindowBinding.tvBranchName.visibility = View.VISIBLE
-                    infoWindowBinding.tvBranchName.text = branch.name
-                } else if (marker.title.orEmpty().contains("-")) {
-                    val branchTitleName = marker.title.orEmpty().substringAfter("-").trim()
-                    infoWindowBinding.tvBranchName.visibility = View.VISIBLE
-                    infoWindowBinding.tvBranchName.text = branchTitleName
-                } else {
-                    infoWindowBinding.tvBranchName.visibility = View.GONE
-                }
-
-                val addressToShow = branch?.address?.ifEmpty { marker.snippet } ?: marker.snippet.orEmpty()
-                infoWindowBinding.tvAddress.text = addressToShow
-
-                if (!vendorLogoUrl.isNullOrEmpty()) {
-                    Glide.with(ctx)
-                        .asBitmap()
-                        .load(vendorLogoUrl)
-                        .placeholder(R.drawable.ic_placeholder)
-                        .error(R.drawable.ic_placeholder)
-                        .into(object : CustomTarget<Bitmap>() {
-                            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                                infoWindowBinding.ivVendorLogo.setImageBitmap(resource)
-                                if (marker.isInfoWindowShown) {
-                                    marker.showInfoWindow()
-                                }
-                            }
-
-                            override fun onLoadCleared(placeholder: Drawable?) {
-                                infoWindowBinding.ivVendorLogo.setImageDrawable(placeholder)
-                            }
-                        })
-                }
+                infoWindowBinding.tvVendorTitle.text = fullTitle
+                infoWindowBinding.tvAddress.text = branch?.address?.ifEmpty { marker.snippet } ?: marker.snippet.orEmpty()
 
                 return infoWindowBinding.root
             }
@@ -358,19 +331,90 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
 
     private fun getCustomLocationMarkerIcon(): BitmapDescriptor? {
         val ctx = context ?: return null
-        val drawable = ContextCompat.getDrawable(ctx, R.drawable.ic_nav_location) ?: return null
-        val tintedDrawable = DrawableCompat.wrap(drawable).mutate()
-        DrawableCompat.setTint(tintedDrawable, ContextCompat.getColor(ctx, R.color.purple_primary))
-
-        val width = (36 * ctx.resources.displayMetrics.density).toInt()
-        val height = (36 * ctx.resources.displayMetrics.density).toInt()
+        val density = ctx.resources.displayMetrics.density
+        val width = (46 * density).toInt()
+        val height = (56 * density).toInt()
+        val pinColor = ContextCompat.getColor(ctx, R.color.purple_primary)
 
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        tintedDrawable.setBounds(0, 0, canvas.width, canvas.height)
-        tintedDrawable.draw(canvas)
+
+        val centerX = width / 2f
+        val radius = width / 2f - (2 * density)
+        val centerY = radius + (2 * density)
+
+        // Teardrop Pin Path
+        val path = Path().apply {
+            val angleRad = Math.toRadians(40.0)
+            val startX = (centerX + radius * Math.cos(angleRad)).toFloat()
+            val startY = (centerY + radius * Math.sin(angleRad)).toFloat()
+            val endX = (centerX - radius * Math.cos(angleRad)).toFloat()
+
+            moveTo(endX, startY)
+            lineTo(centerX, height.toFloat())
+            lineTo(startX, startY)
+            arcTo(centerX - radius, centerY - radius, centerX + radius, centerY + radius, 40f, -260f, false)
+            close()
+        }
+
+        canvas.drawPath(path, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = pinColor
+            style = Paint.Style.FILL
+        })
+
+        canvas.drawPath(path, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.STROKE
+            strokeWidth = 2 * density
+        })
+
+        // Inner White Circle
+        val whiteCircleRadius = radius * 0.72f
+        canvas.drawCircle(centerX, centerY, whiteCircleRadius, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.FILL
+        })
+
+        // Allure Beauty Logo
+        val innerCircleRadius = whiteCircleRadius * 0.88f
+        val allureLogoDrawable = ContextCompat.getDrawable(ctx, R.drawable.ic_allurebeauty)
+        if (allureLogoDrawable != null) {
+            val size = (innerCircleRadius * 2).toInt()
+            val logoBitmap = drawableToBitmap(allureLogoDrawable, size, size)
+            drawCircularLogoOnCanvas(canvas, logoBitmap, centerX, centerY, innerCircleRadius)
+        }
 
         return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
+
+    private fun drawCircularLogoOnCanvas(
+        canvas: Canvas,
+        logoBitmap: Bitmap,
+        centerX: Float,
+        centerY: Float,
+        targetRadius: Float
+    ) {
+        val diameter = (targetRadius * 2).toInt()
+        if (diameter <= 0) return
+
+        val scaled = Bitmap.createScaledBitmap(logoBitmap, diameter, diameter, true)
+        val circularBitmap = Bitmap.createBitmap(diameter, diameter, Bitmap.Config.ARGB_8888)
+        val circleCanvas = Canvas(circularBitmap)
+        val clipPath = Path().apply {
+            addCircle(diameter / 2f, diameter / 2f, targetRadius, Path.Direction.CW)
+        }
+        circleCanvas.clipPath(clipPath)
+        circleCanvas.drawBitmap(scaled, 0f, 0f, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+
+        canvas.drawBitmap(circularBitmap, centerX - targetRadius, centerY - targetRadius, null)
+    }
+
+    private fun drawableToBitmap(drawable: Drawable, width: Int, height: Int): Bitmap {
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return bitmap
     }
 
     override fun onDestroyView() {
