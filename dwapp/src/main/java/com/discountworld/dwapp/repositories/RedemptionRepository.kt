@@ -162,4 +162,16 @@ class RedemptionRepository {
         }
         return result.getOrNull()
     }
+
+    suspend fun listVendorDeals(vendorId: Long): List<RedemptionDealSummary>? {
+        val request = ListVendorDealsRequest.newBuilder()
+            .setVendorId(vendorId)
+            .build()
+
+        val result = grpcCall { stub.listVendorDeals(request) }
+        result.onFailure {
+            Log.e("RedemptionRepo", "listVendorDeals failed: ${it.message}")
+        }
+        return result.getOrNull()?.dealsList
+    }
 }

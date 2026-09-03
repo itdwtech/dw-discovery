@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.discountworld.discount.RedemptionDealSummary
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.adapters.OffersAdapter
 import com.discountworld.dwapp.databinding.DialogOfferRedemptionBinding
@@ -25,6 +26,7 @@ import com.discountworld.dwapp.databinding.FragmentBrandDetailBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.models.Offer
 import com.discountworld.dwapp.repositories.RedemptionRepository
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class BrandDetailFragment : Fragment() {
@@ -56,6 +58,8 @@ class BrandDetailFragment : Fragment() {
 
         if (vendorId != -1L) {
             loadVendorDetail(vendorId, selectedCityId)
+        } else {
+            setupOffersRecyclerView(emptyList())
         }
 
         binding.ivBack.setOnClickListener {
@@ -69,13 +73,14 @@ class BrandDetailFragment : Fragment() {
             }
             findNavController().navigate(R.id.nav_brand_info, bundle)
         }
-
-        setupRecyclerView()
     }
 
     private fun loadVendorDetail(vendorId: Long, cityId: Long?) {
         viewLifecycleOwner.lifecycleScope.launch {
-            val vendorDetail = redemptionRepository.getVendorDetail(vendorId, cityId)
+            val vendorDetailDeferred = async { redemptionRepository.getVendorDetail(vendorId, cityId) }
+            val dealsDeferred = async { redemptionRepository.listVendorDeals(vendorId) }
+
+            val vendorDetail = vendorDetailDeferred.await()
             vendorDetail?.let {
                 binding.tvBrandName.text = it.title.ifEmpty { it.companyName }
                 vendorLogoUrl = it.logoUrl
@@ -96,19 +101,33 @@ class BrandDetailFragment : Fragment() {
                         .into(binding.ivBanner)
                 }
             }
+
+            val deals = dealsDeferred.await() ?: emptyList()
+            setupOffersRecyclerView(deals)
         }
     }
 
-    private fun setupRecyclerView() {
+    private fun setupOffersRecyclerView(deals: List<RedemptionDealSummary>) {
         binding.rvOffers.layoutManager = LinearLayoutManager(requireContext())
-        val dummyOffers = listOf(
-            Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1"),
-            Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1"),
-            Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1"),
-            Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1")
-        )
-        binding.rvOffers.adapter = OffersAdapter(dummyOffers) { selectedOffer ->
-            showRedemptionDialog(selectedOffer)
+        if (deals.isNotEmpty()) {
+            binding.rvOffers.adapter = OffersAdapter(dealsList = deals) { deal, _ ->
+                if (deal != null) {
+                    val offer = Offer(deal.description.ifEmpty { deal.title }, deal.title.ifEmpty { "Buy 1 Get 1" })
+                    showRedemptionDialog(offer)
+                }
+            }
+        } else {
+            val dummyOffers = listOf(
+                Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1"),
+                Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1"),
+                Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1"),
+                Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1")
+            )
+            binding.rvOffers.adapter = OffersAdapter(dummyOffers = dummyOffers) { _, offer ->
+                if (offer != null) {
+                    showRedemptionDialog(offer)
+                }
+            }
         }
     }
 
