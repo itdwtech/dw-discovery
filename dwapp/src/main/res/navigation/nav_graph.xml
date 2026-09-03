@@ -44,6 +44,9 @@
         <action
             android:id="@+id/action_nav_home_to_nav_delivery"
             app:destination="@id/nav_delivery" />
+        <action
+            android:id="@+id/action_nav_home_to_nav_brand_detail"
+            app:destination="@id/nav_brand_detail" />
     </fragment>
 
     <fragment

@@ -11,7 +11,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 
 object RedemptionStubClient {
     private const val API_KEY = "ODZiMjNiOTEtNTZjMS00MDZlLWE1MGMtZWM1NjllNjZiNTdj"
-    private const val SERVER_URL = "192.168.18.84"
+    private const val SERVER_URL = "192.168.0.105"
     private const val SERVER_PORT = 9090
 
     private var accessToken: String? = null

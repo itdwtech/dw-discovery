@@ -53,7 +53,7 @@ class PromosFragment : Fragment() {
 
     private fun setupPromoSlider() {
         val sliderImages = listOf(R.drawable.ic_arish_pk, R.drawable.ic_anamta_comfort, R.drawable.ic_almasjewellers)
-        binding.promoPager.adapter = SliderAdapter(sliderImages)
+        binding.promoPager.adapter = SliderAdapter(fallbackImages = sliderImages)
         TabLayoutMediator(binding.promoTabIndicator, binding.promoPager) { _, _ -> }.attach()
 
         sliderRunnable = Runnable {

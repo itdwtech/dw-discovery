@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.discountworld.discount.RedemptionBannerItem
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.adapters.*
 import com.discountworld.dwapp.databinding.DialogCitySelectionBinding
@@ -54,7 +55,7 @@ class HomeFragment : Fragment() {
         sessionManager = SessionManager(requireContext())
 
         setupRecyclerViews()
-        setupSlider()
+        setupFallbackSlider()
         setupSearch()
 
         binding.imgEcommerce.setOnClickListener {
@@ -96,12 +97,10 @@ class HomeFragment : Fragment() {
 
     private fun loadHomeDataParallel() {
         viewLifecycleOwner.lifecycleScope.launch {
-            // Start story shimmer immediately
             binding.storyShimmerLayout.visibility = View.VISIBLE
             binding.storyShimmerLayout.startShimmer()
             binding.storyRV.visibility = View.GONE
 
-            // Determine City ID first
             val savedCityId = sessionManager.getSelectedCityId()
             if (savedCityId != null) {
                 selectedCityId = savedCityId
@@ -114,10 +113,11 @@ class HomeFragment : Fragment() {
                 }
             }
 
-            // Execute Categories, Stories, and Popular Vendors API calls in PARALLEL
+            // Execute Categories, Stories, Vendors, and Banners API calls in PARALLEL
             val categoriesDeferred = async { redemptionRepository.listCategories() }
             val storiesDeferred = async { redemptionRepository.listStories(selectedCityId) }
             val vendorsDeferred = async { redemptionRepository.listVendors(page = 1, pageSize = 20, cityId = selectedCityId) }
+            val bannersDeferred = async { redemptionRepository.listBanners(selectedCityId) }
 
             // 1. Process Categories sorted by sortOrder
             val rawCategories = categoriesDeferred.await() ?: emptyList()
@@ -138,18 +138,40 @@ class HomeFragment : Fragment() {
             if (stories.isNotEmpty()) {
                 binding.storyRV.visibility = View.VISIBLE
                 val adapter = StoryAdapter(stories) { story ->
-                    navigateToDelivery(showSearch = true, categoryName = story.vendorTitle)
+                    val bundle = Bundle().apply {
+                        putLong("vendor_id", story.vendorId)
+                        putLong("city_id", selectedCityId)
+                    }
+                    findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
                 }
                 binding.storyRV.adapter = adapter
             } else {
                 binding.storyRV.visibility = View.GONE
             }
 
-            // 3. Process Popular Vendors
-            val vendorResponse = vendorsDeferred.await()
-            val vendors = vendorResponse?.vendorsList ?: emptyList()
+            // 3. Process Banners for ViewPager2
+            val bannerResponse = bannersDeferred.await()
+            val bannerItems = bannerResponse?.bannersList ?: emptyList()
+            if (bannerItems.isNotEmpty()) {
+                setupBannersSlider(bannerItems)
+            }
+
+            // 4. Process Popular Vendors
+            val popularVendorsFromBanner = bannerResponse?.popularVendorsList ?: emptyList()
+            val vendors = if (popularVendorsFromBanner.isNotEmpty()) {
+                popularVendorsFromBanner
+            } else {
+                vendorsDeferred.await()?.vendorsList ?: emptyList()
+            }
+
             if (vendors.isNotEmpty()) {
-                val adapter = PopularBrandsAdapter(vendors)
+                val adapter = PopularBrandsAdapter(vendors) { selectedVendor ->
+                    val bundle = Bundle().apply {
+                        putLong("vendor_id", selectedVendor.id)
+                        putLong("city_id", selectedCityId)
+                    }
+                    findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+                }
                 binding.popularDiscRV.adapter = adapter
             }
         }
@@ -163,6 +185,7 @@ class HomeFragment : Fragment() {
 
             val storiesDeferred = async { redemptionRepository.listStories(cityId) }
             val vendorsDeferred = async { redemptionRepository.listVendors(page = 1, pageSize = 20, cityId = cityId) }
+            val bannersDeferred = async { redemptionRepository.listBanners(cityId) }
 
             val stories = storiesDeferred.await() ?: emptyList()
             binding.storyShimmerLayout.stopShimmer()
@@ -171,20 +194,92 @@ class HomeFragment : Fragment() {
             if (stories.isNotEmpty()) {
                 binding.storyRV.visibility = View.VISIBLE
                 val adapter = StoryAdapter(stories) { story ->
-                    navigateToDelivery(showSearch = true, categoryName = story.vendorTitle)
+                    val bundle = Bundle().apply {
+                        putLong("vendor_id", story.vendorId)
+                        putLong("city_id", cityId)
+                    }
+                    findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
                 }
                 binding.storyRV.adapter = adapter
             } else {
                 binding.storyRV.visibility = View.GONE
             }
 
-            val vendorResponse = vendorsDeferred.await()
-            val vendors = vendorResponse?.vendorsList ?: emptyList()
+            val bannerResponse = bannersDeferred.await()
+            val bannerItems = bannerResponse?.bannersList ?: emptyList()
+            if (bannerItems.isNotEmpty()) {
+                setupBannersSlider(bannerItems)
+            }
+
+            val popularVendorsFromBanner = bannerResponse?.popularVendorsList ?: emptyList()
+            val vendors = if (popularVendorsFromBanner.isNotEmpty()) {
+                popularVendorsFromBanner
+            } else {
+                vendorsDeferred.await()?.vendorsList ?: emptyList()
+            }
+
             if (vendors.isNotEmpty()) {
-                val adapter = PopularBrandsAdapter(vendors)
+                val adapter = PopularBrandsAdapter(vendors) { selectedVendor ->
+                    val bundle = Bundle().apply {
+                        putLong("vendor_id", selectedVendor.id)
+                        putLong("city_id", cityId)
+                    }
+                    findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+                }
                 binding.popularDiscRV.adapter = adapter
             }
         }
+    }
+
+    private fun setupBannersSlider(bannerItems: List<RedemptionBannerItem>) {
+        val adapter = SliderAdapter(bannerItems = bannerItems) { banner ->
+            if (banner != null && banner.vendorId != 0L) {
+                val bundle = Bundle().apply {
+                    putLong("vendor_id", banner.vendorId)
+                    putLong("city_id", selectedCityId)
+                }
+                findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+            } else {
+                navigateToDelivery(showSearch = true)
+            }
+        }
+        binding.pager.adapter = adapter
+        TabLayoutMediator(binding.tabIndicator, binding.pager) { _, _ -> }.attach()
+
+        startSliderAutoScroll(bannerItems.size)
+    }
+
+    private fun setupFallbackSlider() {
+        val sliderImages = listOf(
+            R.drawable.ic_almasjewellers,
+            R.drawable.ic_beatsandcuts,
+            R.drawable.ic_anamta_comfort
+        )
+
+        val adapter = SliderAdapter(fallbackImages = sliderImages) {
+            navigateToDelivery(showSearch = true)
+        }
+        binding.pager.adapter = adapter
+        TabLayoutMediator(binding.tabIndicator, binding.pager) { _, _ -> }.attach()
+
+        startSliderAutoScroll(sliderImages.size)
+    }
+
+    private fun startSliderAutoScroll(itemCount: Int) {
+        if (::sliderRunnable.isInitialized) {
+            sliderHandler.removeCallbacks(sliderRunnable)
+        }
+        if (itemCount <= 0) return
+
+        sliderRunnable = Runnable {
+            if (_binding != null) {
+                val currentItem = binding.pager.currentItem
+                val nextItem = if (currentItem == itemCount - 1) 0 else currentItem + 1
+                binding.pager.setCurrentItem(nextItem, true)
+                sliderHandler.postDelayed(sliderRunnable, 3000)
+            }
+        }
+        sliderHandler.postDelayed(sliderRunnable, 3000)
     }
 
     private fun showCityPopup() {
@@ -253,32 +348,6 @@ class HomeFragment : Fragment() {
             searchQuery?.let { putString("searchQuery", it) }
         }
         findNavController().navigate(R.id.action_nav_home_to_nav_delivery, bundle)
-    }
-
-    private fun setupSlider() {
-        val sliderImages = listOf(
-            R.drawable.ic_almasjewellers,
-            R.drawable.ic_beatsandcuts,
-            R.drawable.ic_anamta_comfort
-        )
-
-        val adapter = SliderAdapter(sliderImages) {
-            navigateToDelivery(showSearch = true)
-        }
-        binding.pager.adapter = adapter
-
-        // Setup dots (TabLayout)
-        TabLayoutMediator(binding.tabIndicator, binding.pager) { _, _ -> }.attach()
-
-        // Auto-scroll logic
-        sliderRunnable = Runnable {
-            if (_binding != null) {
-                val currentItem = binding.pager.currentItem
-                val nextItem = if (currentItem == sliderImages.size - 1) 0 else currentItem + 1
-                binding.pager.setCurrentItem(nextItem, true)
-                sliderHandler.postDelayed(sliderRunnable, 3000)
-            }
-        }
     }
 
     private fun setupRecyclerViews() {

@@ -6,6 +6,7 @@ option java_multiple_files = true;
 option java_package = "com.discountworld.discount";
 
 import "google/protobuf/timestamp.proto";
+import "discount/v1/common.proto";
 
 // ─────────────────────────────────────────────
 // Customer Messages
@@ -21,10 +22,14 @@ message Customer {
   bool active = 7;
   google.protobuf.Timestamp created_at = 8;
   google.protobuf.Timestamp updated_at = 9;
+  int32 reward_points = 10;
 }
 
 message CustomerCnicAuthRequest {
   string cnic = 1;
+  optional string full_name = 2;
+  optional string phone_number = 3;
+  optional string email = 4;
 }
 
 message CustomerCnicAuthResponse {
@@ -128,6 +133,7 @@ message RedemptionVendorSummary {
   bool in_store = 10;
   bool delivery = 11;
   bool ecommerce = 12;
+  string short_description = 13;
 }
 
 message ListRedemptionVendorsRequest {
@@ -164,6 +170,7 @@ message RedemptionVendorDetail {
   repeated RedemptionBranch branches = 14;
   repeated string gallery_images = 15;
   repeated RedemptionSocialLink social_links = 16;
+  string short_description = 17;
 }
 
 message GetRedemptionVendorDetailRequest {
@@ -207,6 +214,32 @@ message RedemptionSocialLink {
 }
 
 // ─────────────────────────────────────────────
+// Banner Messages (Home Carousel & Popular Vendors)
+// ─────────────────────────────────────────────
+
+message RedemptionBannerItem {
+  int64 id = 1;
+  int64 banner_id = 2;
+  string title = 3;
+  string image_url = 4;
+  string link_url = 5;
+  int32 sort_order = 6;
+  int64 vendor_id = 7;
+  string vendor_company_name = 8;
+  string vendor_title = 9;
+  string vendor_logo_url = 10;
+}
+
+message ListRedemptionBannersRequest {
+  optional int64 city_id = 1;
+}
+
+message ListRedemptionBannersResponse {
+  repeated RedemptionBannerItem banners = 1;
+  repeated RedemptionVendorSummary popular_vendors = 2;
+}
+
+// ─────────────────────────────────────────────
 // Story Messages
 // ─────────────────────────────────────────────
 
@@ -226,7 +259,110 @@ message ListStoriesResponse {
 }
 
 // ─────────────────────────────────────────────
-// Unified Redemption Service (Mobile App)
+// Vendor Deals / Offers Messages
+// ─────────────────────────────────────────────
+
+message RedemptionDealSummary {
+  int64 id = 1;
+  int64 vendor_id = 2;
+  string unique_code = 3;
+  string title = 4;
+  string description = 5;
+  string deal_type = 6;
+  double deal_value = 7;
+  double estimated_price = 8;
+  double estimated_saving = 9;
+  double discounted_price = 10;
+  string custom_message_1 = 11;
+  string custom_message_2 = 12;
+  int32 max_redemptions = 13;
+  int32 usage_per_user = 14;
+  int32 redeem_points = 15;
+  int32 sort_order = 16;
+  bool featured = 17;
+  google.protobuf.Timestamp start_date = 18;
+  google.protobuf.Timestamp end_date = 19;
+}
+
+message ListVendorDealsRequest {
+  int64 vendor_id = 1;
+}
+
+message ListVendorDealsResponse {
+  repeated RedemptionDealSummary deals = 1;
+}
+
+// ─────────────────────────────────────────────
+// Deal Redemption Transaction Messages
+// ─────────────────────────────────────────────
+
+message RedeemDealRequest {
+  int64 deal_id = 1;
+  optional string redeem_pin = 2;
+  optional int64 city_id = 3;
+}
+
+message RedeemDealResponse {
+  bool success = 1;
+  string message = 2;
+  string redemption_code = 3;
+  string custom_message_1 = 4;
+  string custom_message_2 = 5;
+  int32 points_earned = 6;
+  google.protobuf.Timestamp redeemed_at = 7;
+  string category_name = 8;
+  string city_name = 9;
+}
+
+// ─────────────────────────────────────────────
+// Redemption History Messages
+// ─────────────────────────────────────────────
+
+message RedemptionHistoryItem {
+  int64 id = 1;
+  int64 client_id = 2;
+  string client_name = 3;
+  int64 vendor_id = 4;
+  string vendor_title = 5;
+  string vendor_logo_url = 6;
+  int64 deal_id = 7;
+  string offer_title = 8;
+  string category_name = 9;
+  string city_name = 10;
+  string redemption_code = 11;
+  int64 customer_id = 12;
+  string customer_name = 13;
+  string customer_cnic = 14;
+  string customer_phone = 15;
+  string customer_email = 16;
+  double estimated_price = 17;
+  double estimated_saving = 18;
+  double discounted_price = 19;
+  int32 points_earned = 20;
+  string vendor_type = 21;
+  google.protobuf.Timestamp redeemed_at = 22;
+}
+
+message ListRedemptionsRequest {
+  PaginationRequest pagination = 1;
+  optional int64 client_id = 2;
+  optional int64 vendor_id = 3;
+  optional int64 city_id = 4;
+  optional string offer_title = 5;
+  optional string search = 6;
+  optional google.protobuf.Timestamp start_date = 7;
+  optional google.protobuf.Timestamp end_date = 8;
+}
+
+message ListRedemptionsResponse {
+  repeated RedemptionHistoryItem items = 1;
+  PaginationResponse pagination = 2;
+  int64 total_count = 3;
+  double total_savings = 4;
+}
+
+// ─────────────────────────────────────────────
+// Unified Redemption Service (Mobile App & Web)
 // ─────────────────────────────────────────────
 
 service RedemptionService {
@@ -244,9 +380,22 @@ service RedemptionService {
   rpc ListVendors(ListRedemptionVendorsRequest) returns (ListRedemptionVendorsResponse);
   rpc GetVendorDetail(GetRedemptionVendorDetailRequest) returns (GetRedemptionVendorDetailResponse);
 
+  // Home Banners & Popular Vendors (Client-scoped)
+  rpc ListBanners(ListRedemptionBannersRequest) returns (ListRedemptionBannersResponse);
+
+  // Vendor Deals & Offers (Client-scoped with custom sort order)
+  rpc ListVendorDeals(ListVendorDealsRequest) returns (ListVendorDealsResponse);
+
+  // Deal Redemption Engine
+  rpc RedeemDeal(RedeemDealRequest) returns (RedeemDealResponse);
+
+  // Redemption History Dashboard
+  rpc ListRedemptions(ListRedemptionsRequest) returns (ListRedemptionsResponse);
+
   // Map View (Client-scoped)
   rpc ListMapPins(ListMapPinsRequest) returns (ListMapPinsResponse);
 
   // Stories (Client-scoped)
   rpc ListStories(ListStoriesRequest) returns (ListStoriesResponse);
+
 }

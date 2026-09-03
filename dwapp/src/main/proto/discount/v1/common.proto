@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package discount.v1;
+
+option java_multiple_files = true;
+option java_package = "com.discountworld.proto";
+
+message PaginationRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message PaginationResponse {
+  int32 total_count = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  int32 total_pages = 4;
+}

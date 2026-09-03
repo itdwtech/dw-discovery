@@ -28,17 +28,18 @@ class PopularBrandsAdapter(
         val title = item.title.ifEmpty { item.companyName }
         holder.binding.tvBrandTitle.text = title
 
-        val types = mutableListOf<String>()
-        if (item.inStore) types.add("In-Store")
-        if (item.ecommerce) types.add("E-Commerce")
-        if (item.delivery) types.add("Delivery")
-
-        val dealType = if (types.isNotEmpty()) {
-            types.joinToString(" & ")
+        val categoryName = if (item.categoriesList.isNotEmpty()) {
+            item.categoriesList.joinToString(", ") { cat -> cat.name }
+        } else if (item.shortDescription.isNotEmpty()) {
+            item.shortDescription
         } else {
-            item.categoriesList.firstOrNull()?.name ?: "Vendor"
+            val types = mutableListOf<String>()
+            if (item.delivery) types.add("Delivery")
+            if (item.inStore) types.add("In-Store")
+            if (item.ecommerce) types.add("E-Commerce")
+            if (types.isNotEmpty()) types.joinToString(" & ") else "Food"
         }
-        holder.binding.tvCategory.text = dealType
+        holder.binding.tvCategory.text = categoryName
 
         Glide.with(holder.itemView.context)
             .load(if (item.logoUrl.isNotEmpty()) item.logoUrl else item.bannerUrl)

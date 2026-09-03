@@ -151,4 +151,15 @@ class RedemptionRepository {
         }
         return result.getOrNull()?.storiesList
     }
+
+    suspend fun listBanners(cityId: Long? = null): ListRedemptionBannersResponse? {
+        val builder = ListRedemptionBannersRequest.newBuilder()
+        cityId?.let { builder.setCityId(it) }
+
+        val result = grpcCall { stub.listBanners(builder.build()) }
+        result.onFailure {
+            Log.e("RedemptionRepo", "listBanners failed: ${it.message}")
+        }
+        return result.getOrNull()
+    }
 }
