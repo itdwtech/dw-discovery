@@ -75,7 +75,7 @@ class PromosFragment : Fragment() {
             TopPick(R.drawable.ic_almasjewellers, "Allure Beauty")
         )
         // Reusing TopPicksAdapter as it matches the design (Banner + Brand Name)
-        binding.rvAmazingDiscounts.adapter = TopPicksAdapter(list)
+        binding.rvAmazingDiscounts.adapter = TopPicksAdapter(fallbackList = list)
     }
 
     private fun setupLogosList() {

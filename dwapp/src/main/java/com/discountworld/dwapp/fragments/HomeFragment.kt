@@ -113,10 +113,11 @@ class HomeFragment : Fragment() {
                 }
             }
 
-            // Execute Categories, Stories, Vendors, and Banners API calls in PARALLEL
+            // Execute Categories, Stories, Vendors, Featured Vendors, and Banners API calls in PARALLEL
             val categoriesDeferred = async { redemptionRepository.listCategories() }
             val storiesDeferred = async { redemptionRepository.listStories(selectedCityId) }
             val vendorsDeferred = async { redemptionRepository.listVendors(page = 1, pageSize = 20, cityId = selectedCityId) }
+            val featuredVendorsDeferred = async { redemptionRepository.listVendors(page = 1, pageSize = 20, cityId = selectedCityId, featured = true) }
             val bannersDeferred = async { redemptionRepository.listBanners(selectedCityId) }
 
             // 1. Process Categories sorted by sortOrder
@@ -149,14 +150,27 @@ class HomeFragment : Fragment() {
                 binding.storyRV.visibility = View.GONE
             }
 
-            // 3. Process Banners for ViewPager2
+            // 3. Process Featured Vendors on bannerRV (Top Picks)
+            val featuredVendors = featuredVendorsDeferred.await()?.vendorsList ?: emptyList()
+            if (featuredVendors.isNotEmpty()) {
+                val adapter = TopPicksAdapter(vendorList = featuredVendors) { selectedVendor ->
+                    val bundle = Bundle().apply {
+                        putLong("vendor_id", selectedVendor.id)
+                        putLong("city_id", selectedCityId)
+                    }
+                    findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+                }
+                binding.bannerRV.adapter = adapter
+            }
+
+            // 4. Process Banners for ViewPager2
             val bannerResponse = bannersDeferred.await()
             val bannerItems = bannerResponse?.bannersList ?: emptyList()
             if (bannerItems.isNotEmpty()) {
                 setupBannersSlider(bannerItems)
             }
 
-            // 4. Process Popular Vendors
+            // 5. Process Popular Vendors
             val popularVendorsFromBanner = bannerResponse?.popularVendorsList ?: emptyList()
             val vendors = if (popularVendorsFromBanner.isNotEmpty()) {
                 popularVendorsFromBanner
@@ -185,6 +199,7 @@ class HomeFragment : Fragment() {
 
             val storiesDeferred = async { redemptionRepository.listStories(cityId) }
             val vendorsDeferred = async { redemptionRepository.listVendors(page = 1, pageSize = 20, cityId = cityId) }
+            val featuredVendorsDeferred = async { redemptionRepository.listVendors(page = 1, pageSize = 20, cityId = cityId, featured = true) }
             val bannersDeferred = async { redemptionRepository.listBanners(cityId) }
 
             val stories = storiesDeferred.await() ?: emptyList()
@@ -203,6 +218,18 @@ class HomeFragment : Fragment() {
                 binding.storyRV.adapter = adapter
             } else {
                 binding.storyRV.visibility = View.GONE
+            }
+
+            val featuredVendors = featuredVendorsDeferred.await()?.vendorsList ?: emptyList()
+            if (featuredVendors.isNotEmpty()) {
+                val adapter = TopPicksAdapter(vendorList = featuredVendors) { selectedVendor ->
+                    val bundle = Bundle().apply {
+                        putLong("vendor_id", selectedVendor.id)
+                        putLong("city_id", cityId)
+                    }
+                    findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+                }
+                binding.bannerRV.adapter = adapter
             }
 
             val bannerResponse = bannersDeferred.await()
@@ -364,14 +391,14 @@ class HomeFragment : Fragment() {
             }
         }
 
-        // Top Picks For You
+        // Top Picks For You (bannerRV)
         binding.bannerRV.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         val topPicks = listOf(
             TopPick(R.drawable.ic_almasjewellers, "14th Street Pizza"),
             TopPick(R.drawable.ic_beatsandcuts, "Broadway Pizza"),
             TopPick(R.drawable.ic_anamta_comfort, "Pizza Hut")
         )
-        binding.bannerRV.adapter = TopPicksAdapter(topPicks)
+        binding.bannerRV.adapter = TopPicksAdapter(fallbackList = topPicks)
 
         // Popular Brands
         binding.popularDiscRV.layoutManager = LinearLayoutManager(requireContext())
