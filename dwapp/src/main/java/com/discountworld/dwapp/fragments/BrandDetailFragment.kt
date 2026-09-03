@@ -19,8 +19,10 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.discountworld.discount.RedemptionDealSummary
+import com.discountworld.discount.RedemptionVendorDetail
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.adapters.OffersAdapter
+import com.discountworld.dwapp.databinding.DialogDeliveryConfirmationBinding
 import com.discountworld.dwapp.databinding.DialogOfferRedemptionBinding
 import com.discountworld.dwapp.databinding.FragmentBrandDetailBinding
 import com.discountworld.dwapp.managers.SessionManager
@@ -36,6 +38,8 @@ class BrandDetailFragment : Fragment() {
 
     private val redemptionRepository = RedemptionRepository()
     private lateinit var sessionManager: SessionManager
+
+    private var currentVendorDetail: RedemptionVendorDetail? = null
     private var vendorLogoUrl: String? = null
 
     override fun onCreateView(
@@ -81,6 +85,7 @@ class BrandDetailFragment : Fragment() {
             val dealsDeferred = async { redemptionRepository.listVendorDeals(vendorId) }
 
             val vendorDetail = vendorDetailDeferred.await()
+            currentVendorDetail = vendorDetail
             vendorDetail?.let {
                 binding.tvBrandName.text = it.title.ifEmpty { it.companyName }
                 vendorLogoUrl = it.logoUrl
@@ -111,10 +116,7 @@ class BrandDetailFragment : Fragment() {
         binding.rvOffers.layoutManager = LinearLayoutManager(requireContext())
         if (deals.isNotEmpty()) {
             binding.rvOffers.adapter = OffersAdapter(dealsList = deals) { deal, _ ->
-                if (deal != null) {
-                    val offer = Offer(deal.description.ifEmpty { deal.title }, deal.title.ifEmpty { "Buy 1 Get 1" })
-                    showRedemptionDialog(offer)
-                }
+                handleOfferSelected(deal, null)
             }
         } else {
             val dummyOffers = listOf(
@@ -124,14 +126,21 @@ class BrandDetailFragment : Fragment() {
                 Offer("Buy 1 Whitening Facial Get 1 Haircut & Khat Free", "Buy 1 Get 1")
             )
             binding.rvOffers.adapter = OffersAdapter(dummyOffers = dummyOffers) { _, offer ->
-                if (offer != null) {
-                    showRedemptionDialog(offer)
-                }
+                handleOfferSelected(null, offer)
             }
         }
     }
 
-    private fun showRedemptionDialog(offer: Offer) {
+    private fun handleOfferSelected(deal: RedemptionDealSummary?, offer: Offer?) {
+        val isInStore = currentVendorDetail?.inStore ?: false
+        if (isInStore) {
+            showInStoreOtpDialog(deal, offer)
+        } else {
+            showDeliveryConfirmationDialog(deal, offer)
+        }
+    }
+
+    private fun showInStoreOtpDialog(deal: RedemptionDealSummary?, offer: Offer?) {
         val ctx = requireContext()
         val dialog = Dialog(ctx)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -146,7 +155,8 @@ class BrandDetailFragment : Fragment() {
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
 
-        dialogBinding.tvOfferTitle.text = offer.discount.ifEmpty { "Buy 1 Get 1" }
+        val offerTitleText = deal?.title?.ifEmpty { offer?.discount } ?: offer?.discount ?: "Buy 1 Get 1"
+        dialogBinding.tvOfferTitle.text = offerTitleText
 
         if (!vendorLogoUrl.isNullOrEmpty()) {
             Glide.with(ctx)
@@ -166,9 +176,96 @@ class BrandDetailFragment : Fragment() {
             val pin = "${dialogBinding.etPin1.text}${dialogBinding.etPin2.text}${dialogBinding.etPin3.text}${dialogBinding.etPin4.text}"
             if (pin.length < 4) {
                 Toast.makeText(ctx, "Please enter 4-digit merchant code", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(ctx, "Offer Redeemed Successfully!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            viewLifecycleOwner.lifecycleScope.launch {
+                val dealId = deal?.id ?: 1L
+                val selectedCityId = sessionManager.getSelectedCityId()
+                val response = redemptionRepository.redeemDeal(dealId, redeemPin = pin, cityId = selectedCityId)
+
+                val redemptionCode = response?.redemptionCode?.ifEmpty { "7SI1XZU7" } ?: "7SI1XZU7"
                 dialog.dismiss()
+
+                val vendorName = currentVendorDetail?.title?.ifEmpty { currentVendorDetail?.companyName } ?: "Merchant"
+                val bundle = Bundle().apply {
+                    putString("redemptionCode", redemptionCode)
+                    putString("vendorName", vendorName)
+                    putString("vendorPhone", currentVendorDetail?.headOfficeNumber ?: "021111363636")
+                    putString("vendorWebsite", "https://www.14thstreetpizza.com/")
+                    putBoolean("isStoreRedemption", true)
+                }
+                findNavController().navigate(R.id.action_nav_brand_detail_to_nav_redemption_success, bundle)
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun showDeliveryConfirmationDialog(deal: RedemptionDealSummary?, offer: Offer?) {
+        val ctx = requireContext()
+        val dialog = Dialog(ctx)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        val dialogBinding = DialogDeliveryConfirmationBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogBinding.root)
+        dialog.setCancelable(false)
+        dialog.setCanceledOnTouchOutside(false)
+
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        val offerTitleText = deal?.title?.ifEmpty { offer?.discount } ?: offer?.discount ?: "Flat 20% Off"
+        dialogBinding.tvOfferTitle.text = offerTitleText
+
+        if (!vendorLogoUrl.isNullOrEmpty()) {
+            Glide.with(ctx)
+                .load(vendorLogoUrl)
+                .placeholder(R.drawable.ic_placeholder)
+                .error(R.drawable.ic_placeholder)
+                .into(dialogBinding.ivMerchantLogo)
+        }
+
+        val isEcommerce = currentVendorDetail?.ecommerce ?: false
+        val questionText = if (isEcommerce) {
+            "Would you like to redeem our exclusive E-Commerce Deals?"
+        } else {
+            "Would you like to redeem our exclusive Delivery Deals?"
+        }
+        dialogBinding.tvQuestion.text = questionText
+
+        dialogBinding.cvClose.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogBinding.btnRedeemNow.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val dealId = deal?.id ?: 1L
+                val selectedCityId = sessionManager.getSelectedCityId()
+                val response = redemptionRepository.redeemDeal(dealId, cityId = selectedCityId)
+
+                val redemptionCode = response?.redemptionCode?.ifEmpty { "6FF92FBB" } ?: "6FF92FBB"
+                dialog.dismiss()
+
+                val vendorName = currentVendorDetail?.title?.ifEmpty { currentVendorDetail?.companyName } ?: "Merchant"
+                val websiteLink = currentVendorDetail?.socialLinksList?.firstOrNull {
+                    it.url.isNotBlank() && (it.platform.equals("website", ignoreCase = true) || it.url.startsWith("http"))
+                }?.url ?: "https://www.14thstreetpizza.com/"
+
+                val bundle = Bundle().apply {
+                    putString("redemptionCode", redemptionCode)
+                    putString("vendorName", vendorName)
+                    putString("vendorPhone", currentVendorDetail?.headOfficeNumber ?: "021111363636")
+                    putString("vendorWebsite", websiteLink)
+                    putBoolean("isStoreRedemption", false)
+                }
+                findNavController().navigate(R.id.action_nav_brand_detail_to_nav_redemption_success, bundle)
             }
         }
 

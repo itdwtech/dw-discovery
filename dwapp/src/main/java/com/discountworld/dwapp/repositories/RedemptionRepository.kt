@@ -174,4 +174,18 @@ class RedemptionRepository {
         }
         return result.getOrNull()?.dealsList
     }
+
+    suspend fun redeemDeal(dealId: Long, redeemPin: String? = null, cityId: Long? = null): RedeemDealResponse? {
+        val builder = RedeemDealRequest.newBuilder()
+            .setDealId(dealId)
+
+        redeemPin?.let { builder.setRedeemPin(it) }
+        cityId?.let { builder.setCityId(it) }
+
+        val result = grpcCall { stub.redeemDeal(builder.build()) }
+        result.onFailure {
+            Log.e("RedemptionRepo", "redeemDeal failed: ${it.message}")
+        }
+        return result.getOrNull()
+    }
 }

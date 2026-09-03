@@ -118,6 +118,9 @@
         <action
             android:id="@+id/action_nav_brand_detail_to_nav_brand_info"
             app:destination="@id/nav_brand_info" />
+        <action
+            android:id="@+id/action_nav_brand_detail_to_nav_redemption_success"
+            app:destination="@id/nav_redemption_success" />
     </fragment>
 
     <fragment
@@ -133,6 +136,33 @@
             android:name="city_id"
             android:defaultValue="-1L"
             app:argType="long" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_redemption_success"
+        android:name="com.discountworld.dwapp.fragments.RedemptionSuccessFragment"
+        android:label="RedemptionSuccessFragment"
+        tools:layout="@layout/fragment_redemption_success">
+        <argument
+            android:name="redemptionCode"
+            android:defaultValue="6FF92FBB"
+            app:argType="string" />
+        <argument
+            android:name="vendorName"
+            android:defaultValue="Merchant"
+            app:argType="string" />
+        <argument
+            android:name="vendorPhone"
+            android:defaultValue="021111363636"
+            app:argType="string" />
+        <argument
+            android:name="vendorWebsite"
+            android:defaultValue="https://www.14thstreetpizza.com/"
+            app:argType="string" />
+        <argument
+            android:name="isStoreRedemption"
+            android:defaultValue="false"
+            app:argType="boolean" />
     </fragment>
 
 </navigation>
