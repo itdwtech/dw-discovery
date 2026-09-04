@@ -8,6 +8,6 @@ data class DeliveryDeal(val banner: Int, val logo: Int, val name: String, val ca
 
 data class HistoryItem(val logo: Int, val title: String, val code: String, val dateTime: String)
 
-data class Offer(val description: String, val discount: String)
+data class Offer(val description: String, val discount: String, val isRedeemed: Boolean = false)
 
 data class City(val name: String)

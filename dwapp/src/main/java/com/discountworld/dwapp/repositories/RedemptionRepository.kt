@@ -4,10 +4,11 @@ import android.util.Log
 import com.discountworld.discount.*
 import com.discountworld.dwapp.managers.RedemptionStubClient
 import com.discountworld.dwapp.managers.RedemptionStubClient.grpcCall
+import com.discountworld.proto.PaginationRequest
 
 class RedemptionRepository {
 
-    private val stub = RedemptionStubClient.stub
+    private val stub get() = RedemptionStubClient.stub
 
     suspend fun authenticateByCnic(cnic: String): CustomerCnicAuthResponse? {
         // Strip dashes if the server expects only digits
@@ -47,19 +48,23 @@ class RedemptionRepository {
     }
 
     suspend fun listCustomers(
-        clientId: Long,
+        clientId: Long? = null,
         page: Int = 1,
         pageSize: Int = 20,
-        search: String = ""
+        search: String? = null,
     ): ListCustomersResponse? {
-        val request = ListCustomersRequest.newBuilder()
-            .setClientId(clientId)
+        val pagination = PaginationRequest.newBuilder()
             .setPage(page)
             .setPageSize(pageSize)
-            .setSearch(search)
             .build()
 
-        val result = grpcCall { stub.listCustomers(request) }
+        val builder = ListCustomersRequest.newBuilder()
+            .setPagination(pagination)
+
+        clientId?.let { builder.setClientId(it) }
+        search?.let { builder.setSearch(it) }
+
+        val result = grpcCall { stub.listCustomers(builder.build()) }
         result.onFailure {
             Log.e("RedemptionRepo", "listCustomers failed: ${it.message}")
         }
@@ -93,7 +98,7 @@ class RedemptionRepository {
         featured: Boolean? = null,
         inStore: Boolean? = null,
         delivery: Boolean? = null,
-        ecommerce: Boolean? = null
+        ecommerce: Boolean? = null,
     ): ListRedemptionVendorsResponse? {
         val builder = ListRedemptionVendorsRequest.newBuilder()
             .setPage(page)
@@ -175,7 +180,7 @@ class RedemptionRepository {
         return result.getOrNull()?.dealsList
     }
 
-    suspend fun redeemDeal(dealId: Long, redeemPin: String? = null, cityId: Long? = null): RedeemDealResponse? {
+    suspend fun redeemDeal(dealId: Long, redeemPin: String? = null, cityId: Long? = null): Result<RedeemDealResponse> {
         val builder = RedeemDealRequest.newBuilder()
             .setDealId(dealId)
 
@@ -184,7 +189,51 @@ class RedemptionRepository {
 
         val result = grpcCall { stub.redeemDeal(builder.build()) }
         result.onFailure {
-            Log.e("RedemptionRepo", "redeemDeal failed: ${it.message}")
+            Log.e("RedemptionRepo", "redeemDeal failed: ${it.message}", it)
+        }
+        return result
+    }
+
+    suspend fun listCustomerRedemptions(
+        page: Int = 0,
+        pageSize: Int = 50,
+        search: String? = null
+    ): ListCustomerRedemptionsResponse? {
+        val pagination = PaginationRequest.newBuilder()
+            .setPage(page)
+            .setPageSize(pageSize)
+            .build()
+
+        val builder = ListCustomerRedemptionsRequest.newBuilder()
+            .setPagination(pagination)
+
+        search?.let { builder.setSearch(it) }
+
+        val result = grpcCall { stub.listCustomerRedemptions(builder.build()) }
+        result.onFailure {
+            Log.e("RedemptionRepo", "listCustomerRedemptions failed: ${it.message}")
+        }
+        return result.getOrNull()
+    }
+
+    suspend fun listRedemptions(
+        page: Int = 1,
+        pageSize: Int = 50,
+        search: String? = null
+    ): ListRedemptionsResponse? {
+        val pagination = PaginationRequest.newBuilder()
+            .setPage(page)
+            .setPageSize(pageSize)
+            .build()
+
+        val builder = ListRedemptionsRequest.newBuilder()
+            .setPagination(pagination)
+
+        search?.let { builder.setSearch(it) }
+
+        val result = grpcCall { stub.listRedemptions(builder.build()) }
+        result.onFailure {
+            Log.e("RedemptionRepo", "listRedemptions failed: ${it.message}")
         }
         return result.getOrNull()
     }

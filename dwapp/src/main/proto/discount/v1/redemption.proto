@@ -23,6 +23,7 @@ message Customer {
   google.protobuf.Timestamp created_at = 8;
   google.protobuf.Timestamp updated_at = 9;
   int32 reward_points = 10;
+  string client_name = 11;
 }
 
 message CustomerCnicAuthRequest {
@@ -47,15 +48,15 @@ message UpdateCustomerProfileRequest {
 }
 
 message ListCustomersRequest {
-  int64 client_id = 1;
-  int32 page = 2;
-  int32 page_size = 3;
-  string search = 4;
+  optional int64 client_id = 1;
+  PaginationRequest pagination = 2;
+  optional string search = 3;
 }
 
 message ListCustomersResponse {
   repeated Customer customers = 1;
-  int32 total_count = 2;
+  PaginationResponse pagination = 2;
+  int64 total_count = 3;
 }
 
 // ─────────────────────────────────────────────
@@ -282,6 +283,12 @@ message RedemptionDealSummary {
   bool featured = 17;
   google.protobuf.Timestamp start_date = 18;
   google.protobuf.Timestamp end_date = 19;
+  bool is_redeemable = 20;
+  bool is_redeemed_today = 21;
+  bool is_limit_reached = 22;
+  int32 user_used_count = 23;
+  int32 user_remaining_count = 24;
+  string lock_reason = 25;
 }
 
 message ListVendorDealsRequest {
@@ -361,6 +368,36 @@ message ListRedemptionsResponse {
   double total_savings = 4;
 }
 
+message CustomerRedemptionItem {
+  int64 id = 1;
+  int64 deal_id = 2;
+  string deal_title = 3;
+  int64 vendor_id = 4;
+  string vendor_title = 5;
+  string vendor_logo_url = 6;
+  string redemption_code = 7;
+  double estimated_price = 8;
+  double estimated_saving = 9;
+  double discounted_price = 10;
+  int32 points_earned = 11;
+  string vendor_type = 12;
+  google.protobuf.Timestamp redeemed_at = 13;
+  string category_name = 14;
+  string city_name = 15;
+}
+
+message ListCustomerRedemptionsRequest {
+  PaginationRequest pagination = 1;
+  optional string search = 2;
+}
+
+message ListCustomerRedemptionsResponse {
+  repeated CustomerRedemptionItem items = 1;
+  PaginationResponse pagination = 2;
+  int64 total_count = 3;
+  double total_savings = 4;
+}
+
 // ─────────────────────────────────────────────
 // Unified Redemption Service (Mobile App & Web)
 // ─────────────────────────────────────────────
@@ -389,8 +426,11 @@ service RedemptionService {
   // Deal Redemption Engine
   rpc RedeemDeal(RedeemDealRequest) returns (RedeemDealResponse);
 
-  // Redemption History Dashboard
+  // Redemption History (Admin & Client Dashboard)
   rpc ListRedemptions(ListRedemptionsRequest) returns (ListRedemptionsResponse);
+
+  // Customer Personal Redemption History (Mobile App)
+  rpc ListCustomerRedemptions(ListCustomerRedemptionsRequest) returns (ListCustomerRedemptionsResponse);
 
   // Map View (Client-scoped)
   rpc ListMapPins(ListMapPinsRequest) returns (ListMapPinsResponse);
