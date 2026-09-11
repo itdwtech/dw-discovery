@@ -62,7 +62,7 @@ class HomeRepository {
     }
 
     suspend fun getTopBrands(cityId: Long?): List<VendorSummary>? {
-        return getListOfVendors(cityId = cityId, featured = true)
+        return getVendorsList(cityId = cityId, featured = true)
     }
 
     suspend fun getVendorsList(
@@ -70,7 +70,8 @@ class HomeRepository {
         categoryId: Long? = null,
         search: String? = null,
         page: Int = 1,
-        pageSize: Int = 10
+        pageSize: Int = 10,
+        featured: Boolean? = null
     ): List<VendorSummary>? {
         val pagination = PaginationRequest.newBuilder()
             .setPage(page)
@@ -83,21 +84,24 @@ class HomeRepository {
         cityId?.let { request.cityId = it }
         categoryId?.let { request.categoryId = it }
         search?.let { request.search = it }
+        featured?.let { request.featured = it }
 
         val result = grpcCall { stubMerge.searchVendors(request.build()) }
         result.onSuccess { response ->
-            return response.vendorsList.map { item ->
-                VendorSummary.newBuilder()
-                    .setId(item.id)
-                    .setCompanyName(item.companyName)
-                    .setLogoUrl(item.logoUrl)
-                    .setDescription(item.description)
-                    .setFeatured(item.featured)
-                    .addAllCategories(item.categoriesList)
-                    .setTitle(item.title)
-                    .setShortDescription(item.shortDescription)
-                    .build()
-            }
+            return response.vendorsList
+                .sortedBy { it.sortOrder }
+                .map { item ->
+                    VendorSummary.newBuilder()
+                        .setId(item.id)
+                        .setCompanyName(item.companyName)
+                        .setLogoUrl(item.logoUrl)
+                        .setDescription(item.description)
+                        .setFeatured(item.featured)
+                        .addAllCategories(item.categoriesList)
+                        .setTitle(item.title)
+                        .setShortDescription(item.shortDescription)
+                        .build()
+                }
         }.onFailure {
             println("SearchVendors failed: ${it.message}")
         }
