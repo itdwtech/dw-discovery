@@ -2,6 +2,7 @@ package com.discountworld.dwapp.adapters
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
@@ -9,6 +10,7 @@ import com.bumptech.glide.Glide
 import com.discountworld.discount.RedemptionVendorSummary
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemPopularBrandBinding
+import com.discountworld.dwapp.utils.fixImageUrl
 
 class PopularBrandsAdapter(
     private var list: List<RedemptionVendorSummary> = emptyList(),
@@ -41,8 +43,21 @@ class PopularBrandsAdapter(
         }
         holder.binding.tvCategory.text = categoryName
 
+        val storeTypes = mutableListOf<String>()
+        if (item.inStore) storeTypes.add("In-Store")
+        if (item.delivery) storeTypes.add("Delivery")
+        if (item.ecommerce) storeTypes.add("E-Commerce")
+
+        if (storeTypes.isNotEmpty()) {
+            holder.binding.btnInStore.visibility = View.VISIBLE
+            holder.binding.btnInStore.text = storeTypes.first()
+        } else {
+            holder.binding.btnInStore.visibility = View.GONE
+        }
+
+        val imageUrl = if (item.logoUrl.isNotEmpty()) item.logoUrl else item.bannerUrl
         Glide.with(holder.itemView.context)
-            .load(if (item.logoUrl.isNotEmpty()) item.logoUrl else item.bannerUrl)
+            .load(imageUrl.fixImageUrl())
             .placeholder(R.drawable.ic_placeholder)
             .error(R.drawable.ic_placeholder)
             .into(holder.binding.ivLogo)
@@ -56,6 +71,10 @@ class PopularBrandsAdapter(
                 }
                 it.findNavController().navigate(R.id.nav_brand_detail, bundle)
             }
+        }
+
+        holder.binding.btnInStore.setOnClickListener {
+            holder.itemView.performClick()
         }
     }
 

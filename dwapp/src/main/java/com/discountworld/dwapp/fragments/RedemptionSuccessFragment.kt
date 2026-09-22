@@ -11,14 +11,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.FragmentRedemptionSuccessBinding
+import com.discountworld.dwapp.viewmodels.RedemptionSuccessViewModel
 
 class RedemptionSuccessFragment : Fragment() {
 
     private var _binding: FragmentRedemptionSuccessBinding? = null
     private val binding get() = _binding!!
+
+    private val viewModel: RedemptionSuccessViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,19 +42,32 @@ class RedemptionSuccessFragment : Fragment() {
         var vendorWebsite = arguments?.getString("vendorWebsite") ?: "https://www.14thstreetpizza.com/"
         val isStoreRedemption = arguments?.getBoolean("isStoreRedemption") ?: false
 
+        val customMessage1 = arguments?.getString("customMessage1")
+        val customMessage2 = arguments?.getString("customMessage2")
+
         binding.tvRedemptionCode.text = redemptionCode
 
-        if (isStoreRedemption) {
-            binding.tvCodeInstruction.text = "Merchant will use this code"
-            binding.tvCodeFooter.text = "to redeem the offer"
-            binding.cvWebsiteBtn.visibility = View.GONE
+        if (!customMessage1.isNullOrEmpty() || !customMessage2.isNullOrEmpty()) {
+            binding.tvCodeInstruction.text = customMessage1 ?: ""
+            binding.tvCodeFooter.text = customMessage2 ?: ""
+
+            if (isStoreRedemption) {
+                binding.cvWebsiteBtn.visibility = View.GONE
+            } else {
+                binding.cvWebsiteBtn.visibility = View.VISIBLE
+            }
         } else {
-            binding.tvCodeInstruction.text = "Enter this code on $vendorName's website"
-            binding.tvCodeFooter.text = "to avail this offer"
-            binding.cvWebsiteBtn.visibility = View.VISIBLE
+            if (isStoreRedemption) {
+                binding.tvCodeInstruction.text = "Merchant will use this code"
+                binding.tvCodeFooter.text = "to redeem the offer"
+                binding.cvWebsiteBtn.visibility = View.GONE
+            } else {
+                binding.tvCodeInstruction.text = "Enter this code on $vendorName's website"
+                binding.tvCodeFooter.text = "to avail this offer"
+                binding.cvWebsiteBtn.visibility = View.VISIBLE
+            }
         }
 
-        // Copy Code action
         val copyAction = View.OnClickListener {
             val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("Redemption Code", redemptionCode)
@@ -60,7 +77,6 @@ class RedemptionSuccessFragment : Fragment() {
         binding.ivCopyCode.setOnClickListener(copyAction)
         binding.llCodeBox.setOnClickListener(copyAction)
 
-        // Website Button
         binding.cvWebsiteBtn.setOnClickListener {
             if (vendorWebsite.isNotEmpty()) {
                 if (!vendorWebsite.startsWith("http://") && !vendorWebsite.startsWith("https://")) {
@@ -71,7 +87,6 @@ class RedemptionSuccessFragment : Fragment() {
             }
         }
 
-        // Helpline Button
         binding.cvHelplineBtn.setOnClickListener {
             val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$vendorPhone"))
             startActivity(intent)

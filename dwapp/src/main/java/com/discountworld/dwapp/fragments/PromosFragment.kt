@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.discountworld.discount.RedemptionBannerItem
@@ -18,17 +18,15 @@ import com.discountworld.dwapp.adapters.TopPicksAdapter
 import com.discountworld.dwapp.databinding.FragmentPromosBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.models.TopPick
-import com.discountworld.dwapp.repositories.RedemptionRepository
+import com.discountworld.dwapp.viewmodels.PromosViewModel
 import com.google.android.material.tabs.TabLayoutMediator
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 
 class PromosFragment : Fragment() {
 
     private var _binding: FragmentPromosBinding? = null
     private val binding get() = _binding!!
 
-    private val redemptionRepository = RedemptionRepository()
+    private val viewModel: PromosViewModel by viewModels()
     private lateinit var sessionManager: SessionManager
 
     private val sliderHandler = Handler(Looper.getMainLooper())
@@ -50,30 +48,23 @@ class PromosFragment : Fragment() {
 
         setupFallbackSlider()
         setupFallbackDiscountsList()
-        loadPromosDataParallel()
+        observeViewModel()
+
+        val selectedCityId = sessionManager.getSelectedCityId() ?: 1L
+        viewModel.loadPromosData(selectedCityId)
     }
 
-    private fun loadPromosDataParallel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            val selectedCityId = sessionManager.getSelectedCityId() ?: 1L
+    private fun observeViewModel() {
+        val selectedCityId = sessionManager.getSelectedCityId() ?: 1L
 
-            // Execute Banners, Featured Vendors, and Stories API calls in PARALLEL
-            val bannersDeferred = async { redemptionRepository.listBanners(selectedCityId) }
-            val featuredVendorsDeferred = async { redemptionRepository.listVendors(page = 1, pageSize = 20, cityId = selectedCityId, featured = true) }
-            val storiesDeferred = async { redemptionRepository.listStories(selectedCityId) }
-
-            // 1. Process Banners for promoPager (ViewPager2)
-            val bannerResponse = bannersDeferred.await()
-            val bannerItems = bannerResponse?.bannersList ?: emptyList()
-            if (bannerItems.isNotEmpty()) {
-                setupBannersSlider(bannerItems, selectedCityId)
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            if (state.banners.isNotEmpty()) {
+                setupBannersSlider(state.banners, selectedCityId)
             }
 
-            // 2. Process Featured Vendors for rvAmazingDiscounts (RecyclerView)
-            val featuredVendors = featuredVendorsDeferred.await()?.vendorsList ?: emptyList()
-            if (featuredVendors.isNotEmpty()) {
+            if (state.featuredVendors.isNotEmpty()) {
                 binding.rvAmazingDiscounts.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-                val adapter = TopPicksAdapter(vendorList = featuredVendors) { selectedVendor ->
+                val adapter = TopPicksAdapter(vendorList = state.featuredVendors) { selectedVendor ->
                     val bundle = Bundle().apply {
                         putLong("vendor_id", selectedVendor.id)
                         putLong("city_id", selectedCityId)
@@ -83,19 +74,17 @@ class PromosFragment : Fragment() {
                 binding.rvAmazingDiscounts.adapter = adapter
             }
 
-            // 3. Process Stories for rvBrandLogos (RecyclerView)
-            val stories = storiesDeferred.await() ?: emptyList()
             binding.rvBrandLogos.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            if (stories.isNotEmpty()) {
+            if (state.stories.isNotEmpty()) {
                 binding.rvBrandLogos.visibility = View.VISIBLE
-                binding.rvBrandLogos.adapter = BrandLogosAdapter(stories) { story ->
+                binding.rvBrandLogos.adapter = BrandLogosAdapter(state.stories) { story ->
                     val bundle = Bundle().apply {
                         putLong("vendor_id", story.vendorId)
                         putLong("city_id", selectedCityId)
                     }
                     findNavController().navigate(R.id.action_nav_promos_to_nav_brand_detail, bundle)
                 }
-            } else {
+            } else if (!state.isLoading) {
                 binding.rvBrandLogos.visibility = View.GONE
             }
         }
@@ -118,7 +107,7 @@ class PromosFragment : Fragment() {
     }
 
     private fun setupFallbackSlider() {
-        val sliderImages = listOf(R.drawable.ic_arish_pk, R.drawable.ic_anamta_comfort, R.drawable.ic_almasjewellers)
+        val sliderImages = listOf(R.drawable.ic_placeholder, R.drawable.ic_placeholder, R.drawable.ic_placeholder)
         binding.promoPager.adapter = SliderAdapter(fallbackImages = sliderImages)
         TabLayoutMediator(binding.promoTabIndicator, binding.promoPager) { _, _ -> }.attach()
 
@@ -145,9 +134,9 @@ class PromosFragment : Fragment() {
     private fun setupFallbackDiscountsList() {
         binding.rvAmazingDiscounts.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         val list = listOf(
-            TopPick(R.drawable.ic_arish_pk, "Allure Beauty"),
-            TopPick(R.drawable.ic_anamta_comfort, "Allure Beauty"),
-            TopPick(R.drawable.ic_almasjewellers, "Allure Beauty")
+            TopPick(R.drawable.ic_placeholder, "Allure Beauty"),
+            TopPick(R.drawable.ic_placeholder, "Allure Beauty"),
+            TopPick(R.drawable.ic_placeholder, "Allure Beauty")
         )
         binding.rvAmazingDiscounts.adapter = TopPicksAdapter(fallbackList = list)
     }

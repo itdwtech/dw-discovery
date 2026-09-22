@@ -9,21 +9,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.FragmentLoginBinding
 import com.discountworld.dwapp.managers.RedemptionStubClient
 import com.discountworld.dwapp.managers.SessionManager
-import com.discountworld.dwapp.repositories.RedemptionRepository
-import kotlinx.coroutines.launch
+import com.discountworld.dwapp.viewmodels.AuthState
+import com.discountworld.dwapp.viewmodels.LoginViewModel
 
 class LoginFragment : Fragment() {
 
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
 
-    private val repository = RedemptionRepository()
+    private val viewModel: LoginViewModel by viewModels()
     private lateinit var sessionManager: SessionManager
 
     override fun onCreateView(
@@ -48,36 +48,33 @@ class LoginFragment : Fragment() {
         }
 
         setupCnicFormatting()
+        observeViewModel()
 
         binding.btnSignIn.setOnClickListener {
             val cnic = binding.etCnic.text.toString()
-            
-            if (cnic.length < 15) {
-                Toast.makeText(requireContext(), "Please enter a valid CNIC", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            performLogin(cnic)
+            viewModel.authenticateByCnic(cnic)
         }
     }
 
-    private fun performLogin(cnic: String) {
-        lifecycleScope.launch {
-            binding.btnSignIn.isEnabled = false
-            // You might want to show a progress bar here if you have one
-            
-            val response = repository.authenticateByCnic(cnic)
-            
-            binding.btnSignIn.isEnabled = true
-            
-            if (response != null) {
-                // Login successful
-                sessionManager.saveAuthToken(response.accessToken)
-                Toast.makeText(requireContext(), "Welcome ${response.customer.fullName}", Toast.LENGTH_SHORT).show()
-                findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
-            } else {
-                // Login failed
-                Toast.makeText(requireContext(), "Authentication failed. Check Logcat for 'Auth' or 'gRPC' tags.", Toast.LENGTH_LONG).show()
+    private fun observeViewModel() {
+        viewModel.authState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is AuthState.Loading -> {
+                    binding.btnSignIn.isEnabled = false
+                }
+                is AuthState.Success -> {
+                    binding.btnSignIn.isEnabled = true
+                    sessionManager.saveAuthToken(state.response.accessToken)
+                    Toast.makeText(requireContext(), "Welcome ${state.response.customer.fullName}", Toast.LENGTH_SHORT).show()
+                    findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+                }
+                is AuthState.Error -> {
+                    binding.btnSignIn.isEnabled = true
+                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
+                }
+                AuthState.Idle -> {
+                    binding.btnSignIn.isEnabled = true
+                }
             }
         }
     }

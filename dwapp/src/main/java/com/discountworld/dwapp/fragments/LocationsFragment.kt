@@ -12,8 +12,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,6 +28,9 @@ import com.discountworld.dwapp.databinding.FragmentLocationsBinding
 import com.discountworld.dwapp.databinding.ItemMapInfoWindowBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.repositories.RedemptionRepository
+import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.viewmodels.LocationsUiState
+import com.discountworld.dwapp.viewmodels.LocationsViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -45,6 +48,7 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
     private var _binding: FragmentLocationsBinding? = null
     private val binding get() = _binding!!
 
+    private val viewModel: LocationsViewModel by viewModels()
     private val redemptionRepository = RedemptionRepository()
     private lateinit var sessionManager: SessionManager
     private var googleMap: GoogleMap? = null
@@ -66,9 +70,23 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
 
         sessionManager = SessionManager(requireContext())
         loadInitialCityAndCategories()
+        observeViewModel()
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+    }
+
+    private fun observeViewModel() {
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is LocationsUiState.Loading -> { }
+                is LocationsUiState.Success -> {
+                    renderMapPins(state.pins)
+                }
+                is LocationsUiState.Error -> { }
+                LocationsUiState.Idle -> { }
+            }
+        }
     }
 
     private fun loadInitialCityAndCategories() {
@@ -138,75 +156,75 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun loadMapPins() {
+        viewModel.loadMapPins(selectedCityId, selectedCategoryId)
+    }
+
+    private fun renderMapPins(pins: List<RedemptionMapPin>) {
         val map = googleMap ?: return
         val ctx = context ?: return
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            val pins = redemptionRepository.listMapPins(selectedCityId, selectedCategoryId) ?: emptyList()
-            map.clear()
+        map.clear()
 
-            if (pins.isEmpty()) {
-                val karachi = LatLng(24.8607, 67.0011)
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(karachi, 12f))
-                return@launch
+        if (pins.isEmpty()) {
+            val karachi = LatLng(24.8607, 67.0011)
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(karachi, 12f))
+            return
+        }
+
+        val defaultIcon = createCustomPinWithImage(ctx, null)
+        val builder = LatLngBounds.Builder()
+
+        for (pin in pins) {
+            val position = LatLng(pin.latitude, pin.longitude)
+            val title = if (pin.branchName.isNotEmpty()) "${pin.vendorTitle} - ${pin.branchName}" else pin.vendorTitle
+
+            val markerOptions = MarkerOptions()
+                .position(position)
+                .title(title)
+                .snippet(pin.address)
+
+            defaultIcon?.let {
+                markerOptions.icon(it)
             }
 
-            val defaultIcon = createCustomPinWithImage(ctx, null)
-            val builder = LatLngBounds.Builder()
+            val marker = map.addMarker(markerOptions)
+            marker?.tag = pin
+            builder.include(position)
 
-            for (pin in pins) {
-                val position = LatLng(pin.latitude, pin.longitude)
-                val title = if (pin.branchName.isNotEmpty()) "${pin.vendorTitle} - ${pin.branchName}" else pin.vendorTitle
-
-                val markerOptions = MarkerOptions()
-                    .position(position)
-                    .title(title)
-                    .snippet(pin.address)
-
-                defaultIcon?.let {
-                    markerOptions.icon(it)
-                }
-
-                val marker = map.addMarker(markerOptions)
-                marker?.tag = pin
-                builder.include(position)
-
-                // Load vendor logo image into map pin
-                if (pin.vendorLogoUrl.isNotEmpty()) {
-                    Glide.with(ctx)
-                        .asBitmap()
-                        .load(pin.vendorLogoUrl)
-                        .into(object : CustomTarget<Bitmap>() {
-                            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                                val customPinWithLogo = createCustomPinWithImage(ctx, resource)
-                                customPinWithLogo?.let {
-                                    marker?.setIcon(it)
-                                }
+            if (pin.vendorLogoUrl.isNotEmpty()) {
+                Glide.with(ctx)
+                    .asBitmap()
+                    .load(pin.vendorLogoUrl.fixImageUrl())
+                    .into(object : CustomTarget<Bitmap>() {
+                        override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                            val customPinWithLogo = createCustomPinWithImage(ctx, resource)
+                            customPinWithLogo?.let {
+                                marker?.setIcon(it)
                             }
+                        }
 
-                            override fun onLoadCleared(placeholder: Drawable?) {}
-                        })
-                }
+                        override fun onLoadCleared(placeholder: Drawable?) {}
+                    })
             }
+        }
 
-            if (pins.size == 1) {
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(pins[0].latitude, pins[0].longitude), 14f))
-            } else {
-                try {
-                    val bounds = builder.build()
-                    val padding = 120
-                    map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
-                } catch (_: Exception) {
-                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(pins[0].latitude, pins[0].longitude), 12f))
-                }
+        if (pins.size == 1) {
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(pins[0].latitude, pins[0].longitude), 14f))
+        } else {
+            try {
+                val bounds = builder.build()
+                val padding = 120
+                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
+            } catch (_: Exception) {
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(pins[0].latitude, pins[0].longitude), 12f))
             }
         }
     }
 
     private fun createCustomPinWithImage(context: Context, logoBitmap: Bitmap?): BitmapDescriptor? {
         val density = context.resources.displayMetrics.density
-        val width = (46 * density).toInt()   // 46dp pin width
-        val height = (56 * density).toInt()  // 56dp total pin height
+        val width = (46 * density).toInt()
+        val height = (56 * density).toInt()
         val pinColor = ContextCompat.getColor(context, R.color.purple_primary)
 
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
@@ -216,7 +234,6 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
         val radius = width / 2f - (2 * density)
         val centerY = radius + (2 * density)
 
-        // 1. Teardrop Pin Path
         val path = Path()
         val angleRad = Math.toRadians(40.0)
         val startX = (centerX + radius * Math.cos(angleRad)).toFloat()
@@ -237,14 +254,12 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
         )
         path.close()
 
-        // Fill outer pin with purple_primary
         val pinPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = pinColor
             style = Paint.Style.FILL
         }
         canvas.drawPath(path, pinPaint)
 
-        // Draw white border
         val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
             style = Paint.Style.STROKE
@@ -252,7 +267,6 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
         }
         canvas.drawPath(path, borderPaint)
 
-        // 2. Inner White Circle
         val whiteCircleRadius = radius * 0.72f
         val whitePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
@@ -260,10 +274,9 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
         }
         canvas.drawCircle(centerX, centerY, whiteCircleRadius, whitePaint)
 
-        // 3. Draw Logo Image inside Inner White Circle
         val innerCircleRadius = whiteCircleRadius * 0.88f
         val logoToDraw: Bitmap? = logoBitmap ?: run {
-            val drawable = ContextCompat.getDrawable(context, R.drawable.ic_allurebeauty)
+            val drawable = ContextCompat.getDrawable(context, R.drawable.ic_placeholder)
             drawable?.let {
                 val size = (innerCircleRadius * 2).toInt()
                 drawableToBitmap(it, size, size)

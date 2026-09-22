@@ -7,6 +7,7 @@ import com.bumptech.glide.Glide
 import com.discountworld.discount.RedemptionStory
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemStoryBinding
+import com.discountworld.dwapp.utils.fixImageUrl
 
 class StoryAdapter(
     private val stories: List<RedemptionStory>,
@@ -29,7 +30,7 @@ class StoryAdapter(
         holder.binding.tvStoryTitle.text = story.vendorTitle
 
         Glide.with(holder.itemView.context)
-            .load(story.vendorLogoUrl)
+            .load(story.vendorLogoUrl.fixImageUrl())
             .placeholder(R.drawable.ic_placeholder)
             .error(R.drawable.ic_placeholder)
             .into(holder.binding.ivStoryLogo)

@@ -5,13 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import androidx.fragment.app.viewModels
 import com.discountworld.dwapp.databinding.FragmentForgetPasswordBinding
+import com.discountworld.dwapp.viewmodels.ForgetPasswordViewModel
 
 class ForgetPasswordFragment : Fragment() {
 
     private var _binding: FragmentForgetPasswordBinding? = null
     private val binding get() = _binding!!
+
+    private val viewModel: ForgetPasswordViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -23,10 +26,6 @@ class ForgetPasswordFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-//        binding.ivBack.setOnClickListener {
-//            findNavController().navigateUp()
-//        }
     }
 
     override fun onDestroyView() {

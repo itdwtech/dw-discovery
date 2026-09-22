@@ -7,6 +7,7 @@ import com.bumptech.glide.Glide
 import com.discountworld.discount.RedemptionStory
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemBrandLogoBinding
+import com.discountworld.dwapp.utils.fixImageUrl
 
 class BrandLogosAdapter(
     private val stories: List<RedemptionStory>,
@@ -26,12 +27,12 @@ class BrandLogosAdapter(
 
         if (story.vendorLogoUrl.isNotEmpty()) {
             Glide.with(holder.itemView.context)
-                .load(story.vendorLogoUrl)
-                .placeholder(R.drawable.ic_allurebeauty)
-                .error(R.drawable.ic_allurebeauty)
+                .load(story.vendorLogoUrl.fixImageUrl())
+                .placeholder(R.drawable.ic_placeholder)
+                .error(R.drawable.ic_placeholder)
                 .into(holder.binding.ivLogo)
         } else {
-            holder.binding.ivLogo.setImageResource(R.drawable.ic_allurebeauty)
+            holder.binding.ivLogo.setImageResource(R.drawable.ic_placeholder)
         }
 
         holder.itemView.setOnClickListener { onLogoClick(story) }

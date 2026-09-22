@@ -8,13 +8,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.discountworld.dwapp.adapters.DeliveryDealsAdapter
 import com.discountworld.dwapp.databinding.FragmentDeliveryBinding
 import com.discountworld.dwapp.managers.SessionManager
-import com.discountworld.dwapp.repositories.RedemptionRepository
+import com.discountworld.dwapp.viewmodels.DeliveryUiState
+import com.discountworld.dwapp.viewmodels.DeliveryViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -24,7 +26,7 @@ class DeliveryFragment : Fragment() {
     private var _binding: FragmentDeliveryBinding? = null
     private val binding get() = _binding!!
 
-    private val redemptionRepository = RedemptionRepository()
+    private val viewModel: DeliveryViewModel by viewModels()
     private lateinit var sessionManager: SessionManager
     private val dealsAdapter = DeliveryDealsAdapter()
     private var searchJob: Job? = null
@@ -65,6 +67,11 @@ class DeliveryFragment : Fragment() {
             } else if (categoryName.contains("delivery", ignoreCase = true)) {
                 isDelivery = true
             }
+        } else {
+            val initialSearchQuery = arguments?.getString("searchQuery")
+            if (!initialSearchQuery.isNullOrEmpty() || arguments?.containsKey("searchQuery") == true) {
+                binding.tvTitle.text = "Search Results"
+            }
         }
 
         val initialSearchQuery = arguments?.getString("searchQuery")
@@ -86,7 +93,45 @@ class DeliveryFragment : Fragment() {
 
         setupRecyclerView()
         setupSearch()
+        observeViewModel()
         loadVendors(initialSearchQuery)
+    }
+
+    private fun observeViewModel() {
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is DeliveryUiState.Loading -> {
+                    binding.progressBar.visibility = View.VISIBLE
+                    binding.tvNoData.visibility = View.GONE
+                }
+                is DeliveryUiState.Success -> {
+                    binding.progressBar.visibility = View.GONE
+                    val vendors = state.vendors
+                    if (vendors.isNotEmpty()) {
+                        binding.rvDeliveryDeals.visibility = View.VISIBLE
+                        binding.tvNoData.visibility = View.GONE
+                        dealsAdapter.updateData(vendors)
+                    } else {
+                        binding.rvDeliveryDeals.visibility = View.GONE
+                        binding.tvNoData.visibility = View.VISIBLE
+                        binding.tvNoData.text = when {
+                            isEcommerce -> "No E-Commerce vendors found"
+                            isDelivery -> "No Delivery vendors found"
+                            else -> "No vendors found"
+                        }
+                        dealsAdapter.updateData(emptyList())
+                    }
+                }
+                is DeliveryUiState.Error -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.rvDeliveryDeals.visibility = View.GONE
+                    binding.tvNoData.visibility = View.VISIBLE
+                    binding.tvNoData.text = state.message
+                    dealsAdapter.updateData(emptyList())
+                }
+                DeliveryUiState.Idle -> {}
+            }
+        }
     }
 
     private fun setupRecyclerView() {
@@ -126,39 +171,15 @@ class DeliveryFragment : Fragment() {
     }
 
     private fun loadVendors(searchQuery: String? = null) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            binding.progressBar.visibility = View.VISIBLE
-            binding.tvNoData.visibility = View.GONE
-
-            val query = if (searchQuery.isNullOrEmpty()) null else searchQuery
-
-            val response = redemptionRepository.listVendors(
-                cityId = selectedCityId,
-                delivery = if (isDelivery) true else null,
-                ecommerce = if (isEcommerce) true else null,
-                categoryId = selectedCategoryId,
-                search = query
-            )
-
-            val vendors = response?.vendorsList ?: emptyList()
-
-            binding.progressBar.visibility = View.GONE
-
-            if (vendors.isNotEmpty()) {
-                binding.rvDeliveryDeals.visibility = View.VISIBLE
-                binding.tvNoData.visibility = View.GONE
-                dealsAdapter.updateData(vendors)
-            } else {
-                binding.rvDeliveryDeals.visibility = View.GONE
-                binding.tvNoData.visibility = View.VISIBLE
-                binding.tvNoData.text = when {
-                    isEcommerce -> "No E-Commerce vendors found"
-                    isDelivery -> "No Delivery vendors found"
-                    else -> "No vendors found"
-                }
-                dealsAdapter.updateData(emptyList())
-            }
-        }
+        val cityId = selectedCityId ?: 1L
+        viewModel.loadVendors(
+            cityId = cityId,
+            searchQuery = searchQuery,
+            categoryId = selectedCategoryId,
+            inStore = null,
+            delivery = if (isDelivery) true else null,
+            ecommerce = if (isEcommerce) true else null
+        )
     }
 
     override fun onDestroyView() {

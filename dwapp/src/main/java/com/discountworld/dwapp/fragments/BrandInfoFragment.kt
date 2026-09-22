@@ -1,64 +1,39 @@
 package com.discountworld.dwapp.fragments
 
-import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Path
-import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.DrawableCompat
+import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.discountworld.discount.RedemptionBranch
+import com.discountworld.discount.RedemptionVendorDetail
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.adapters.BrandBranchesAdapter
 import com.discountworld.dwapp.databinding.FragmentBrandInfoBinding
-import com.discountworld.dwapp.databinding.ItemMapInfoWindowBinding
 import com.discountworld.dwapp.managers.SessionManager
-import com.discountworld.dwapp.repositories.RedemptionRepository
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptor
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
-import kotlinx.coroutines.launch
+import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.viewmodels.BrandInfoState
+import com.discountworld.dwapp.viewmodels.BrandInfoViewModel
 
-class BrandInfoFragment : Fragment(), OnMapReadyCallback {
+class BrandInfoFragment : Fragment() {
 
     private var _binding: FragmentBrandInfoBinding? = null
     private val binding get() = _binding!!
 
-    private val redemptionRepository = RedemptionRepository()
+    private val viewModel: BrandInfoViewModel by viewModels()
     private lateinit var sessionManager: SessionManager
-    private var googleMap: GoogleMap? = null
 
     private var branchesList: List<RedemptionBranch> = emptyList()
-    private val markerMap = mutableMapOf<Marker, RedemptionBranch>()
-
-    private var targetLatLng = LatLng(24.8138, 67.0673) // Default DHA Phase 7, Karachi
-    private var vendorTitle = "PizzaHut"
-    private var vendorLogoUrl: String? = null
+    private var vendorTitle: String = "PizzaHut"
+    private var vendorLogoUrl: String = ""
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
+        inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentBrandInfoBinding.inflate(inflater, container, false)
@@ -70,19 +45,15 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
 
         sessionManager = SessionManager(requireContext())
 
-        binding.cvBack.setOnClickListener {
-            findNavController().navigateUp()
-        }
-
-        val mapFragment = childFragmentManager.findFragmentById(R.id.mapInfoFragment) as? SupportMapFragment
-        mapFragment?.getMapAsync(this)
-
         val vendorId = arguments?.getLong("vendor_id", -1L) ?: -1L
         val cityIdArg = arguments?.getLong("city_id", -1L) ?: -1L
         val selectedCityId = if (cityIdArg != -1L) cityIdArg else sessionManager.getSelectedCityId()
 
+        observeViewModel()
+
         if (vendorId != -1L) {
-            loadVendorDetail(vendorId, selectedCityId)
+            val effectiveCityId = selectedCityId ?: 1L
+            viewModel.loadBrandInfo(vendorId, effectiveCityId)
         } else {
             setupFallbackData()
         }
@@ -90,331 +61,98 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
         setupClickListeners()
     }
 
-    private fun loadVendorDetail(vendorId: Long, cityId: Long?) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            val vendor = redemptionRepository.getVendorDetail(vendorId, cityId)
-            if (vendor != null) {
-                vendorTitle = vendor.title.ifEmpty { vendor.companyName.ifEmpty { "PizzaHut" } }
-                binding.tvHeaderTitle.text = vendorTitle
-
-                if (vendor.logoUrl.isNotEmpty()) {
-                    vendorLogoUrl = vendor.logoUrl
-                    Glide.with(requireContext())
-                        .load(vendor.logoUrl)
-                        .placeholder(R.drawable.ic_placeholder)
-                        .error(R.drawable.ic_placeholder)
-                        .into(binding.ivBrandLogo)
+    private fun observeViewModel() {
+        viewModel.brandInfoState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is BrandInfoState.Loading -> { }
+                is BrandInfoState.Success -> {
+                    bindVendorData(state.vendorDetail)
                 }
-
-                if (vendor.description.isNotEmpty()) {
-                    binding.tvDescription.text = vendor.description
+                is BrandInfoState.Error -> {
+                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
+                    setupFallbackData()
                 }
-
-                if (vendor.termsAndConditions.isNotEmpty()) {
-                    binding.tvTermsHeader.visibility = View.VISIBLE
-                    binding.tvTermsList.visibility = View.VISIBLE
-                    binding.tvTermsList.text = vendor.termsAndConditions
-                } else {
-                    binding.tvTermsHeader.visibility = View.GONE
-                    binding.tvTermsList.visibility = View.GONE
-                }
-
-                branchesList = vendor.branchesList
-                if (branchesList.isNotEmpty()) {
-                    setupBranchesRecyclerView(branchesList)
-                    val primaryBranch = branchesList.first()
-                    if (primaryBranch.latitude != 0.0 && primaryBranch.longitude != 0.0) {
-                        targetLatLng = LatLng(primaryBranch.latitude, primaryBranch.longitude)
-                    }
-                    if (primaryBranch.phoneNumber.isNotEmpty()) {
-                        binding.tvPhoneNumber.text = primaryBranch.phoneNumber
-                    }
-                } else if (vendor.headOfficeNumber.isNotEmpty()) {
-                    binding.tvPhoneNumber.text = vendor.headOfficeNumber
-                    setupFallbackSingleAddress()
-                } else {
-                    setupFallbackSingleAddress()
-                }
-
-                updateMapLocation()
-
-                val websiteLink = vendor.socialLinksList.firstOrNull {
-                    it.url.isNotBlank() && (it.platform.equals("website", ignoreCase = true) || it.url.startsWith("http") || it.url.startsWith("www"))
-                }
-                if (websiteLink != null) {
-                    binding.tvWebsiteUrl.text = websiteLink.url
-                    binding.tvWebsiteUrl.visibility = View.VISIBLE
-                } else {
-                    binding.tvWebsiteUrl.visibility = View.GONE
-                }
-            } else {
-                setupFallbackData()
+                BrandInfoState.Idle -> { }
             }
         }
     }
 
-    private fun setupBranchesRecyclerView(branches: List<RedemptionBranch>) {
-        binding.rvBranches.visibility = View.VISIBLE
-        binding.cvSingleAddressCard.visibility = View.GONE
+    private fun bindVendorData(vendor: RedemptionVendorDetail) {
+        vendorTitle = vendor.title.ifEmpty { vendor.companyName.ifEmpty { "PizzaHut" } }
+        binding.tvHeaderTitle.text = vendorTitle
 
-        binding.rvBranches.layoutManager = LinearLayoutManager(requireContext())
-        val adapter = BrandBranchesAdapter(branches) { branch ->
-            val lat = if (branch.latitude != 0.0) branch.latitude else targetLatLng.latitude
-            val lng = if (branch.longitude != 0.0) branch.longitude else targetLatLng.longitude
-            val pos = LatLng(lat, lng)
-
-            googleMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 16f))
-
-            markerMap.entries.firstOrNull {
-                it.value.id == branch.id || (branch.name.isNotEmpty() && it.value.name == branch.name)
-            }?.key?.showInfoWindow()
-        }
-        binding.rvBranches.adapter = adapter
-    }
-
-    private fun setupFallbackSingleAddress() {
-        binding.rvBranches.visibility = View.GONE
-        binding.cvSingleAddressCard.visibility = View.VISIBLE
-        binding.tvSingleBranchName.text = "$vendorTitle - DHA-7"
-        binding.tvAddressText.text = "Khayaban-e-Ittehad Road, D.H.A. Phase 7, Karachi, 75500, Pakistan"
-        binding.tvSinglePhone.text = "021-111-222-333"
-
-        binding.btnSingleCall.setOnClickListener {
-            val phone = binding.tvSinglePhone.text.toString().trim()
-            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
-            startActivity(intent)
+        if (vendor.logoUrl.isNotEmpty()) {
+            vendorLogoUrl = vendor.logoUrl
+            Glide.with(requireContext())
+                .load(vendor.logoUrl.fixImageUrl())
+                .placeholder(R.drawable.ic_placeholder)
+                .error(R.drawable.ic_placeholder)
+                .into(binding.ivBrandLogo)
         }
 
-        binding.btnSingleDirections.setOnClickListener {
-            val lat = targetLatLng.latitude
-            val lng = targetLatLng.longitude
-            val gmmIntentUri = Uri.parse("geo:$lat,$lng?q=$lat,$lng(${Uri.encode(vendorTitle)})")
-            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-            mapIntent.setPackage("com.google.android.apps.maps")
-            if (mapIntent.resolveActivity(requireContext().packageManager) != null) {
-                startActivity(mapIntent)
-            } else {
-                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/maps/search/?api=1&query=$lat,$lng"))
-                startActivity(browserIntent)
-            }
+        if (vendor.description.isNotEmpty()) {
+            binding.tvDescription.text = vendor.description
+        }
+
+        if (vendor.termsAndConditions.isNotEmpty()) {
+            binding.tvTermsHeader.visibility = View.VISIBLE
+            binding.tvTermsList.visibility = View.VISIBLE
+            binding.tvTermsList.text = vendor.termsAndConditions
+        } else {
+            binding.tvTermsHeader.visibility = View.GONE
+            binding.tvTermsList.visibility = View.GONE
+        }
+
+        if (vendor.branchesList.isNotEmpty()) {
+            branchesList = vendor.branchesList
+            setupBranchesList(branchesList)
+        } else {
+            setupFallbackBranches()
         }
     }
 
     private fun setupFallbackData() {
         binding.tvHeaderTitle.text = "PizzaHut"
-        binding.tvDescription.text = "pioneer of pizza in pakistan"
-        binding.tvTermsHeader.visibility = View.GONE
-        binding.tvTermsList.visibility = View.GONE
+        binding.tvDescription.text = "Pizza Hut is an American multinational restaurant chain and international franchise founded in 1958 in Wichita, Kansas by Dan and Frank Carney."
+        setupFallbackBranches()
+    }
 
-        binding.tvPhoneNumber.text = "021-111-222-333"
-        binding.tvWebsiteUrl.text = "https://www.pizzahut.com.pk/"
-        binding.tvWebsiteUrl.visibility = View.VISIBLE
+    private fun setupFallbackBranches() {
+        val dummyBranches = listOf(
+            RedemptionBranch.newBuilder()
+                .setId(1)
+                .setName("Main Branch - Clifton")
+                .setAddress("Clifton Block 2, Karachi")
+                .setPhoneNumber("021-111241111")
+                .setLatitude(24.8138)
+                .setLongitude(67.0300)
+                .build(),
+            RedemptionBranch.newBuilder()
+                .setId(2)
+                .setName("Gulshan Branch")
+                .setAddress("Block 13-C, Gulshan-e-Iqbal, Karachi")
+                .setPhoneNumber("021-111241111")
+                .setLatitude(24.9180)
+                .setLongitude(67.0971)
+                .build()
+        )
+        branchesList = dummyBranches
+        setupBranchesList(dummyBranches)
+    }
 
-        setupFallbackSingleAddress()
-        updateMapLocation()
+    private fun setupBranchesList(branches: List<RedemptionBranch>) {
+        val adapter = BrandBranchesAdapter(
+            branches = branches,
+            onBranchClick = { _ -> }
+        )
+        binding.rvBranches.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvBranches.adapter = adapter
     }
 
     private fun setupClickListeners() {
-        binding.tvPhoneNumber.setOnClickListener {
-            val phone = binding.tvPhoneNumber.text.toString().trim()
-            if (phone.isNotEmpty()) {
-                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
-                startActivity(intent)
-            }
+        binding.ivBack.setOnClickListener {
+            findNavController().navigateUp()
         }
-
-        binding.tvWebsiteUrl.setOnClickListener {
-            var url = binding.tvWebsiteUrl.text.toString().trim()
-            if (url.isNotEmpty()) {
-                if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                    url = "https://$url"
-                }
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                startActivity(intent)
-            }
-        }
-    }
-
-    override fun onMapReady(map: GoogleMap) {
-        googleMap = map
-        googleMap?.uiSettings?.isZoomControlsEnabled = false
-        googleMap?.uiSettings?.isScrollGesturesEnabled = true
-
-        setupCustomInfoWindow(map)
-        updateMapLocation()
-    }
-
-    private fun setupCustomInfoWindow(map: GoogleMap) {
-        map.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter {
-            override fun getInfoWindow(marker: Marker): View? {
-                val ctx = context ?: return null
-                val infoWindowBinding = ItemMapInfoWindowBinding.inflate(LayoutInflater.from(ctx))
-
-                val branch = markerMap[marker]
-                val branchNameText = branch?.name.orEmpty()
-                val fullTitle = if (branchNameText.isNotEmpty()) "$vendorTitle $branchNameText" else vendorTitle
-
-                infoWindowBinding.tvVendorTitle.text = fullTitle
-                infoWindowBinding.tvAddress.text = branch?.address?.ifEmpty { marker.snippet } ?: marker.snippet.orEmpty()
-
-                return infoWindowBinding.root
-            }
-
-            override fun getInfoContents(marker: Marker): View? = null
-        })
-    }
-
-    private fun updateMapLocation() {
-        val map = googleMap ?: return
-        val ctx = context ?: return
-
-        map.clear()
-        markerMap.clear()
-
-        if (branchesList.isEmpty()) {
-            val markerOptions = MarkerOptions()
-                .position(targetLatLng)
-                .title("$vendorTitle - DHA-7")
-                .snippet("Khayaban-e-Ittehad Road, D.H.A. Phase 7, Karachi")
-
-            getCustomLocationMarkerIcon()?.let {
-                markerOptions.icon(it)
-            }
-
-            map.addMarker(markerOptions)
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(targetLatLng, 15f))
-            return
-        }
-
-        val builder = LatLngBounds.Builder()
-        var validPinCount = 0
-
-        for (branch in branchesList) {
-            val lat = if (branch.latitude != 0.0) branch.latitude else targetLatLng.latitude
-            val lng = if (branch.longitude != 0.0) branch.longitude else targetLatLng.longitude
-            val pos = LatLng(lat, lng)
-
-            val title = if (branch.name.isNotEmpty()) "$vendorTitle - ${branch.name}" else vendorTitle
-            val markerOptions = MarkerOptions()
-                .position(pos)
-                .title(title)
-                .snippet(branch.address)
-
-            getCustomLocationMarkerIcon()?.let {
-                markerOptions.icon(it)
-            }
-
-            val marker = map.addMarker(markerOptions)
-            if (marker != null) {
-                markerMap[marker] = branch
-            }
-
-            builder.include(pos)
-            validPinCount++
-        }
-
-        if (validPinCount == 1) {
-            val singleBranch = branchesList.first()
-            val lat = if (singleBranch.latitude != 0.0) singleBranch.latitude else targetLatLng.latitude
-            val lng = if (singleBranch.longitude != 0.0) singleBranch.longitude else targetLatLng.longitude
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 15f))
-        } else if (validPinCount > 1) {
-            try {
-                val bounds = builder.build()
-                val padding = (60 * ctx.resources.displayMetrics.density).toInt()
-                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding))
-            } catch (_: Exception) {
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(targetLatLng, 12f))
-            }
-        }
-    }
-
-    private fun getCustomLocationMarkerIcon(): BitmapDescriptor? {
-        val ctx = context ?: return null
-        val density = ctx.resources.displayMetrics.density
-        val width = (46 * density).toInt()
-        val height = (56 * density).toInt()
-        val pinColor = ContextCompat.getColor(ctx, R.color.purple_primary)
-
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-
-        val centerX = width / 2f
-        val radius = width / 2f - (2 * density)
-        val centerY = radius + (2 * density)
-
-        // Teardrop Pin Path
-        val path = Path().apply {
-            val angleRad = Math.toRadians(40.0)
-            val startX = (centerX + radius * Math.cos(angleRad)).toFloat()
-            val startY = (centerY + radius * Math.sin(angleRad)).toFloat()
-            val endX = (centerX - radius * Math.cos(angleRad)).toFloat()
-
-            moveTo(endX, startY)
-            lineTo(centerX, height.toFloat())
-            lineTo(startX, startY)
-            arcTo(centerX - radius, centerY - radius, centerX + radius, centerY + radius, 40f, -260f, false)
-            close()
-        }
-
-        canvas.drawPath(path, Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = pinColor
-            style = Paint.Style.FILL
-        })
-
-        canvas.drawPath(path, Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            style = Paint.Style.STROKE
-            strokeWidth = 2 * density
-        })
-
-        // Inner White Circle
-        val whiteCircleRadius = radius * 0.72f
-        canvas.drawCircle(centerX, centerY, whiteCircleRadius, Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            style = Paint.Style.FILL
-        })
-
-        // Allure Beauty Logo
-        val innerCircleRadius = whiteCircleRadius * 0.88f
-        val allureLogoDrawable = ContextCompat.getDrawable(ctx, R.drawable.ic_allurebeauty)
-        if (allureLogoDrawable != null) {
-            val size = (innerCircleRadius * 2).toInt()
-            val logoBitmap = drawableToBitmap(allureLogoDrawable, size, size)
-            drawCircularLogoOnCanvas(canvas, logoBitmap, centerX, centerY, innerCircleRadius)
-        }
-
-        return BitmapDescriptorFactory.fromBitmap(bitmap)
-    }
-
-    private fun drawCircularLogoOnCanvas(
-        canvas: Canvas,
-        logoBitmap: Bitmap,
-        centerX: Float,
-        centerY: Float,
-        targetRadius: Float
-    ) {
-        val diameter = (targetRadius * 2).toInt()
-        if (diameter <= 0) return
-
-        val scaled = Bitmap.createScaledBitmap(logoBitmap, diameter, diameter, true)
-        val circularBitmap = Bitmap.createBitmap(diameter, diameter, Bitmap.Config.ARGB_8888)
-        val circleCanvas = Canvas(circularBitmap)
-        val clipPath = Path().apply {
-            addCircle(diameter / 2f, diameter / 2f, targetRadius, Path.Direction.CW)
-        }
-        circleCanvas.clipPath(clipPath)
-        circleCanvas.drawBitmap(scaled, 0f, 0f, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
-
-        canvas.drawBitmap(circularBitmap, centerX - targetRadius, centerY - targetRadius, null)
-    }
-
-    private fun drawableToBitmap(drawable: Drawable, width: Int, height: Int): Bitmap {
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-        return bitmap
     }
 
     override fun onDestroyView() {

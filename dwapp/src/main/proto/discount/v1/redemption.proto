@@ -24,6 +24,7 @@ message Customer {
   google.protobuf.Timestamp updated_at = 9;
   int32 reward_points = 10;
   string client_name = 11;
+  optional string customer_tier = 12;
 }
 
 message CustomerCnicAuthRequest {
@@ -34,6 +35,20 @@ message CustomerCnicAuthRequest {
 }
 
 message CustomerCnicAuthResponse {
+  string access_token = 1;
+  Customer customer = 2;
+  bool is_new_customer = 3;
+}
+
+message CustomerPhoneAuthRequest {
+  string phone_number = 1;
+  optional string customer_tier = 2;
+  optional string full_name = 3;
+  optional string email = 4;
+  optional string cnic = 5;
+}
+
+message CustomerPhoneAuthResponse {
   string access_token = 1;
   Customer customer = 2;
   bool is_new_customer = 3;
@@ -172,6 +187,7 @@ message RedemptionVendorDetail {
   repeated string gallery_images = 15;
   repeated RedemptionSocialLink social_links = 16;
   string short_description = 17;
+  string banner_url = 18;
 }
 
 message GetRedemptionVendorDetailRequest {
@@ -289,6 +305,7 @@ message RedemptionDealSummary {
   int32 user_used_count = 23;
   int32 user_remaining_count = 24;
   string lock_reason = 25;
+  optional string customer_tier = 26;
 }
 
 message ListVendorDealsRequest {
@@ -348,6 +365,8 @@ message RedemptionHistoryItem {
   int32 points_earned = 20;
   string vendor_type = 21;
   google.protobuf.Timestamp redeemed_at = 22;
+  bool vendor_verified = 23;
+  optional google.protobuf.Timestamp vendor_verified_at = 24;
 }
 
 message ListRedemptionsRequest {
@@ -384,6 +403,8 @@ message CustomerRedemptionItem {
   google.protobuf.Timestamp redeemed_at = 13;
   string category_name = 14;
   string city_name = 15;
+  bool vendor_verified = 16;
+  optional google.protobuf.Timestamp vendor_verified_at = 17;
 }
 
 message ListCustomerRedemptionsRequest {
@@ -405,6 +426,7 @@ message ListCustomerRedemptionsResponse {
 service RedemptionService {
   // Customer Auth & Profile
   rpc AuthenticateByCnic(CustomerCnicAuthRequest) returns (CustomerCnicAuthResponse);
+  rpc AuthenticateByPhone(CustomerPhoneAuthRequest) returns (CustomerPhoneAuthResponse);
   rpc GetCustomerProfile(GetCustomerProfileRequest) returns (Customer);
   rpc UpdateCustomerProfile(UpdateCustomerProfileRequest) returns (Customer);
   rpc ListCustomers(ListCustomersRequest) returns (ListCustomersResponse);

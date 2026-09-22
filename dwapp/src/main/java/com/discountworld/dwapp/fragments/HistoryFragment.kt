@@ -3,18 +3,19 @@ package com.discountworld.dwapp.fragments
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.discountworld.dwapp.adapters.HistoryAdapter
 import com.discountworld.dwapp.databinding.FragmentHistoryBinding
 import com.discountworld.dwapp.managers.SessionManager
-import com.discountworld.dwapp.repositories.RedemptionRepository
+import com.discountworld.dwapp.viewmodels.HistoryUiState
+import com.discountworld.dwapp.viewmodels.HistoryViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -24,7 +25,7 @@ class HistoryFragment : Fragment() {
     private var _binding: FragmentHistoryBinding? = null
     private val binding get() = _binding!!
 
-    private val redemptionRepository = RedemptionRepository()
+    private val viewModel: HistoryViewModel by viewModels()
     private lateinit var sessionManager: SessionManager
     private val historyAdapter = HistoryAdapter()
     private var searchJob: Job? = null
@@ -45,7 +46,40 @@ class HistoryFragment : Fragment() {
 
         setupRecyclerView()
         setupSearch()
-        loadHistory()
+        observeViewModel()
+        viewModel.loadHistory()
+    }
+
+    private fun observeViewModel() {
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is HistoryUiState.Loading -> {
+                    binding.progressBar.visibility = View.VISIBLE
+                    binding.tvNoData.visibility = View.GONE
+                }
+                is HistoryUiState.Success -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.tvCount.text = state.totalCount.toString()
+
+                    if (state.history.isNotEmpty()) {
+                        binding.rvHistory.visibility = View.VISIBLE
+                        binding.tvNoData.visibility = View.GONE
+                        historyAdapter.updateData(state.history)
+                    } else {
+                        binding.rvHistory.visibility = View.GONE
+                        binding.tvNoData.visibility = View.VISIBLE
+                        historyAdapter.updateData(emptyList())
+                    }
+                }
+                is HistoryUiState.Error -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.rvHistory.visibility = View.GONE
+                    binding.tvNoData.visibility = View.VISIBLE
+                    historyAdapter.updateData(emptyList())
+                }
+                HistoryUiState.Idle -> {}
+            }
+        }
     }
 
     private fun setupRecyclerView() {
@@ -56,13 +90,13 @@ class HistoryFragment : Fragment() {
     private fun setupSearch() {
         binding.ivSearch.setOnClickListener {
             val query = binding.etSearch.text?.toString()?.trim()
-            loadHistory(query)
+            viewModel.loadHistory(query)
         }
 
         binding.etSearch.setOnEditorActionListener { _, actionId, _ ->
             if ((actionId == EditorInfo.IME_ACTION_SEARCH) || (actionId == EditorInfo.IME_ACTION_DONE)) {
                 val query = binding.etSearch.text?.toString()?.trim()
-                loadHistory(query)
+                viewModel.loadHistory(query)
                 true
             } else {
                 false
@@ -78,47 +112,10 @@ class HistoryFragment : Fragment() {
                 searchJob = viewLifecycleOwner.lifecycleScope.launch {
                     delay(400)
                     val query = s?.toString()?.trim()
-                    loadHistory(query)
+                    viewModel.loadHistory(query)
                 }
             }
         })
-    }
-
-    private fun loadHistory(searchQuery: String? = null) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            binding.progressBar.visibility = View.VISIBLE
-            binding.tvNoData.visibility = View.GONE
-
-            val query = if (searchQuery.isNullOrEmpty()) null else searchQuery
-            Log.d("HistoryFragment", "Loading history with query: $query, token: ${sessionManager.getAuthToken()}")
-
-            val response = redemptionRepository.listCustomerRedemptions(search = query)
-
-            binding.progressBar.visibility = View.GONE
-
-            if (response == null) {
-                Log.e("HistoryFragment", "Response is null!")
-            } else {
-                Log.d("HistoryFragment", "Full response object: ${response.toString()}")
-            }
-
-            val items = response?.itemsList ?: emptyList()
-            val totalCount = response?.totalCount ?: items.size.toLong()
-
-            Log.d("HistoryFragment", "History loaded: ${items.size} items, totalCount: $totalCount")
-
-            binding.tvCount.text = totalCount.toString()
-
-            if (items.isNotEmpty()) {
-                binding.rvHistory.visibility = View.VISIBLE
-                binding.tvNoData.visibility = View.GONE
-                historyAdapter.updateData(items)
-            } else {
-                binding.rvHistory.visibility = View.GONE
-                binding.tvNoData.visibility = View.VISIBLE
-                historyAdapter.updateData(emptyList())
-            }
-        }
     }
 
     override fun onDestroyView() {

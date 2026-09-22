@@ -2,15 +2,18 @@ package com.discountworld.dwapp.activities
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ActivityMainBinding
+import com.discountworld.dwapp.viewmodels.MainViewModel
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,26 +24,13 @@ class MainActivity : AppCompatActivity() {
         val navController = navHostFragment.navController
         binding.bottomNavigation.setupWithNavController(navController)
 
+        viewModel.isBottomNavVisible.observe(this) { isVisible ->
+            binding.bottomNavigation.visibility = if (isVisible) View.VISIBLE else View.GONE
+        }
+
         navController.addOnDestinationChangedListener { _, destination, arguments ->
-            when (destination.id) {
-                R.id.nav_home, R.id.nav_locations, R.id.nav_promos, R.id.nav_history, R.id.nav_profile -> {
-                    binding.bottomNavigation.visibility = View.VISIBLE
-                }
-                R.id.nav_delivery -> {
-                    val hideBottomNav = arguments?.getBoolean("hideBottomNav", false) ?: false
-                    if (hideBottomNav) {
-                        binding.bottomNavigation.visibility = View.GONE
-                    } else {
-                        binding.bottomNavigation.visibility = View.VISIBLE
-                    }
-                }
-                R.id.nav_brand_detail -> {
-                    binding.bottomNavigation.visibility = View.GONE
-                }
-                else -> {
-                    binding.bottomNavigation.visibility = View.GONE
-                }
-            }
+            val hideBottomNav = arguments?.getBoolean("hideBottomNav", false) ?: false
+            viewModel.updateBottomNavVisibility(destination.id, hideBottomNav)
         }
     }
 }

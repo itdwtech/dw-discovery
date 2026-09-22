@@ -9,6 +9,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="@dimen/_20sdp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -20,21 +21,21 @@
                 android:id="@+id/ivBanner"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_200sdp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_almasjewellers"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_placeholder"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/ivBack"
-                android:layout_width="@dimen/_32sdp"
-                android:layout_height="@dimen/_32sdp"
+                android:layout_width="@dimen/_28sdp"
+                android:layout_height="@dimen/_28sdp"
                 android:layout_margin="@dimen/_16sdp"
-                android:background="@drawable/white_success_corner"
-                android:padding="@dimen/_8sdp"
+                android:background="@drawable/bg_circle_semi_transparent"
+                android:padding="@dimen/_6sdp"
                 android:src="@drawable/ic_back"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/black" />
+                app:tint="@color/white" />
 
             <TextView
                 android:id="@+id/tvBrandName"

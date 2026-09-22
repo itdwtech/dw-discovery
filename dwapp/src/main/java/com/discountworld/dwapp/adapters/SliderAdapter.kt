@@ -7,6 +7,7 @@ import com.bumptech.glide.Glide
 import com.discountworld.discount.RedemptionBannerItem
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemSliderBinding
+import com.discountworld.dwapp.utils.fixImageUrl
 
 class SliderAdapter(
     private val bannerItems: List<RedemptionBannerItem> = emptyList(),
@@ -26,12 +27,12 @@ class SliderAdapter(
             val item = bannerItems[position]
             if (item.imageUrl.isNotEmpty()) {
                 Glide.with(holder.itemView.context)
-                    .load(item.imageUrl)
+                    .load(item.imageUrl.fixImageUrl())
                     .placeholder(R.drawable.ic_placeholder)
                     .error(R.drawable.ic_placeholder)
                     .into(holder.binding.ivSlider)
             } else {
-                holder.binding.ivSlider.setImageResource(R.drawable.ic_almasjewellers)
+                holder.binding.ivSlider.setImageResource(R.drawable.ic_placeholder)
             }
             holder.itemView.setOnClickListener { onBannerClick(item) }
         } else if (fallbackImages.isNotEmpty()) {

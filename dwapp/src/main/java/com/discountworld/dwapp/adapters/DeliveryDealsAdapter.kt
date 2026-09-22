@@ -9,6 +9,7 @@ import com.bumptech.glide.Glide
 import com.discountworld.discount.RedemptionVendorSummary
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemDeliveryDealBinding
+import com.discountworld.dwapp.utils.fixImageUrl
 
 class DeliveryDealsAdapter(
     private var list: List<RedemptionVendorSummary> = emptyList(),
@@ -41,13 +42,13 @@ class DeliveryDealsAdapter(
         holder.binding.tvDealCategory.text = dealType
 
         Glide.with(holder.itemView.context)
-            .load(item.bannerUrl)
+            .load(item.bannerUrl.fixImageUrl())
             .placeholder(R.drawable.ic_placeholder)
             .error(R.drawable.ic_placeholder)
             .into(holder.binding.ivDealBanner)
 
         Glide.with(holder.itemView.context)
-            .load(item.logoUrl)
+            .load(item.logoUrl.fixImageUrl())
             .placeholder(R.drawable.ic_placeholder)
             .error(R.drawable.ic_placeholder)
             .into(holder.binding.ivDealLogo)

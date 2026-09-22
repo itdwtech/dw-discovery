@@ -27,7 +27,11 @@ import com.discountworld.dwapp.databinding.DialogOfferRedemptionBinding
 import com.discountworld.dwapp.databinding.FragmentBrandDetailBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.models.Offer
+import androidx.fragment.app.viewModels
 import com.discountworld.dwapp.repositories.RedemptionRepository
+import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.viewmodels.BrandDetailState
+import com.discountworld.dwapp.viewmodels.BrandDetailViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
@@ -36,6 +40,7 @@ class BrandDetailFragment : Fragment() {
     private var _binding: FragmentBrandDetailBinding? = null
     private val binding get() = _binding!!
 
+    private val viewModel: BrandDetailViewModel by viewModels()
     private val redemptionRepository = RedemptionRepository()
 
     private lateinit var sessionManager: SessionManager
@@ -78,11 +83,11 @@ class BrandDetailFragment : Fragment() {
                 sessionManager.getSelectedCityId()
             }
 
+        observeViewModel()
+
         if (vendorId != -1L) {
-            loadVendorDetail(
-                vendorId = vendorId,
-                cityId = selectedCityId
-            )
+            val effectiveCityId = selectedCityId ?: 1L
+            viewModel.loadBrandDetail(vendorId, effectiveCityId)
         } else {
             setupOffersRecyclerView(emptyList())
         }
@@ -115,106 +120,45 @@ class BrandDetailFragment : Fragment() {
         }
     }
 
-    private fun loadVendorDetail(
-        vendorId: Long,
-        cityId: Long?
-    ) {
+    private fun observeViewModel() {
+        viewModel.detailState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is BrandDetailState.Loading -> { }
+                is BrandDetailState.Success -> {
+                    val vendorDetail = state.vendorDetail
+                    currentVendorDetail = vendorDetail
+                    vendorDetail?.let {
+                        binding.tvBrandName.text = it.title.ifEmpty { it.companyName }
+                        vendorLogoUrl = it.logoUrl
 
-        viewLifecycleOwner.lifecycleScope.launch {
-
-            try {
-
-                val vendorDetailDeferred =
-                    async {
-                        redemptionRepository.getVendorDetail(
-                            vendorId,
-                            cityId
-                        )
-                    }
-
-                val dealsDeferred =
-                    async {
-                        redemptionRepository.listVendorDeals(
-                            vendorId
-                        )
-                    }
-
-                val vendorDetail =
-                    vendorDetailDeferred.await()
-
-                currentVendorDetail =
-                    vendorDetail
-
-                vendorDetail?.let {
-
-                    binding.tvBrandName.text =
-                        it.title.ifEmpty {
-                            it.companyName
+                        if (it.categoriesList.isNotEmpty()) {
+                            binding.tvCategory.text = it.categoriesList.joinToString(", ") { cat -> cat.name }
                         }
 
-                    vendorLogoUrl =
-                        it.logoUrl
-
-                    if (it.categoriesList.isNotEmpty()) {
-
-                        binding.tvCategory.text =
-                            it.categoriesList.joinToString(", ") { cat ->
-                                cat.name
-                            }
+                        if (it.bannerUrl.isNotEmpty()) {
+                            Glide.with(requireContext())
+                                .load(it.bannerUrl.fixImageUrl())
+                                .placeholder(R.drawable.ic_placeholder)
+                                .error(R.drawable.ic_placeholder)
+                                .into(binding.ivBanner)
+                        } else if (it.galleryImagesList.isNotEmpty()) {
+                            Glide.with(requireContext())
+                                .load(it.galleryImagesList.first().fixImageUrl())
+                                .placeholder(R.drawable.ic_placeholder)
+                                .error(R.drawable.ic_placeholder)
+                                .into(binding.ivBanner)
+                        } else {
+                            binding.ivBanner.setImageResource(R.drawable.ic_placeholder)
+                        }
                     }
 
-                    if (it.galleryImagesList.isNotEmpty()) {
-
-                        Glide.with(requireContext())
-                            .load(
-                                it.galleryImagesList.first()
-                            )
-                            .placeholder(
-                                R.drawable.ic_placeholder
-                            )
-                            .error(
-                                R.drawable.ic_placeholder
-                            )
-                            .into(
-                                binding.ivBanner
-                            )
-
-                    } else if (it.logoUrl.isNotEmpty()) {
-
-                        Glide.with(requireContext())
-                            .load(it.logoUrl)
-                            .placeholder(
-                                R.drawable.ic_placeholder
-                            )
-                            .error(
-                                R.drawable.ic_placeholder
-                            )
-                            .into(
-                                binding.ivBanner
-                            )
-                    }
+                    setupOffersRecyclerView(state.deals)
                 }
-
-                val deals =
-                    dealsDeferred.await()
-                        ?: emptyList()
-
-                setupOffersRecyclerView(
-                    deals
-                )
-
-            } catch (e: Exception) {
-
-                Toast.makeText(
-                    requireContext(),
-                    e.message
-                        ?: "Failed to load vendor details",
-                    Toast.LENGTH_SHORT
-                ).show()
-
-                setupOffersRecyclerView(
-                    emptyList()
-                )
+                is BrandDetailState.Error -> {
+                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
+                    setupOffersRecyclerView(emptyList())
+                }
+                BrandDetailState.Idle -> { }
             }
         }
     }
@@ -364,7 +308,7 @@ class BrandDetailFragment : Fragment() {
         if (!vendorLogoUrl.isNullOrEmpty()) {
 
             Glide.with(ctx)
-                .load(vendorLogoUrl)
+                .load(vendorLogoUrl.fixImageUrl())
                 .placeholder(
                     R.drawable.ic_placeholder
                 )
@@ -575,7 +519,7 @@ class BrandDetailFragment : Fragment() {
         if (!vendorLogoUrl.isNullOrEmpty()) {
 
             Glide.with(ctx)
-                .load(vendorLogoUrl)
+                .load(vendorLogoUrl.fixImageUrl())
                 .placeholder(
                     R.drawable.ic_placeholder
                 )
@@ -672,6 +616,8 @@ class BrandDetailFragment : Fragment() {
                                 putString("vendorName", vendorName)
                                 putString("vendorPhone", currentVendorDetail?.headOfficeNumber ?: "")
                                 putString("vendorWebsite", websiteLink)
+                                putString("customMessage1", response.customMessage1)
+                                putString("customMessage2", response.customMessage2)
                                 putBoolean("isStoreRedemption", false)
                             }
 

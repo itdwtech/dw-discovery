@@ -5,13 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import androidx.fragment.app.viewModels
 import com.discountworld.dwapp.databinding.FragmentSignupBinding
+import com.discountworld.dwapp.viewmodels.SignupViewModel
 
 class SignupFragment : Fragment() {
 
     private var _binding: FragmentSignupBinding? = null
     private val binding get() = _binding!!
+
+    private val viewModel: SignupViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -23,14 +26,6 @@ class SignupFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-//        binding.ivBack.setOnClickListener {
-//            findNavController().navigateUp()
-//        }
-//
-//        binding.tvSignIn.setOnClickListener {
-//            findNavController().navigateUp()
-//        }
     }
 
     override fun onDestroyView() {

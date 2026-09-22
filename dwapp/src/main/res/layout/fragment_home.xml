@@ -62,14 +62,15 @@
                 <LinearLayout
                     android:id="@+id/lv_main"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_145sdp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
+                    android:paddingBottom="@dimen/_20sdp"
                     android:background="@color/purple_primary"
                     android:orientation="vertical">
 
                     <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/_75sdp"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/_8sdp">
 
                         <com.facebook.shimmer.ShimmerFrameLayout
@@ -97,7 +98,7 @@
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/storyRV"
                             android:layout_width="match_parent"
-                            android:layout_height="@dimen/_75sdp"
+                            android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/_5sdp"
                             android:background="@android:color/transparent"
                             android:nestedScrollingEnabled="false" />
@@ -108,7 +109,8 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_8sdp"
+                        android:layout_marginTop="@dimen/_18sdp"
+                        android:layout_marginBottom="@dimen/_10sdp"
                         android:orientation="horizontal">
 
                         <RelativeLayout
@@ -164,7 +166,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_139sdp"
+                    android:layout_marginTop="-20dp"
+                    android:layout_below="@+id/lv_main"
                     android:background="@drawable/white_success_corner"
                     android:orientation="vertical">
 

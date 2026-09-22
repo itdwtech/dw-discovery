@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide
 import com.discountworld.discount.CustomerRedemptionItem
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemHistoryBinding
+import com.discountworld.dwapp.utils.fixImageUrl
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -39,7 +40,7 @@ class HistoryAdapter(private var list: List<CustomerRedemptionItem> = emptyList(
             holder.binding.tvDateTime.text = ""
         }
 
-        val imageUrl = item.vendorLogoUrl.ifEmpty { null }?.replace("localhost", "192.168.0.101")
+        val imageUrl = item.vendorLogoUrl.ifEmpty { null }?.fixImageUrl()
 
         Glide.with(holder.itemView.context)
             .load(imageUrl)

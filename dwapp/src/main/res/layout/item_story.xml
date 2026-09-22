@@ -11,11 +11,13 @@
     android:paddingTop="4dp"
     android:paddingBottom="4dp">
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="52dp"
-        android:layout_height="52dp"
-        app:cardCornerRadius="26dp"
-        app:cardElevation="2dp"
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        app:cardCornerRadius="35dp"
+        app:cardElevation="0dp"
+        app:strokeColor="@color/white"
+        app:strokeWidth="2dp"
         app:cardPreventCornerOverlap="false">
 
         <ImageView
@@ -25,17 +27,17 @@
             android:contentDescription="Story Logo"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_placeholder" />
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
     <TextView
         android:id="@+id/tvStoryTitle"
-        android:layout_width="60dp"
+        android:layout_width="74dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="1"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         android:textSize="11sp"
         tools:text="14th Street" />
 
