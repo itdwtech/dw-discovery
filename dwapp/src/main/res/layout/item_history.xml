@@ -10,7 +10,6 @@
         android:id="@+id/logoCard"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        app:cardBackgroundColor="@color/black"
         app:cardCornerRadius="4dp"
         app:cardElevation="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -21,7 +20,6 @@
             android:id="@+id/ivLogo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="8dp"
             android:scaleType="centerInside"
             android:src="@drawable/ic_placeholder" />
     </androidx.cardview.widget.CardView>
@@ -71,8 +69,7 @@
         android:src="@drawable/ic_copy"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/gray_text" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <View
         android:layout_width="0dp"
