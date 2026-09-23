@@ -30,6 +30,7 @@ import com.discountworld.dwapp.models.Offer
 import androidx.fragment.app.viewModels
 import com.discountworld.dwapp.repositories.RedemptionRepository
 import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.makeDraggable
 import com.discountworld.dwapp.viewmodels.BrandDetailState
 import com.discountworld.dwapp.viewmodels.BrandDetailViewModel
 import kotlinx.coroutines.async
@@ -94,6 +95,11 @@ class BrandDetailFragment : Fragment() {
 
         binding.ivBack.setOnClickListener {
             findNavController().navigateUp()
+        }
+        
+        binding.fabCallClick.makeDraggable()
+        binding.fabCallClick.setOnClickListener {
+            // Add your call click logic here
         }
 
         binding.llInfo.setOnClickListener {

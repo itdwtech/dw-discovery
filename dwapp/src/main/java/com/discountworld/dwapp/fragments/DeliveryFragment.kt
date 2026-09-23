@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.discountworld.dwapp.adapters.DeliveryDealsAdapter
 import com.discountworld.dwapp.databinding.FragmentDeliveryBinding
 import com.discountworld.dwapp.managers.SessionManager
+import com.discountworld.dwapp.utils.makeDraggable
 import com.discountworld.dwapp.viewmodels.DeliveryUiState
 import com.discountworld.dwapp.viewmodels.DeliveryViewModel
 import kotlinx.coroutines.Job
@@ -89,6 +90,11 @@ class DeliveryFragment : Fragment() {
 
         binding.ivBack.setOnClickListener {
             findNavController().navigateUp()
+        }
+
+        binding.fabCallClick.makeDraggable()
+        binding.fabCallClick.setOnClickListener {
+            // Add your call click logic here
         }
 
         setupRecyclerView()

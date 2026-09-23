@@ -364,6 +364,7 @@
             android:layout_marginBottom="60dp"
             android:src="@drawable/baseline_phone_24"
             app:backgroundTint="@color/purple_primary"
+            app:shapeAppearanceOverlay="@style/CircleFAB"
             app:tint="@color/white" />
 
     </RelativeLayout>

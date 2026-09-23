@@ -29,6 +29,7 @@ import com.discountworld.dwapp.databinding.ItemMapInfoWindowBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.repositories.RedemptionRepository
 import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.makeDraggable
 import com.discountworld.dwapp.viewmodels.LocationsUiState
 import com.discountworld.dwapp.viewmodels.LocationsViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -71,6 +72,11 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
         sessionManager = SessionManager(requireContext())
         loadInitialCityAndCategories()
         observeViewModel()
+
+        binding.fabCallClick.makeDraggable()
+        binding.fabCallClick.setOnClickListener {
+            // Add your call click logic here
+        }
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)

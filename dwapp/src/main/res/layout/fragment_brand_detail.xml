@@ -140,12 +140,13 @@
     </ScrollView>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabCall"
+        android:id="@+id/fab_call_click"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/_16sdp"
         android:src="@drawable/baseline_phone_24"
         app:backgroundTint="@color/purple_primary"
+        app:shapeAppearanceOverlay="@style/CircleFAB"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:tint="@color/white" />

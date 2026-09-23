@@ -18,6 +18,7 @@ import com.discountworld.dwapp.adapters.TopPicksAdapter
 import com.discountworld.dwapp.databinding.FragmentPromosBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.models.TopPick
+import com.discountworld.dwapp.utils.makeDraggable
 import com.discountworld.dwapp.viewmodels.PromosViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 
@@ -49,6 +50,11 @@ class PromosFragment : Fragment() {
         setupFallbackSlider()
         setupFallbackDiscountsList()
         observeViewModel()
+        
+        binding.fabCallClick.makeDraggable()
+        binding.fabCallClick.setOnClickListener {
+            // Add your call click logic here
+        }
 
         val selectedCityId = sessionManager.getSelectedCityId() ?: 1L
         viewModel.loadPromosData(selectedCityId)
