@@ -68,6 +68,8 @@
                 android:layout_marginTop="@dimen/_4sdp"
                 android:layout_marginEnd="@dimen/_16sdp"
                 android:text="address of the venders"
+                android:ellipsize="end"
+                android:lines="1"
                 android:textColor="@color/purple_primary"
                 android:textSize="@dimen/_12ssp"
                 app:layout_constraintEnd_toStartOf="@+id/llInfo"

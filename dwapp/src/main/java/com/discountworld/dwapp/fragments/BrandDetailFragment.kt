@@ -140,6 +140,8 @@ class BrandDetailFragment : Fragment() {
                         if (it.categoriesList.isNotEmpty()) {
                             binding.tvCategory.text = it.categoriesList.joinToString(", ") { cat -> cat.name }
                         }
+                        
+                        binding.tvAddress.text = it.description
 
                         if (it.bannerUrl.isNotEmpty()) {
                             Glide.with(requireContext())

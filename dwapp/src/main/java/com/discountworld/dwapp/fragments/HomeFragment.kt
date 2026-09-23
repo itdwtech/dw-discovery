@@ -246,16 +246,16 @@ class HomeFragment : Fragment() {
 
         storyRunnable = Runnable {
             if (_binding != null) {
-                val layoutManager = binding.storyRV.layoutManager as? LinearLayoutManager
-                if (layoutManager != null) {
-                    val firstVisible = layoutManager.findFirstVisibleItemPosition()
-                    val nextItem = if (firstVisible >= itemCount - 1) 0 else firstVisible + 1
-                    binding.storyRV.smoothScrollToPosition(nextItem)
+                // 1 pixel scroll karega lagataar, taa k bilkul smooth aur slow animation bane
+                binding.storyRV.scrollBy(1, 0)
+                if (!binding.storyRV.canScrollHorizontally(1)) {
+                    // Jab end par pohanchega tou wapas zero index par aa jayega
+                    binding.storyRV.scrollToPosition(0)
                 }
-                storyRunnable?.let { storyHandler.postDelayed(it, 3000) }
+                storyRunnable?.let { storyHandler.postDelayed(it, 20) } // ~50 FPS ki smooth speed
             }
         }
-        storyRunnable?.let { storyHandler.postDelayed(it, 3000) }
+        storyRunnable?.let { storyHandler.postDelayed(it, 20) }
     }
 
     private fun showCityPopup() {
@@ -350,6 +350,7 @@ class HomeFragment : Fragment() {
         if (::sliderRunnable.isInitialized) {
             sliderHandler.postDelayed(sliderRunnable, 3000)
         }
+        storyRunnable?.let { storyHandler.postDelayed(it, 20) }
     }
 
     override fun onPause() {
@@ -357,6 +358,7 @@ class HomeFragment : Fragment() {
         if (::sliderRunnable.isInitialized) {
             sliderHandler.removeCallbacks(sliderRunnable)
         }
+        storyRunnable?.let { storyHandler.removeCallbacks(it) }
     }
 
     override fun onDestroyView() {
