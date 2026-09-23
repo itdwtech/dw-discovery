@@ -16,6 +16,12 @@ class DeliveryDealsAdapter(
     private val onItemClick: ((RedemptionVendorSummary) -> Unit)? = null
 ) : RecyclerView.Adapter<DeliveryDealsAdapter.ViewHolder>() {
 
+    private var forceHideInStore = false
+
+    fun forceHideInStoreUi(hide: Boolean) {
+        this.forceHideInStore = hide
+    }
+
     class ViewHolder(val binding: ItemDeliveryDealBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -30,7 +36,7 @@ class DeliveryDealsAdapter(
         holder.binding.tvDealName.text = title
 
         val types = mutableListOf<String>()
-        if (item.inStore) types.add("In-Store")
+        if (item.inStore && !forceHideInStore) types.add("In-Store")
         if (item.ecommerce) types.add("E-Commerce")
         if (item.delivery) types.add("Delivery")
 

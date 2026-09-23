@@ -308,7 +308,8 @@ class HomeFragment : Fragment() {
         showSearch: Boolean = true,
         categoryName: String? = null,
         categoryId: Long? = null,
-        searchQuery: String? = null
+        searchQuery: String? = null,
+        forceHideInStore: Boolean = false
     ) {
         val bundle = Bundle().apply {
             putBoolean("showSearch", showSearch)
@@ -317,6 +318,7 @@ class HomeFragment : Fragment() {
             categoryName?.let { putString("categoryName", it) }
             categoryId?.let { putLong("categoryId", it) }
             searchQuery?.let { putString("searchQuery", it) }
+            putBoolean("forceHideInStore", forceHideInStore)
         }
         findNavController().navigate(R.id.action_nav_home_to_nav_delivery, bundle)
     }
@@ -330,7 +332,7 @@ class HomeFragment : Fragment() {
             if (position == 0) {
                 navigateToDelivery(showSearch = true, categoryName = "E-Commerce")
             } else {
-                navigateToDelivery(showSearch = true, categoryName = "Delivery Deals")
+                navigateToDelivery(showSearch = true, categoryName = "Delivery Deals", forceHideInStore = true)
             }
         }
 

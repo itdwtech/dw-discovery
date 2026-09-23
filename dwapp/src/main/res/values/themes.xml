@@ -1,6 +1,7 @@
 <resources>
     <style name="Theme.DwApp" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
+        <item name="android:windowFullscreen">true</item>
     </style>
 
     <style name="CircleFAB" parent="">

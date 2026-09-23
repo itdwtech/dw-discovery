@@ -37,6 +37,7 @@ class DeliveryFragment : Fragment() {
 
     private var isEcommerce: Boolean = false
     private var isDelivery: Boolean = false
+    private var forceHideInStore: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,6 +61,8 @@ class DeliveryFragment : Fragment() {
         if (categoryIdArg != -1L) {
             selectedCategoryId = categoryIdArg
         }
+
+        forceHideInStore = arguments?.getBoolean("forceHideInStore", false) ?: false
 
         if (!categoryName.isNullOrEmpty()) {
             binding.tvTitle.text = categoryName
@@ -142,6 +145,7 @@ class DeliveryFragment : Fragment() {
 
     private fun setupRecyclerView() {
         binding.rvDeliveryDeals.layoutManager = LinearLayoutManager(requireContext())
+        dealsAdapter.forceHideInStoreUi(forceHideInStore)
         binding.rvDeliveryDeals.adapter = dealsAdapter
     }
 
@@ -182,7 +186,8 @@ class DeliveryFragment : Fragment() {
             cityId = cityId,
             searchQuery = searchQuery,
             categoryId = selectedCategoryId,
-            inStore = null,
+            // Jab image se aayein tou forceHideInStore true hoga aur backend se in-store walay item nahi aayenge
+            inStore = if (forceHideInStore) false else null,
             delivery = if (isDelivery) true else null,
             ecommerce = if (isEcommerce) true else null
         )

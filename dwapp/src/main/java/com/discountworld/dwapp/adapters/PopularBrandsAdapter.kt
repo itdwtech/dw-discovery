@@ -44,13 +44,13 @@ class PopularBrandsAdapter(
         holder.binding.tvCategory.text = categoryName
 
         val storeTypes = mutableListOf<String>()
-        if (item.inStore) storeTypes.add("In-Store")
+        if (item.inStore) storeTypes.add("In-store")
         if (item.delivery) storeTypes.add("Delivery")
-        if (item.ecommerce) storeTypes.add("E-Commerce")
+        if (item.ecommerce) storeTypes.add("E-commerce")
 
         if (storeTypes.isNotEmpty()) {
             holder.binding.btnInStore.visibility = View.VISIBLE
-            holder.binding.btnInStore.text = storeTypes.first()
+            holder.binding.btnInStore.text = storeTypes.joinToString(" & ")
         } else {
             holder.binding.btnInStore.visibility = View.GONE
         }
