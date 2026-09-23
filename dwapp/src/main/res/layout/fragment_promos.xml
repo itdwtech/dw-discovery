@@ -40,33 +40,30 @@
                 <!-- Main Slider -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_180sdp"
+                    android:layout_height="wrap_content"
                     android:layout_margin="16dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp">
+                    app:cardCornerRadius="6dp">
 
-                    <RelativeLayout
+                    <androidx.viewpager2.widget.ViewPager2
+                        android:id="@+id/promoPager"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:layout_height="@dimen/_150sdp" />
 
-                        <androidx.viewpager2.widget.ViewPager2
-                            android:id="@+id/promoPager"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
+                    <com.google.android.material.tabs.TabLayout
+                        android:id="@+id/promoTabIndicator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="20dp"
+                        android:layout_gravity="bottom|center"
+                        android:layout_marginBottom="8dp"
+                        android:background="@android:color/transparent"
+                        app:tabBackground="@drawable/tab_selector"
+                        app:tabIndicatorHeight="0dp"
+                        app:tabMaxWidth="12dp"
+                        app:tabMinWidth="12dp"
+                        app:tabPaddingStart="0dp"
+                        app:tabPaddingEnd="0dp"
+                        app:tabRippleColor="@android:color/transparent" />
 
-                        <com.google.android.material.tabs.TabLayout
-                            android:id="@+id/promoTabIndicator"
-                            android:layout_width="wrap_content"
-                            android:layout_height="20dp"
-                            android:layout_alignParentBottom="true"
-                            android:layout_centerHorizontal="true"
-                            android:layout_marginBottom="12dp"
-                            android:background="@android:color/transparent"
-                            app:tabBackground="@drawable/tab_selector"
-                            app:tabIndicatorHeight="0dp"
-                            app:tabMaxWidth="12dp"
-                            app:tabMinWidth="12dp" />
-                    </RelativeLayout>
                 </androidx.cardview.widget.CardView>
 
                 <TextView

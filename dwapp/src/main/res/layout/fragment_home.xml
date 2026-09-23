@@ -243,8 +243,8 @@
 
                             <androidx.viewpager2.widget.ViewPager2
                                 android:id="@+id/pager"
-                                android:layout_width="fill_parent"
-                                android:layout_height="@dimen/_130sdp" />
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/_150sdp" />
 
                             <com.google.android.material.tabs.TabLayout
                                 android:id="@+id/tabIndicator"
