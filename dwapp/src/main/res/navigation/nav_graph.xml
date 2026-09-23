@@ -90,7 +90,7 @@
             app:argType="boolean" />
         <argument
             android:name="categoryName"
-            android:defaultValue="@null"
+            android:defaultValue="Delivery Deals"
             app:argType="string"
             app:nullable="true" />
         <argument
@@ -102,6 +102,10 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
+        <argument
+            android:name="forceHideInStore"
+            android:defaultValue="true"
+            app:argType="boolean" />
     </fragment>
 
     <fragment

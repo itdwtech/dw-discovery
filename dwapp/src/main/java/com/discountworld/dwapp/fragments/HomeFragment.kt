@@ -158,9 +158,11 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupSearch() {
-        binding.imgSearch.setOnClickListener {
+        val performSearch = {
             val query = binding.search.text?.toString()?.trim()
             if (!query.isNullOrEmpty()) {
+                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+                imm?.hideSoftInputFromWindow(binding.search.windowToken, 0)
                 navigateToDelivery(
                     showSearch = true,
                     categoryName = "Search Results",
@@ -169,16 +171,13 @@ class HomeFragment : Fragment() {
             }
         }
 
+        binding.imgSearch.setOnClickListener {
+            performSearch()
+        }
+
         binding.search.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
-                val query = binding.search.text?.toString()?.trim()
-                if (!query.isNullOrEmpty()) {
-                    navigateToDelivery(
-                        showSearch = true,
-                        categoryName = "Search Results",
-                        searchQuery = query
-                    )
-                }
+                performSearch()
                 true
             } else {
                 false

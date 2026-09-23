@@ -1,8 +1,6 @@
 package com.discountworld.dwapp.fragments
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,8 +16,6 @@ import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.utils.makeDraggable
 import com.discountworld.dwapp.viewmodels.DeliveryUiState
 import com.discountworld.dwapp.viewmodels.DeliveryViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class DeliveryFragment : Fragment() {
@@ -30,7 +26,6 @@ class DeliveryFragment : Fragment() {
     private val viewModel: DeliveryViewModel by viewModels()
     private lateinit var sessionManager: SessionManager
     private val dealsAdapter = DeliveryDealsAdapter()
-    private var searchJob: Job? = null
 
     private var selectedCityId: Long? = null
     private var selectedCategoryId: Long? = null
@@ -56,13 +51,13 @@ class DeliveryFragment : Fragment() {
         val cityIdArg = arguments?.getLong("cityId", -1L) ?: -1L
         selectedCityId = if (cityIdArg != -1L) cityIdArg else sessionManager.getSelectedCityId()
 
-        val categoryName = arguments?.getString("categoryName")
+        val categoryName = arguments?.getString("categoryName") ?: "Delivery Deals"
         val categoryIdArg = arguments?.getLong("categoryId", -1L) ?: -1L
         if (categoryIdArg != -1L) {
             selectedCategoryId = categoryIdArg
         }
 
-        forceHideInStore = arguments?.getBoolean("forceHideInStore", false) ?: false
+        forceHideInStore = arguments?.getBoolean("forceHideInStore", true) ?: true
 
         if (!categoryName.isNullOrEmpty()) {
             binding.tvTitle.text = categoryName
@@ -150,34 +145,25 @@ class DeliveryFragment : Fragment() {
     }
 
     private fun setupSearch() {
-        binding.ivSearch.setOnClickListener {
+        val performSearch = {
             val query = binding.etSearch.text?.toString()?.trim()
-            loadVendors(query)
+            val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+            imm?.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
+            loadVendors(query?.ifEmpty { null })
+        }
+
+        binding.ivSearch.setOnClickListener {
+            performSearch()
         }
 
         binding.etSearch.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
-                val query = binding.etSearch.text?.toString()?.trim()
-                loadVendors(query)
+                performSearch()
                 true
             } else {
                 false
             }
         }
-
-        binding.etSearch.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-            override fun afterTextChanged(s: Editable?) {
-                searchJob?.cancel()
-                searchJob = viewLifecycleOwner.lifecycleScope.launch {
-                    delay(400)
-                    val query = s?.toString()?.trim()
-                    loadVendors(query)
-                }
-            }
-        })
     }
 
     private fun loadVendors(searchQuery: String? = null) {
@@ -195,7 +181,6 @@ class DeliveryFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        searchJob?.cancel()
         _binding = null
     }
 }

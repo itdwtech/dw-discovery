@@ -1,8 +1,6 @@
 package com.discountworld.dwapp.fragments
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,8 +14,6 @@ import com.discountworld.dwapp.databinding.FragmentHistoryBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.viewmodels.HistoryUiState
 import com.discountworld.dwapp.viewmodels.HistoryViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class HistoryFragment : Fragment() {
@@ -28,7 +24,6 @@ class HistoryFragment : Fragment() {
     private val viewModel: HistoryViewModel by viewModels()
     private lateinit var sessionManager: SessionManager
     private val historyAdapter = HistoryAdapter()
-    private var searchJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -88,39 +83,29 @@ class HistoryFragment : Fragment() {
     }
 
     private fun setupSearch() {
-        binding.ivSearch.setOnClickListener {
+        val performSearch = {
             val query = binding.etSearch.text?.toString()?.trim()
-            viewModel.loadHistory(query)
+            val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+            imm?.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
+            viewModel.loadHistory(query?.ifEmpty { null })
+        }
+
+        binding.ivSearch.setOnClickListener {
+            performSearch()
         }
 
         binding.etSearch.setOnEditorActionListener { _, actionId, _ ->
             if ((actionId == EditorInfo.IME_ACTION_SEARCH) || (actionId == EditorInfo.IME_ACTION_DONE)) {
-                val query = binding.etSearch.text?.toString()?.trim()
-                viewModel.loadHistory(query)
+                performSearch()
                 true
             } else {
                 false
             }
         }
-
-        binding.etSearch.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-            override fun afterTextChanged(s: Editable?) {
-                searchJob?.cancel()
-                searchJob = viewLifecycleOwner.lifecycleScope.launch {
-                    delay(400)
-                    val query = s?.toString()?.trim()
-                    viewModel.loadHistory(query)
-                }
-            }
-        })
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        searchJob?.cancel()
         _binding = null
     }
 }

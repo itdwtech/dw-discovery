@@ -68,16 +68,20 @@
                     android:layout_toStartOf="@+id/ivSearch"
                     android:background="@null"
                     android:hint="search"
+                    android:imeOptions="actionSearch"
                     android:inputType="text"
                     android:textSize="14sp" />
 
                 <ImageView
                     android:id="@+id/ivSearch"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:src="@drawable/ic_search"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:src="@drawable/baseline_search_24"
                     app:tint="@color/purple_primary" />
             </RelativeLayout>
         </RelativeLayout>

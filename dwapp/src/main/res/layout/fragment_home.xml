@@ -128,6 +128,7 @@
                                 android:id="@+id/search"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
+                                android:layout_toStartOf="@+id/img_search"
                                 android:background="@null"
                                 android:hint="Search"
                                 android:imeOptions="actionSearch"
@@ -147,6 +148,9 @@
                                 android:layout_alignParentRight="true"
                                 android:layout_centerInParent="true"
                                 android:layout_marginRight="16dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:clickable="true"
+                                android:focusable="true"
                                 android:src="@drawable/baseline_search_24"
                                 app:tint="@color/purple_primary" />
 
