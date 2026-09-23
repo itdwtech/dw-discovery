@@ -31,11 +31,11 @@
                 android:padding="5dp">
 
                 <androidx.appcompat.widget.AppCompatImageView
-                    android:layout_width="60dp"
-                    android:layout_height="40dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginLeft="7dp"
                     android:layout_marginRight="7dp"
-                    android:src="@mipmap/dwlogo" />
+                    android:src="@drawable/ic_chasevalue" />
 
             </LinearLayout>
 
@@ -43,7 +43,7 @@
                 android:id="@+id/cities"
                 android:layout_width="@dimen/_20sdp"
                 android:layout_height="@dimen/_20sdp"
-                android:src="@drawable/ic_cities"
+                android:src="@drawable/ic_location"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="@dimen/_20sdp"
                 android:layout_alignParentEnd="true" />
@@ -201,33 +201,7 @@
                         app:spanCount="4"
                         tools:listitem="@layout/item_home_category" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:gravity="center"
-                        android:orientation="horizontal">
 
-                        <ImageView
-                            android:id="@+id/img_ecommerce"
-                            android:layout_width="0dp"
-                            android:layout_height="100dp"
-                            android:layout_marginLeft="@dimen/_8sdp"
-                            android:layout_marginRight="@dimen/_8sdp"
-                            android:layout_marginTop="@dimen/_6sdp"
-                            android:layout_weight="1"
-                            android:background="@drawable/ecommerce_title" />
-
-                        <ImageView
-                            android:id="@+id/img_delivery"
-                            android:layout_width="0dp"
-                            android:layout_height="100dp"
-                            android:layout_marginLeft="@dimen/_8sdp"
-                            android:layout_marginRight="@dimen/_8sdp"
-                            android:layout_weight="1"
-                            android:background="@drawable/delivery_title" />
-
-                    </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"

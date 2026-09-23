@@ -64,9 +64,8 @@
                     android:id="@+id/ivClose"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="@dimen/_6sdp"
-                    android:src="@drawable/ic_close_circle"
-                    app:tint="@color/black" />
+                    android:padding="@dimen/_1sdp"
+                    android:src="@drawable/ic_close" />
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Merchant Logo Badge (Constrained to bottom edge of Header for 50/50 overlap & drawn on top) -->
@@ -90,7 +89,6 @@
                     android:id="@+id/ivMerchantLogo"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="@dimen/_4sdp"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_placeholder" />
             </com.google.android.material.card.MaterialCardView>

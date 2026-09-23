@@ -67,7 +67,7 @@
                     android:layout_height="20dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:src="@drawable/ic_search"
+                    android:src="@drawable/baseline_search_24"
                     app:tint="@color/purple_primary" />
             </RelativeLayout>
         </RelativeLayout>

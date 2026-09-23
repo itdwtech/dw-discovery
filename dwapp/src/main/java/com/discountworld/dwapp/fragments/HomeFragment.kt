@@ -62,14 +62,6 @@ class HomeFragment : Fragment() {
         setupSearch()
         observeViewModel()
 
-        binding.imgEcommerce.setOnClickListener {
-            navigateToDelivery(showSearch = true, categoryName = "E-Commerce")
-        }
-
-        binding.imgDelivery.setOnClickListener {
-            navigateToDelivery(showSearch = true, categoryName = "Delivery Deals")
-        }
-
         binding.cities.setOnClickListener {
             showCityPopup()
         }
@@ -168,21 +160,25 @@ class HomeFragment : Fragment() {
     private fun setupSearch() {
         binding.imgSearch.setOnClickListener {
             val query = binding.search.text?.toString()?.trim()
-            navigateToDelivery(
-                showSearch = true,
-                categoryName = "Search Results",
-                searchQuery = if (!query.isNullOrEmpty()) query else null
-            )
+            if (!query.isNullOrEmpty()) {
+                navigateToDelivery(
+                    showSearch = true,
+                    categoryName = "Search Results",
+                    searchQuery = query
+                )
+            }
         }
 
         binding.search.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
                 val query = binding.search.text?.toString()?.trim()
-                navigateToDelivery(
-                    showSearch = true,
-                    categoryName = "Search Results",
-                    searchQuery = if (!query.isNullOrEmpty()) query else null
-                )
+                if (!query.isNullOrEmpty()) {
+                    navigateToDelivery(
+                        showSearch = true,
+                        categoryName = "Search Results",
+                        searchQuery = query
+                    )
+                }
                 true
             } else {
                 false
