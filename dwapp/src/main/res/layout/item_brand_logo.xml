@@ -10,7 +10,6 @@
     <androidx.cardview.widget.CardView
         android:layout_width="80dp"
         android:layout_height="80dp"
-        app:cardBackgroundColor="@color/black"
         app:cardCornerRadius="8dp"
         app:cardElevation="2dp">
 
@@ -18,8 +17,7 @@
             android:id="@+id/ivLogo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="12dp"
-            android:scaleType="centerInside"
+            android:scaleType="centerCrop"
             android:src="@drawable/ic_placeholder" />
     </androidx.cardview.widget.CardView>
 
