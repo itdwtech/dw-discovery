@@ -43,6 +43,16 @@ class HomeFragment : Fragment() {
     private val sliderHandler = Handler(Looper.getMainLooper())
     private lateinit var sliderRunnable: Runnable
 
+    private val popularAdapter by lazy {
+        PopularBrandsAdapter { selectedVendor ->
+            val bundle = Bundle().apply {
+                putLong("vendor_id", selectedVendor.id)
+                putLong("city_id", selectedCityId)
+            }
+            findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -116,14 +126,7 @@ class HomeFragment : Fragment() {
             }
 
             if (state.popularVendors.isNotEmpty()) {
-                val adapter = PopularBrandsAdapter(state.popularVendors) { selectedVendor ->
-                    val bundle = Bundle().apply {
-                        putLong("vendor_id", selectedVendor.id)
-                        putLong("city_id", selectedCityId)
-                    }
-                    findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
-                }
-                binding.popularDiscRV.adapter = adapter
+                popularAdapter.updateData(state.popularVendors)
             }
         }
     }
@@ -344,6 +347,16 @@ class HomeFragment : Fragment() {
         binding.bannerRV.adapter = TopPicksAdapter(fallbackList = topPicks)
 
         binding.popularDiscRV.layoutManager = LinearLayoutManager(requireContext())
+        binding.popularDiscRV.adapter = popularAdapter
+        binding.popularDiscRV.isNestedScrollingEnabled = false
+
+        binding.nestedScrollView.setOnScrollChangeListener(
+            androidx.core.widget.NestedScrollView.OnScrollChangeListener { v, _, scrollY, _, _ ->
+                if (scrollY >= v.getChildAt(0).measuredHeight - v.measuredHeight - 300) {
+                    viewModel.loadNextPopularPage()
+                }
+            }
+        )
     }
 
     override fun onResume() {
