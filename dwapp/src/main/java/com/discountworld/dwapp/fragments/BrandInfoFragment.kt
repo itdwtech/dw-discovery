@@ -135,10 +135,12 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
         }
 
         if (vendor.termsAndConditions.isNotEmpty()) {
+            binding.vDivider4.visibility = View.VISIBLE
             binding.tvTermsHeader.visibility = View.VISIBLE
             binding.tvTermsList.visibility = View.VISIBLE
             binding.tvTermsList.text = vendor.termsAndConditions
         } else {
+            binding.vDivider4.visibility = View.GONE
             binding.tvTermsHeader.visibility = View.GONE
             binding.tvTermsList.visibility = View.GONE
         }
@@ -178,6 +180,7 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
             if (!formattedUrl.startsWith("http://") && !formattedUrl.startsWith("https://")) {
                 formattedUrl = "https://$formattedUrl"
             }
+            binding.tvWebsiteHeader.visibility = View.VISIBLE
             binding.tvWebsiteUrl.visibility = View.VISIBLE
             binding.tvWebsiteUrl.text = formattedUrl
             binding.tvWebsiteUrl.setOnClickListener {
@@ -189,6 +192,7 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
                 }
             }
         } else {
+            binding.tvWebsiteHeader.visibility = View.GONE
             binding.tvWebsiteUrl.visibility = View.GONE
         }
 
@@ -220,6 +224,7 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
         }
 
         val fallbackWebsite = arguments?.getString("website_url") ?: "https://www.pizzahut.com.pk/"
+        binding.tvWebsiteHeader.visibility = View.VISIBLE
         binding.tvWebsiteUrl.visibility = View.VISIBLE
         binding.tvWebsiteUrl.text = fallbackWebsite
         binding.tvWebsiteUrl.setOnClickListener {

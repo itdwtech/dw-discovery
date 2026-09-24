@@ -20,7 +20,7 @@ class LoginFragment : Fragment() {
     companion object {
         // CODE MEIN PHONE NUMBER AUR TIER YAHAN SET KAREIN:
         const val PHONE_NUMBER = "12345678923"
-        const val CUSTOMER_TIER = "Gold" // Options: "Gold", "Silver", or "Bronze"
+        const val CUSTOMER_TIER = "Silver" // Options: "Gold", "Silver", or "Bronze"
     }
 
     private var _binding: FragmentLoginBinding? = null
