@@ -182,56 +182,23 @@ class BrandDetailFragment : Fragment() {
     private fun setupOffersRecyclerView(
         deals: List<RedemptionDealSummary>
     ) {
+        binding.rvOffers.layoutManager = LinearLayoutManager(requireContext())
+        val currentTier = sessionManager.getCustomerTier()
 
-        binding.rvOffers.layoutManager =
-            LinearLayoutManager(requireContext())
+        val adapter = OffersAdapter(
+            dealsList = deals,
+            userTier = currentTier,
+            isDealRedeemed = { id -> sessionManager.isDealRedeemed(id) }
+        ) { deal, _ ->
+            handleOfferSelected(deal, null)
+        }
 
-        if (deals.isNotEmpty()) {
+        binding.rvOffers.adapter = adapter
 
-            binding.rvOffers.adapter =
-                OffersAdapter(
-                    dealsList = deals,
-                    isDealRedeemed = { id -> sessionManager.isDealRedeemed(id) }
-                ) { deal, _ ->
-
-                    handleOfferSelected(
-                        deal,
-                        null
-                    )
-                }
-
+        if (adapter.itemCount > 0) {
+            binding.rvOffers.visibility = View.VISIBLE
         } else {
-
-            val dummyOffers =
-                listOf(
-                    Offer(
-                        "4Regular Burgers combo + 4Hot Wings + 1Fries + 4Drinks + 1loaded Fries Beef/Chicken in Rs. 3449 (Original Price: Rs. 4865)",
-                        "Deal 4",
-                        isRedeemed = true
-                    ),
-                    Offer(
-                        "Tripple Beef Burger with Drink in Rs. 1349 (Original Price: Rs. 2035)",
-                        "Deal 3",
-                        isRedeemed = false
-                    ),
-                    Offer(
-                        "Any Classic Burger with Fries & Drink in Rs. 1099 (Orignal Price: Rs. 1469)",
-                        "Deal 2",
-                        isRedeemed = false
-                    )
-                )
-
-            binding.rvOffers.adapter =
-                OffersAdapter(
-                    dummyOffers = dummyOffers,
-                    isOfferRedeemed = { key -> sessionManager.isOfferRedeemed(key) }
-                ) { _, offer ->
-
-                    handleOfferSelected(
-                        null,
-                        offer
-                    )
-                }
+            binding.rvOffers.visibility = View.GONE
         }
     }
 

@@ -9,12 +9,31 @@ import com.discountworld.dwapp.databinding.ItemOfferBinding
 import com.discountworld.dwapp.models.Offer
 
 class OffersAdapter(
-    private val dealsList: List<RedemptionDealSummary> = emptyList(),
-    private val dummyOffers: List<Offer> = emptyList(),
+    dealsList: List<RedemptionDealSummary> = emptyList(),
+    dummyOffers: List<Offer> = emptyList(),
+    private val userTier: String = "Gold",
     private val isDealRedeemed: (Long) -> Boolean = { false },
     private val isOfferRedeemed: (String) -> Boolean = { false },
     private val onOfferClick: (RedemptionDealSummary?, Offer?) -> Unit
 ) : RecyclerView.Adapter<OffersAdapter.ViewHolder>() {
+
+    private val filteredDeals: List<RedemptionDealSummary> = dealsList.filter { deal ->
+        val requiredTier = deal.customerTier
+        val isTierAllowed = isTierEligible(userTier, requiredTier)
+        val isRedeemed = deal.isRedeemedToday || deal.isLimitReached || isDealRedeemed(deal.id)
+        isTierAllowed && !isRedeemed
+    }
+
+    private val filteredDummyOffers: List<Offer> = dummyOffers.filterIndexed { index, offer ->
+        val requiredTier = when (index) {
+            0 -> "Gold"
+            1 -> "Silver"
+            else -> "Bronze"
+        }
+        val isTierAllowed = isTierEligible(userTier, requiredTier)
+        val isRedeemed = offer.isRedeemed || isOfferRedeemed(offer.discount)
+        isTierAllowed && !isRedeemed
+    }
 
     class ViewHolder(val binding: ItemOfferBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -24,13 +43,14 @@ class OffersAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        if (dealsList.isNotEmpty()) {
-            val deal = dealsList[position]
+        if (filteredDeals.isNotEmpty()) {
+            val deal = filteredDeals[position]
             val title = deal.title.ifEmpty { "Buy 1 Get 1" }
             val description = deal.description.ifEmpty { deal.title }
+
             val isRedeemed = deal.isRedeemedToday || deal.isLimitReached || isDealRedeemed(deal.id)
 
-            holder.binding.tvDiscountAmount.text = title
+            holder.binding.tvDiscountAmount.text = if (isRedeemed) "Redeemed" else title
             holder.binding.tvOfferDescription.text = description
 
             if (isRedeemed) {
@@ -44,12 +64,13 @@ class OffersAdapter(
                     onOfferClick(deal, null)
                 }
             }
-        } else if (dummyOffers.isNotEmpty()) {
-            val offer = dummyOffers[position]
+        } else if (filteredDummyOffers.isNotEmpty()) {
+            val offer = filteredDummyOffers[position]
             holder.binding.tvOfferDescription.text = offer.description
-            holder.binding.tvDiscountAmount.text = offer.discount
 
             val isRedeemed = offer.isRedeemed || isOfferRedeemed(offer.discount)
+
+            holder.binding.tvDiscountAmount.text = if (isRedeemed) "Redeemed" else offer.discount
 
             if (isRedeemed) {
                 holder.binding.llDiscount.setBackgroundResource(R.drawable.bg_discount_gray)
@@ -65,7 +86,27 @@ class OffersAdapter(
         }
     }
 
+    private fun isTierEligible(userTier: String, requiredTier: String): Boolean {
+        if (requiredTier.isEmpty()) return true
+        val uTier = userTier.lowercase().trim()
+        val rTier = requiredTier.lowercase().trim()
+
+        val uRank = when (uTier) {
+            "gold" -> 3
+            "silver" -> 2
+            "bronze" -> 1
+            else -> 3
+        }
+        val rRank = when (rTier) {
+            "gold" -> 3
+            "silver" -> 2
+            "bronze" -> 1
+            else -> 1
+        }
+        return uRank >= rRank
+    }
+
     override fun getItemCount(): Int {
-        return if (dealsList.isNotEmpty()) dealsList.size else dummyOffers.size
+        return if (filteredDeals.isNotEmpty()) filteredDeals.size else filteredDummyOffers.size
     }
 }

@@ -72,6 +72,12 @@ class HomeFragment : Fragment() {
         setupSearch()
         observeViewModel()
 
+        binding.backPressed.setOnClickListener {
+            if (!findNavController().popBackStack()) {
+                requireActivity().finish()
+            }
+        }
+
         binding.cities.setOnClickListener {
             showCityPopup()
         }

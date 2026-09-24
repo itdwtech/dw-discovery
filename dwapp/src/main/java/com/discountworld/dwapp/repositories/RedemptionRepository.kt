@@ -10,6 +10,35 @@ class RedemptionRepository {
 
     private val stub get() = RedemptionStubClient.stub
 
+    suspend fun authenticateByPhone(
+        phoneNumber: String,
+        customerTier: String = "Gold",
+        fullName: String? = null,
+        email: String? = null,
+        cnic: String? = null
+    ): CustomerPhoneAuthResponse? {
+        val cleanPhone = phoneNumber.replace("-", "").replace("+", "").trim()
+        Log.d("Auth", "Authenticating with Phone: $cleanPhone, Tier: $customerTier")
+
+        val builder = CustomerPhoneAuthRequest.newBuilder()
+            .setPhoneNumber(cleanPhone)
+            .setCustomerTier(customerTier)
+
+        fullName?.let { builder.setFullName(it) }
+        email?.let { builder.setEmail(it) }
+        cnic?.let { builder.setCnic(it) }
+
+        val result = grpcCall { stub.authenticateByPhone(builder.build()) }
+
+        result.onSuccess {
+            Log.d("Auth", "Phone Auth Success: ${it.customer.fullName}")
+        }.onFailure {
+            Log.e("Auth", "Phone Auth Failed: ${it.message}")
+        }
+
+        return result.getOrNull()
+    }
+
     suspend fun authenticateByCnic(cnic: String): CustomerCnicAuthResponse? {
         // Strip dashes if the server expects only digits
         val cleanCnic = cnic.replace("-", "")

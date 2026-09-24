@@ -1,9 +1,6 @@
 package com.discountworld.dwapp.fragments
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.InputFilter
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +16,12 @@ import com.discountworld.dwapp.viewmodels.AuthState
 import com.discountworld.dwapp.viewmodels.LoginViewModel
 
 class LoginFragment : Fragment() {
+
+    companion object {
+        // CODE MEIN PHONE NUMBER AUR TIER YAHAN SET KAREIN:
+        const val PHONE_NUMBER = "12345678923"
+        const val CUSTOMER_TIER = "Gold" // Options: "Gold", "Silver", or "Bronze"
+    }
 
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
@@ -39,6 +42,17 @@ class LoginFragment : Fragment() {
 
         sessionManager = SessionManager(requireContext())
 
+        val intentPhone = activity?.intent?.getStringExtra("phone_number")
+        val intentTier = activity?.intent?.getStringExtra("customer_tier")
+
+        val phoneToUse = intentPhone?.ifEmpty { null } ?: PHONE_NUMBER
+        val tierToUse = intentTier?.ifEmpty { null } ?: CUSTOMER_TIER
+
+        // If tier in SessionManager doesn't match the new code/intent tier, clear session to re-auth
+        if (!intentPhone.isNullOrEmpty() || !intentTier.isNullOrEmpty() || !sessionManager.getCustomerTier().equals(tierToUse, ignoreCase = true)) {
+            sessionManager.clearSession()
+        }
+
         // Check if already logged in
         if (sessionManager.isLoggedIn()) {
             val token = sessionManager.getAuthToken()!!
@@ -47,12 +61,13 @@ class LoginFragment : Fragment() {
             return
         }
 
-        setupCnicFormatting()
         observeViewModel()
 
+        // Auto authenticate immediately on launch using code or intent parameters
+        viewModel.authenticateByPhone(phoneToUse, tierToUse)
+
         binding.btnSignIn.setOnClickListener {
-            val cnic = binding.etCnic.text.toString()
-            viewModel.authenticateByCnic(cnic)
+            viewModel.authenticateByPhone(phoneToUse, tierToUse)
         }
     }
 
@@ -60,53 +75,36 @@ class LoginFragment : Fragment() {
         viewModel.authState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is AuthState.Loading -> {
-                    binding.btnSignIn.isEnabled = false
+                    binding.progressBar.visibility = View.VISIBLE
                 }
                 is AuthState.Success -> {
-                    binding.btnSignIn.isEnabled = true
+                    binding.progressBar.visibility = View.GONE
                     sessionManager.saveAuthToken(state.response.accessToken)
-                    Toast.makeText(requireContext(), "Welcome ${state.response.customer.fullName}", Toast.LENGTH_SHORT).show()
+                    val tier = state.response.customer.customerTier.ifEmpty { CUSTOMER_TIER }
+                    sessionManager.saveCustomerTier(tier)
+                    RedemptionStubClient.setToken(state.response.accessToken)
+                    findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+                }
+                is AuthState.SuccessPhone -> {
+                    binding.progressBar.visibility = View.GONE
+                    sessionManager.saveAuthToken(state.response.accessToken)
+                    val tier = state.response.customer.customerTier.ifEmpty { CUSTOMER_TIER }
+                    sessionManager.saveCustomerTier(tier)
+                    RedemptionStubClient.setToken(state.response.accessToken)
                     findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
                 }
                 is AuthState.Error -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.llWelcome.visibility = View.VISIBLE
+                    binding.btnSignIn.visibility = View.VISIBLE
                     binding.btnSignIn.isEnabled = true
                     Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
                 }
                 AuthState.Idle -> {
-                    binding.btnSignIn.isEnabled = true
+                    binding.progressBar.visibility = View.VISIBLE
                 }
             }
         }
-    }
-
-    private fun setupCnicFormatting() {
-        binding.etCnic.filters = arrayOf(InputFilter.LengthFilter(15))
-
-        binding.etCnic.addTextChangedListener(object : TextWatcher {
-            private var isFormatting = false
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-            override fun afterTextChanged(s: Editable?) {
-                if (isFormatting) return
-                isFormatting = true
-
-                val input = s.toString().replace("-", "")
-                val formatted = StringBuilder()
-
-                for (i in input.indices) {
-                    formatted.append(input[i])
-                    if ((i == 4 || i == 11) && i != input.length - 1) {
-                        formatted.append("-")
-                    }
-                }
-
-                s?.replace(0, s.length, formatted.toString())
-                isFormatting = false
-            }
-        })
     }
 
     override fun onDestroyView() {
