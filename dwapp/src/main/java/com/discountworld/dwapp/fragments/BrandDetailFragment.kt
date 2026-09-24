@@ -103,19 +103,27 @@ class BrandDetailFragment : Fragment() {
         }
 
         binding.llInfo.setOnClickListener {
+            val websiteLink = currentVendorDetail?.socialLinksList?.firstOrNull {
+                it.platform.equals("website", ignoreCase = true) || it.url.startsWith("http") || it.url.contains("www.")
+            }?.url
+
+            val phoneNum = currentVendorDetail?.headOfficeNumber?.ifEmpty {
+                currentVendorDetail?.branchesList?.firstOrNull { it.phoneNumber.isNotEmpty() }?.phoneNumber
+            }
 
             val bundle = Bundle().apply {
-
-                putLong(
-                    "vendor_id",
-                    vendorId
-                )
-
+                putLong("vendor_id", vendorId)
                 selectedCityId?.let {
-                    putLong(
-                        "city_id",
-                        it
-                    )
+                    putLong("city_id", it)
+                }
+                currentVendorDetail?.ecommerce?.let {
+                    putBoolean("is_ecommerce", it)
+                }
+                websiteLink?.let {
+                    putString("website_url", it)
+                }
+                phoneNum?.let {
+                    putString("vendor_phone", it)
                 }
             }
 

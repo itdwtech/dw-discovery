@@ -108,6 +108,9 @@ class DeliveryFragment : Fragment() {
                     binding.progressBar.visibility = View.VISIBLE
                     binding.tvNoData.visibility = View.GONE
                 }
+                is DeliveryUiState.LoadingMore -> {
+                    binding.progressBar.visibility = View.VISIBLE
+                }
                 is DeliveryUiState.Success -> {
                     binding.progressBar.visibility = View.GONE
                     val vendors = state.vendors
@@ -133,15 +136,31 @@ class DeliveryFragment : Fragment() {
                     binding.tvNoData.text = state.message
                     dealsAdapter.updateData(emptyList())
                 }
-                DeliveryUiState.Idle -> {}
+                DeliveryUiState.Idle -> {
+                    binding.progressBar.visibility = View.GONE
+                }
             }
         }
     }
 
     private fun setupRecyclerView() {
-        binding.rvDeliveryDeals.layoutManager = LinearLayoutManager(requireContext())
+        val layoutManager = LinearLayoutManager(requireContext())
+        binding.rvDeliveryDeals.layoutManager = layoutManager
         dealsAdapter.forceHideInStoreUi(forceHideInStore)
         binding.rvDeliveryDeals.adapter = dealsAdapter
+
+        binding.rvDeliveryDeals.addOnScrollListener(object : androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: androidx.recyclerview.widget.RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (dy > 0) {
+                    val totalItemCount = layoutManager.itemCount
+                    val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+                    if (lastVisibleItemPosition >= totalItemCount - 3) {
+                        viewModel.loadNextPage()
+                    }
+                }
+            }
+        })
     }
 
     private fun setupSearch() {

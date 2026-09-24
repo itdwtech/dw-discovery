@@ -1,5 +1,7 @@
 package com.discountworld.dwapp.fragments
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -69,7 +71,9 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
         val vendorId = arguments?.getLong("vendor_id", -1L) ?: -1L
         val cityIdArg = arguments?.getLong("city_id", -1L) ?: -1L
         val selectedCityId = if (cityIdArg != -1L) cityIdArg else sessionManager.getSelectedCityId()
+        val isEcommerceArg = arguments?.getBoolean("is_ecommerce", false) ?: false
 
+        updateMapVisibility(isEcommerceArg)
         observeViewModel()
 
         if (vendorId != -1L) {
@@ -83,6 +87,15 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
         
         val mapFragment = childFragmentManager.findFragmentById(R.id.mapInfoFragment) as? SupportMapFragment
         mapFragment?.getMapAsync(this)
+    }
+
+    private fun updateMapVisibility(isEcommerce: Boolean) {
+        val visibility = if (isEcommerce) View.GONE else View.VISIBLE
+        binding.tvMapLabel.visibility = visibility
+        binding.cvMapCard.visibility = visibility
+        binding.vDivider2.visibility = visibility
+        binding.tvAddressHeader.visibility = visibility
+        binding.rvBranches.visibility = visibility
     }
 
     private fun observeViewModel() {
@@ -102,6 +115,9 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun bindVendorData(vendor: RedemptionVendorDetail) {
+        val isEcommerce = vendor.ecommerce || arguments?.getBoolean("is_ecommerce", false) == true
+        updateMapVisibility(isEcommerce)
+
         vendorTitle = vendor.title.ifEmpty { vendor.companyName.ifEmpty { "PizzaHut" } }
         binding.tvHeaderTitle.text = vendorTitle
 
@@ -127,6 +143,55 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
             binding.tvTermsList.visibility = View.GONE
         }
 
+        // Phone Number
+        val phone = vendor.headOfficeNumber.ifEmpty {
+            arguments?.getString("vendor_phone")?.ifEmpty { null }
+                ?: vendor.branchesList.firstOrNull { it.phoneNumber.isNotEmpty() }?.phoneNumber
+                ?: ""
+        }
+        if (phone.isNotEmpty()) {
+            binding.vDivider3.visibility = View.VISIBLE
+            binding.tvPhoneHeader.visibility = View.VISIBLE
+            binding.llPhoneContainer.visibility = View.VISIBLE
+            binding.tvPhoneNumber.text = phone
+            binding.llPhoneContainer.setOnClickListener {
+                try {
+                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        } else {
+            binding.vDivider3.visibility = View.GONE
+            binding.tvPhoneHeader.visibility = View.GONE
+            binding.llPhoneContainer.visibility = View.GONE
+        }
+
+        // Website URL
+        val websiteUrl = vendor.socialLinksList.firstOrNull {
+            it.platform.equals("website", ignoreCase = true) || it.url.startsWith("http") || it.url.contains("www.")
+        }?.url ?: arguments?.getString("website_url")
+
+        if (!websiteUrl.isNullOrEmpty()) {
+            var formattedUrl = websiteUrl.trim()
+            if (!formattedUrl.startsWith("http://") && !formattedUrl.startsWith("https://")) {
+                formattedUrl = "https://$formattedUrl"
+            }
+            binding.tvWebsiteUrl.visibility = View.VISIBLE
+            binding.tvWebsiteUrl.text = formattedUrl
+            binding.tvWebsiteUrl.setOnClickListener {
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl))
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        } else {
+            binding.tvWebsiteUrl.visibility = View.GONE
+        }
+
         if (vendor.branchesList.isNotEmpty()) {
             branchesList = vendor.branchesList
             setupBranchesList(branchesList)
@@ -139,6 +204,32 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
     private fun setupFallbackData() {
         binding.tvHeaderTitle.text = "PizzaHut"
         binding.tvDescription.text = "Pizza Hut is an American multinational restaurant chain and international franchise founded in 1958 in Wichita, Kansas by Dan and Frank Carney."
+        
+        val fallbackPhone = arguments?.getString("vendor_phone") ?: "021-111-222-333"
+        binding.vDivider3.visibility = View.VISIBLE
+        binding.tvPhoneHeader.visibility = View.VISIBLE
+        binding.llPhoneContainer.visibility = View.VISIBLE
+        binding.tvPhoneNumber.text = fallbackPhone
+        binding.llPhoneContainer.setOnClickListener {
+            try {
+                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$fallbackPhone"))
+                startActivity(intent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        val fallbackWebsite = arguments?.getString("website_url") ?: "https://www.pizzahut.com.pk/"
+        binding.tvWebsiteUrl.visibility = View.VISIBLE
+        binding.tvWebsiteUrl.text = fallbackWebsite
+        binding.tvWebsiteUrl.setOnClickListener {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fallbackWebsite))
+                startActivity(intent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
         setupFallbackBranches()
     }
 

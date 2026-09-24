@@ -13,12 +13,35 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/ivDealBanner"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_140sdp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_placeholder" />
+            android:layout_height="@dimen/_140sdp">
+
+            <ImageView
+                android:id="@+id/ivDealBanner"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_placeholder" />
+
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmerBanner"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:shimmer_auto_start="true"
+                app:shimmer_colored="true"
+                app:shimmer_base_color="@color/shimmer_base_dark"
+                app:shimmer_highlight_color="@color/shimmer_highlight_dark"
+                app:shimmer_duration="1200">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/shimmer_base_dark" />
+
+            </com.facebook.shimmer.ShimmerFrameLayout>
+
+        </FrameLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"

@@ -2,6 +2,7 @@ package com.discountworld.dwapp.adapters
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
@@ -47,11 +48,45 @@ class DeliveryDealsAdapter(
         }
         holder.binding.tvDealCategory.text = dealType
 
-        Glide.with(holder.itemView.context)
-            .load(item.bannerUrl.fixImageUrl())
-            .placeholder(R.drawable.ic_placeholder)
-            .error(R.drawable.ic_placeholder)
-            .into(holder.binding.ivDealBanner)
+        val bannerUrl = item.bannerUrl.fixImageUrl()
+        if (!bannerUrl.isNullOrEmpty()) {
+            holder.binding.shimmerBanner.visibility = View.VISIBLE
+            holder.binding.shimmerBanner.startShimmer()
+
+            Glide.with(holder.itemView.context)
+                .load(bannerUrl)
+                .placeholder(R.drawable.ic_placeholder)
+                .error(R.drawable.ic_placeholder)
+                .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                    override fun onLoadFailed(
+                        e: com.bumptech.glide.load.engine.GlideException?,
+                        model: Any?,
+                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        holder.binding.shimmerBanner.stopShimmer()
+                        holder.binding.shimmerBanner.visibility = View.GONE
+                        return false
+                    }
+
+                    override fun onResourceReady(
+                        resource: android.graphics.drawable.Drawable,
+                        model: Any,
+                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                        dataSource: com.bumptech.glide.load.DataSource,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        holder.binding.shimmerBanner.stopShimmer()
+                        holder.binding.shimmerBanner.visibility = View.GONE
+                        return false
+                    }
+                })
+                .into(holder.binding.ivDealBanner)
+        } else {
+            holder.binding.shimmerBanner.stopShimmer()
+            holder.binding.shimmerBanner.visibility = View.GONE
+            holder.binding.ivDealBanner.setImageResource(R.drawable.ic_placeholder)
+        }
 
         Glide.with(holder.itemView.context)
             .load(item.logoUrl.fixImageUrl())

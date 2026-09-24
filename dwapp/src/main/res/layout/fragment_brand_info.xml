@@ -340,6 +340,7 @@
                 android:textStyle="bold" />
 
             <LinearLayout
+                android:id="@+id/llPhoneContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_8sdp"

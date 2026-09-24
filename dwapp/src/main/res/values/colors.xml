@@ -7,4 +7,6 @@
     <color name="gray_text">#757575</color>
     <color name="divider_color">#E0E0E0</color>
     <color name="dw_discovery_lightgray">#E0E0E0</color>
+    <color name="shimmer_base_dark">#424242</color>
+    <color name="shimmer_highlight_dark">#757575</color>
 </resources>
