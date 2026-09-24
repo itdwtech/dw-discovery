@@ -1,6 +1,8 @@
 package com.discountworld.dwapp.fragments
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,7 +21,7 @@ class LoginFragment : Fragment() {
 
     companion object {
         // CODE MEIN PHONE NUMBER AUR TIER YAHAN SET KAREIN:
-        const val PHONE_NUMBER = "12345678923"
+        const val PHONE_NUMBER = "03223344551"
         const val CUSTOMER_TIER = "Bronze" // Options: "Gold", "Silver", or "Bronze"
     }
 
@@ -48,12 +50,17 @@ class LoginFragment : Fragment() {
         val phoneToUse = intentPhone?.ifEmpty { null } ?: PHONE_NUMBER
         val tierToUse = intentTier?.ifEmpty { null } ?: CUSTOMER_TIER
 
-        // If tier in SessionManager doesn't match the new code/intent tier, clear session to re-auth
-        if (!intentPhone.isNullOrEmpty() || !intentTier.isNullOrEmpty() || !sessionManager.getCustomerTier().equals(tierToUse, ignoreCase = true)) {
+        // If saved phone OR tier in SessionManager doesn't match active code/intent, clear session to re-auth
+        val currentSavedPhone = sessionManager.getPhone()
+        val currentSavedTier = sessionManager.getCustomerTier()
+
+        if (!currentSavedPhone.equals(phoneToUse, ignoreCase = true) ||
+            !currentSavedTier.equals(tierToUse, ignoreCase = true)
+        ) {
             sessionManager.clearSession()
         }
 
-        // Check if already logged in
+        // Check if already logged in with matching session
         if (sessionManager.isLoggedIn()) {
             val token = sessionManager.getAuthToken()!!
             RedemptionStubClient.setToken(token)
@@ -61,17 +68,13 @@ class LoginFragment : Fragment() {
             return
         }
 
-        observeViewModel()
+        observeViewModel(phoneToUse, tierToUse)
 
-        // Auto authenticate immediately on launch using code or intent parameters
+        // Direct code auto-authentication on launch
         viewModel.authenticateByPhone(phoneToUse, tierToUse)
-
-        binding.btnSignIn.setOnClickListener {
-            viewModel.authenticateByPhone(phoneToUse, tierToUse)
-        }
     }
 
-    private fun observeViewModel() {
+    private fun observeViewModel(phoneToUse: String, tierToUse: String) {
         viewModel.authState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is AuthState.Loading -> {
@@ -80,7 +83,8 @@ class LoginFragment : Fragment() {
                 is AuthState.Success -> {
                     binding.progressBar.visibility = View.GONE
                     sessionManager.saveAuthToken(state.response.accessToken)
-                    val tier = state.response.customer.customerTier.ifEmpty { CUSTOMER_TIER }
+                    sessionManager.savePhone(phoneToUse)
+                    val tier = state.response.customer.customerTier.ifEmpty { tierToUse }
                     sessionManager.saveCustomerTier(tier)
                     RedemptionStubClient.setToken(state.response.accessToken)
                     findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
@@ -88,17 +92,21 @@ class LoginFragment : Fragment() {
                 is AuthState.SuccessPhone -> {
                     binding.progressBar.visibility = View.GONE
                     sessionManager.saveAuthToken(state.response.accessToken)
-                    val tier = state.response.customer.customerTier.ifEmpty { CUSTOMER_TIER }
+                    sessionManager.savePhone(phoneToUse)
+                    val tier = state.response.customer.customerTier.ifEmpty { tierToUse }
                     sessionManager.saveCustomerTier(tier)
                     RedemptionStubClient.setToken(state.response.accessToken)
                     findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
                 }
                 is AuthState.Error -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.llWelcome.visibility = View.VISIBLE
-                    binding.btnSignIn.visibility = View.VISIBLE
-                    binding.btnSignIn.isEnabled = true
+                    binding.progressBar.visibility = View.VISIBLE
                     Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
+                    // Auto retry after 4 seconds on error
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        if (isAdded && !sessionManager.isLoggedIn()) {
+                            viewModel.authenticateByPhone(phoneToUse, tierToUse)
+                        }
+                    }, 4000)
                 }
                 AuthState.Idle -> {
                     binding.progressBar.visibility = View.VISIBLE

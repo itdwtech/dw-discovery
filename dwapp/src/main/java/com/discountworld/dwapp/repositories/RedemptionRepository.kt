@@ -23,10 +23,9 @@ class RedemptionRepository {
         val builder = CustomerPhoneAuthRequest.newBuilder()
             .setPhoneNumber(cleanPhone)
             .setCustomerTier(customerTier)
-
-        fullName?.let { builder.setFullName(it) }
-        email?.let { builder.setEmail(it) }
-        cnic?.let { builder.setCnic(it) }
+            .setFullName(fullName ?: "Customer $cleanPhone")
+            .setEmail(email ?: "user$cleanPhone@dw.com")
+            .setCnic(cnic ?: "42101${cleanPhone.takeLast(8)}")
 
         val result = grpcCall { stub.authenticateByPhone(builder.build()) }
 
