@@ -29,7 +29,7 @@ class HomeViewModel : ViewModel() {
     private var selectedCityId: Long = 1L
 
     private var popularCurrentPage = 1
-    private val popularPageSize = 3
+    private val popularPageSize = 10
     private var popularIsLastPage = false
     private var isPopularLoading = false
     private val allPopularVendors = mutableListOf<RedemptionVendorSummary>()
