@@ -28,11 +28,7 @@ class HomeViewModel : ViewModel() {
 
     private var selectedCityId: Long = 1L
 
-    private var popularCurrentPage = 1
-    private val popularPageSize = 10
-    private var popularIsLastPage = false
-    private var isPopularLoading = false
-    private val allPopularVendors = mutableListOf<RedemptionVendorSummary>()
+
 
     fun setSelectedCityId(cityId: Long) {
         selectedCityId = cityId
@@ -42,16 +38,11 @@ class HomeViewModel : ViewModel() {
 
     fun loadHomeData(cityId: Long) {
         selectedCityId = cityId
-        popularCurrentPage = 1
-        popularIsLastPage = false
-        isPopularLoading = false
-        allPopularVendors.clear()
 
         viewModelScope.launch {
             _uiState.value = _uiState.value?.copy(isLoading = true) ?: HomeUiState(isLoading = true)
 
             val storiesDeferred = async { repository.listStories(cityId) }
-            val popularVendorsDeferred = async { repository.listVendors(page = 1, pageSize = popularPageSize, cityId = cityId) }
             val featuredVendorsDeferred = async { repository.listVendors(page = 1, pageSize = 20, cityId = cityId, featured = true) }
             val bannersDeferred = async { repository.listBanners(cityId) }
 
@@ -59,45 +50,19 @@ class HomeViewModel : ViewModel() {
             val featuredVendors = featuredVendorsDeferred.await()?.vendorsList ?: emptyList()
             val bannerResponse = bannersDeferred.await()
             val bannerItems = bannerResponse?.bannersList ?: emptyList()
-
-            val popularResponse = popularVendorsDeferred.await()
-            val initialPopularVendors = popularResponse?.vendorsList ?: emptyList()
-            val totalCount = popularResponse?.totalCount ?: 0
-
-            allPopularVendors.addAll(initialPopularVendors)
-            popularIsLastPage = if (totalCount > 0) allPopularVendors.size >= totalCount else initialPopularVendors.size < popularPageSize
+            val popularVendors = bannerResponse?.popularVendorsList ?: emptyList()
 
             _uiState.value = HomeUiState(
                 isLoading = false,
                 stories = stories,
                 banners = bannerItems,
                 featuredVendors = featuredVendors,
-                popularVendors = allPopularVendors.toList()
+                popularVendors = popularVendors
             )
         }
     }
 
     fun loadNextPopularPage() {
-        if (isPopularLoading || popularIsLastPage) return
-
-        isPopularLoading = true
-
-        viewModelScope.launch {
-            val nextPage = popularCurrentPage + 1
-            val popularResponse = repository.listVendors(page = nextPage, pageSize = popularPageSize, cityId = selectedCityId)
-            val newVendors = popularResponse?.vendorsList ?: emptyList()
-            val totalCount = popularResponse?.totalCount ?: 0
-
-            if (newVendors.isNotEmpty()) {
-                popularCurrentPage = nextPage
-                allPopularVendors.addAll(newVendors)
-                popularIsLastPage = if (totalCount > 0) allPopularVendors.size >= totalCount else newVendors.size < popularPageSize
-            } else {
-                popularIsLastPage = true
-            }
-
-            isPopularLoading = false
-            _uiState.value = _uiState.value?.copy(popularVendors = allPopularVendors.toList())
-        }
+        // No-op as popular vendors are loaded via listBanners (slider API)
     }
 }
