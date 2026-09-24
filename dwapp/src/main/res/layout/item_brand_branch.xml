@@ -64,7 +64,7 @@
             <ImageView
                 android:layout_width="@dimen/_18sdp"
                 android:layout_height="@dimen/_18sdp"
-                android:src="@drawable/ic_phone_orange"
+                android:src="@drawable/ic_phone_icon"
                 app:tint="@color/purple_primary" />
 
             <TextView

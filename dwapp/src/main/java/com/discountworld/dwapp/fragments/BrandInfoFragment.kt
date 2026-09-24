@@ -137,11 +137,13 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
         if (vendor.termsAndConditions.isNotEmpty()) {
             binding.vDivider4.visibility = View.VISIBLE
             binding.tvTermsHeader.visibility = View.VISIBLE
+            binding.llTermsContainer.visibility = View.VISIBLE
             binding.tvTermsList.visibility = View.VISIBLE
             binding.tvTermsList.text = vendor.termsAndConditions
         } else {
             binding.vDivider4.visibility = View.GONE
             binding.tvTermsHeader.visibility = View.GONE
+            binding.llTermsContainer.visibility = View.GONE
             binding.tvTermsList.visibility = View.GONE
         }
 
@@ -181,9 +183,10 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
                 formattedUrl = "https://$formattedUrl"
             }
             binding.tvWebsiteHeader.visibility = View.VISIBLE
+            binding.llWebsiteContainer.visibility = View.VISIBLE
             binding.tvWebsiteUrl.visibility = View.VISIBLE
             binding.tvWebsiteUrl.text = formattedUrl
-            binding.tvWebsiteUrl.setOnClickListener {
+            binding.llWebsiteContainer.setOnClickListener {
                 try {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl))
                     startActivity(intent)
@@ -193,6 +196,7 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
             }
         } else {
             binding.tvWebsiteHeader.visibility = View.GONE
+            binding.llWebsiteContainer.visibility = View.GONE
             binding.tvWebsiteUrl.visibility = View.GONE
         }
 
@@ -225,9 +229,10 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
 
         val fallbackWebsite = arguments?.getString("website_url") ?: "https://www.pizzahut.com.pk/"
         binding.tvWebsiteHeader.visibility = View.VISIBLE
+        binding.llWebsiteContainer.visibility = View.VISIBLE
         binding.tvWebsiteUrl.visibility = View.VISIBLE
         binding.tvWebsiteUrl.text = fallbackWebsite
-        binding.tvWebsiteUrl.setOnClickListener {
+        binding.llWebsiteContainer.setOnClickListener {
             try {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fallbackWebsite))
                 startActivity(intent)
