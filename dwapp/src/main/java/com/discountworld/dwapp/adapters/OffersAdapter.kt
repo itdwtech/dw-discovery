@@ -19,20 +19,16 @@ class OffersAdapter(
 
     private val filteredDeals: List<RedemptionDealSummary> = dealsList.filter { deal ->
         val requiredTier = deal.customerTier
-        val isTierAllowed = isTierEligible(userTier, requiredTier)
-        val isRedeemed = deal.isRedeemedToday || deal.isLimitReached || isDealRedeemed(deal.id)
-        isTierAllowed && !isRedeemed
+        isTierEligible(userTier, requiredTier)
     }
 
-    private val filteredDummyOffers: List<Offer> = dummyOffers.filterIndexed { index, offer ->
+    private val filteredDummyOffers: List<Offer> = dummyOffers.filterIndexed { index, _ ->
         val requiredTier = when (index) {
             0 -> "Gold"
             1 -> "Silver"
             else -> "Bronze"
         }
-        val isTierAllowed = isTierEligible(userTier, requiredTier)
-        val isRedeemed = offer.isRedeemed || isOfferRedeemed(offer.discount)
-        isTierAllowed && !isRedeemed
+        isTierEligible(userTier, requiredTier)
     }
 
     class ViewHolder(val binding: ItemOfferBinding) : RecyclerView.ViewHolder(binding.root)
@@ -50,7 +46,7 @@ class OffersAdapter(
 
             val isRedeemed = deal.isRedeemedToday || deal.isLimitReached || isDealRedeemed(deal.id)
 
-            holder.binding.tvDiscountAmount.text = if (isRedeemed) "Redeemed" else title
+            holder.binding.tvDiscountAmount.text = title
             holder.binding.tvOfferDescription.text = description
 
             if (isRedeemed) {
@@ -70,7 +66,7 @@ class OffersAdapter(
 
             val isRedeemed = offer.isRedeemed || isOfferRedeemed(offer.discount)
 
-            holder.binding.tvDiscountAmount.text = if (isRedeemed) "Redeemed" else offer.discount
+            holder.binding.tvDiscountAmount.text = offer.discount
 
             if (isRedeemed) {
                 holder.binding.llDiscount.setBackgroundResource(R.drawable.bg_discount_gray)
