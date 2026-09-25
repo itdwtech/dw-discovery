@@ -224,7 +224,7 @@ class RedemptionRepository {
 
     suspend fun listCustomerRedemptions(
         page: Int = 0,
-        pageSize: Int = 50,
+        pageSize: Int = 10,
         search: String? = null
     ): ListCustomerRedemptionsResponse? {
         val pagination = PaginationRequest.newBuilder()

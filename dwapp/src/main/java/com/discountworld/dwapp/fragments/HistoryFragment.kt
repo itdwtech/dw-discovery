@@ -7,14 +7,13 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.discountworld.dwapp.adapters.HistoryAdapter
 import com.discountworld.dwapp.databinding.FragmentHistoryBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.viewmodels.HistoryUiState
 import com.discountworld.dwapp.viewmodels.HistoryViewModel
-import kotlinx.coroutines.launch
 
 class HistoryFragment : Fragment() {
 
@@ -52,6 +51,9 @@ class HistoryFragment : Fragment() {
                     binding.progressBar.visibility = View.VISIBLE
                     binding.tvNoData.visibility = View.GONE
                 }
+                is HistoryUiState.LoadingMore -> {
+                    // Keep existing items visible while loading next page
+                }
                 is HistoryUiState.Success -> {
                     binding.progressBar.visibility = View.GONE
                     binding.tvCount.text = state.totalCount.toString()
@@ -60,6 +62,12 @@ class HistoryFragment : Fragment() {
                         binding.rvHistory.visibility = View.VISIBLE
                         binding.tvNoData.visibility = View.GONE
                         historyAdapter.updateData(state.history)
+
+                        binding.rvHistory.post {
+                            if (_binding != null && !binding.rvHistory.canScrollVertically(1) && !state.isLastPage) {
+                                viewModel.loadNextPage()
+                            }
+                        }
                     } else {
                         binding.rvHistory.visibility = View.GONE
                         binding.tvNoData.visibility = View.VISIBLE
@@ -78,8 +86,27 @@ class HistoryFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.rvHistory.layoutManager = LinearLayoutManager(requireContext())
+        val layoutManager = LinearLayoutManager(requireContext())
+        binding.rvHistory.layoutManager = layoutManager
         binding.rvHistory.adapter = historyAdapter
+
+        binding.rvHistory.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (!recyclerView.canScrollVertically(1) && newState != RecyclerView.SCROLL_STATE_IDLE) {
+                    viewModel.loadNextPage()
+                }
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val totalItemCount = layoutManager.itemCount
+                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+                if (lastVisibleItemPosition >= totalItemCount - 2) {
+                    viewModel.loadNextPage()
+                }
+            }
+        })
     }
 
     private fun setupSearch() {
