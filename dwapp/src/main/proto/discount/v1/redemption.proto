@@ -25,6 +25,7 @@ message Customer {
   int32 reward_points = 10;
   string client_name = 11;
   optional string customer_tier = 12;
+  optional string unique_id = 13;
 }
 
 message CustomerCnicAuthRequest {
@@ -49,6 +50,21 @@ message CustomerPhoneAuthRequest {
 }
 
 message CustomerPhoneAuthResponse {
+  string access_token = 1;
+  Customer customer = 2;
+  bool is_new_customer = 3;
+}
+
+message CustomerUniqueIdAuthRequest {
+  string unique_id = 1;
+  optional string customer_tier = 2;
+  optional string full_name = 3;
+  optional string phone_number = 4;
+  optional string email = 5;
+  optional string cnic = 6;
+}
+
+message CustomerUniqueIdAuthResponse {
   string access_token = 1;
   Customer customer = 2;
   bool is_new_customer = 3;
@@ -162,6 +178,7 @@ message ListRedemptionVendorsRequest {
   optional bool in_store = 7;
   optional bool delivery = 8;
   optional bool ecommerce = 9;
+  optional string customer_tier = 10;
 }
 
 message ListRedemptionVendorsResponse {
@@ -218,6 +235,7 @@ message RedemptionMapPin {
 message ListMapPinsRequest {
   int64 city_id = 1;
   optional int64 category_id = 2;
+  optional string customer_tier = 3;
 }
 
 message ListMapPinsResponse {
@@ -249,6 +267,7 @@ message RedemptionBannerItem {
 
 message ListRedemptionBannersRequest {
   optional int64 city_id = 1;
+  optional string customer_tier = 2;
 }
 
 message ListRedemptionBannersResponse {
@@ -269,6 +288,7 @@ message RedemptionStory {
 
 message ListStoriesRequest {
   int64 city_id = 1;
+  optional string customer_tier = 2;
 }
 
 message ListStoriesResponse {
@@ -310,6 +330,7 @@ message RedemptionDealSummary {
 
 message ListVendorDealsRequest {
   int64 vendor_id = 1;
+  optional string customer_tier = 2;
 }
 
 message ListVendorDealsResponse {
@@ -367,6 +388,7 @@ message RedemptionHistoryItem {
   google.protobuf.Timestamp redeemed_at = 22;
   bool vendor_verified = 23;
   optional google.protobuf.Timestamp vendor_verified_at = 24;
+  optional string customer_unique_id = 25;
 }
 
 message ListRedemptionsRequest {
@@ -427,6 +449,7 @@ service RedemptionService {
   // Customer Auth & Profile
   rpc AuthenticateByCnic(CustomerCnicAuthRequest) returns (CustomerCnicAuthResponse);
   rpc AuthenticateByPhone(CustomerPhoneAuthRequest) returns (CustomerPhoneAuthResponse);
+  rpc AuthenticateByUniqueId(CustomerUniqueIdAuthRequest) returns (CustomerUniqueIdAuthResponse);
   rpc GetCustomerProfile(GetCustomerProfileRequest) returns (Customer);
   rpc UpdateCustomerProfile(UpdateCustomerProfileRequest) returns (Customer);
   rpc ListCustomers(ListCustomersRequest) returns (ListCustomersResponse);

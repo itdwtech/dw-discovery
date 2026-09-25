@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnDwApp)?.setOnClickListener {
-            val phone = findViewById<android.widget.EditText>(R.id.etProtoPhone)?.text?.toString()?.trim() ?: "03001234567"
+            val uniqueId = findViewById<android.widget.EditText>(R.id.etProtoUniqueId)?.text?.toString()?.trim()?.ifEmpty { "123456789012" } ?: "123456789012"
             val rgTier = findViewById<android.widget.RadioGroup>(R.id.rgProtoTier)
             val selectedTier = when (rgTier?.checkedRadioButtonId) {
                 R.id.rbProtoGold -> "Gold"
@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
                 setClassName("com.discountworld.dwapp", "com.discountworld.dwapp.activities.MainActivity")
             }
 
-            intent.putExtra("phone_number", phone)
+            intent.putExtra("unique_id", uniqueId)
             intent.putExtra("customer_tier", selectedTier)
 
             try {

@@ -25,21 +25,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Phone Number:"
+            android:text="Unique ID:"
             android:textColor="#1A1C3D"
             android:textSize="15sp"
             android:textStyle="bold" />
 
         <EditText
-            android:id="@+id/etProtoPhone"
+            android:id="@+id/etProtoUniqueId"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="6dp"
             android:background="@android:drawable/editbox_background"
-            android:hint="0300-1234567"
-            android:inputType="phone"
+            android:hint="e.g. 123456789012"
+            android:inputType="number"
+            android:maxLength="12"
             android:paddingHorizontal="12dp"
-            android:text="03001234567"
+            android:text="123456789012"
             android:textSize="16sp" />
 
         <TextView
@@ -104,6 +105,7 @@
             android:layout_marginTop="16dp"
             android:text="Open EasyPaisa Discovery SDK"
             android:textSize="16sp"
+            android:visibility="gone"
             android:textStyle="bold" />
 
     </LinearLayout>

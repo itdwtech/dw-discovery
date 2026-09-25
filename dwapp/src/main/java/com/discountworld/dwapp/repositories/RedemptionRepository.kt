@@ -38,6 +38,36 @@ class RedemptionRepository {
         return result.getOrNull()
     }
 
+    suspend fun authenticateByUniqueId(
+        uniqueId: String,
+        customerTier: String = "Gold",
+        fullName: String? = null,
+        phoneNumber: String? = null,
+        email: String? = null,
+        cnic: String? = null
+    ): CustomerUniqueIdAuthResponse? {
+        Log.d("Auth", "Authenticating with Unique ID: $uniqueId, Tier: $customerTier")
+
+        val builder = CustomerUniqueIdAuthRequest.newBuilder()
+            .setUniqueId(uniqueId)
+            .setCustomerTier(customerTier)
+
+        fullName?.let { builder.setFullName(it) }
+        phoneNumber?.let { builder.setPhoneNumber(it) }
+        email?.let { builder.setEmail(it) }
+        cnic?.let { builder.setCnic(it) }
+
+        val result = grpcCall { stub.authenticateByUniqueId(builder.build()) }
+
+        result.onSuccess {
+            Log.d("Auth", "Unique ID Auth Success: ${it.customer.fullName}")
+        }.onFailure {
+            Log.e("Auth", "Unique ID Auth Failed: ${it.message}")
+        }
+
+        return result.getOrNull()
+    }
+
     suspend fun authenticateByCnic(cnic: String): CustomerCnicAuthResponse? {
         // Strip dashes if the server expects only digits
         val cleanCnic = cnic.replace("-", "")

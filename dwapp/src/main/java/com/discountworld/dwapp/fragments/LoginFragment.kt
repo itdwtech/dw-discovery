@@ -20,8 +20,8 @@ import com.discountworld.dwapp.viewmodels.LoginViewModel
 class LoginFragment : Fragment() {
 
     companion object {
-        // CODE MEIN PHONE NUMBER AUR TIER YAHAN SET KAREIN:
-        const val PHONE_NUMBER = "03336688999"
+        // CODE MEIN UNIQUE ID AUR TIER YAHAN SET KAREIN:
+        const val UNIQUE_ID = "123456789012" // Must be a valid 12-digit Unique ID
         const val CUSTOMER_TIER = "Gold" // Options: "Gold", "Silver", or "Bronze"
     }
 
@@ -44,17 +44,17 @@ class LoginFragment : Fragment() {
 
         sessionManager = SessionManager(requireContext())
 
-        val intentPhone = activity?.intent?.getStringExtra("phone_number")
+        val intentUniqueId = activity?.intent?.getStringExtra("unique_id")
         val intentTier = activity?.intent?.getStringExtra("customer_tier")
 
-        val phoneToUse = intentPhone?.ifEmpty { null } ?: PHONE_NUMBER
+        val uniqueIdToUse = intentUniqueId?.ifEmpty { null } ?: UNIQUE_ID
         val tierToUse = intentTier?.ifEmpty { null } ?: CUSTOMER_TIER
 
-        // If saved phone OR tier in SessionManager doesn't match active code/intent, clear session to re-auth
-        val currentSavedPhone = sessionManager.getPhone()
+        // If saved session credentials don't match active code/intent, clear session to re-auth
+        val currentSavedUniqueId = sessionManager.getUniqueId()
         val currentSavedTier = sessionManager.getCustomerTier()
 
-        if (!currentSavedPhone.equals(phoneToUse, ignoreCase = true) ||
+        if (!currentSavedUniqueId.equals(uniqueIdToUse, ignoreCase = true) ||
             !currentSavedTier.equals(tierToUse, ignoreCase = true)
         ) {
             sessionManager.clearSession()
@@ -68,31 +68,28 @@ class LoginFragment : Fragment() {
             return
         }
 
-        observeViewModel(phoneToUse, tierToUse)
+        observeViewModel(uniqueIdToUse, tierToUse)
 
-        // Direct code auto-authentication on launch
-        viewModel.authenticateByPhone(phoneToUse, tierToUse)
+        // Login strictly based on Unique ID and Tier
+        viewModel.authenticateByUniqueId(
+            uniqueId = uniqueIdToUse,
+            customerTier = tierToUse
+        )
     }
 
-    private fun observeViewModel(phoneToUse: String, tierToUse: String) {
+    private fun observeViewModel(uniqueIdToUse: String, tierToUse: String) {
         viewModel.authState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is AuthState.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE
                 }
-                is AuthState.Success -> {
+                is AuthState.SuccessUniqueId -> {
                     binding.progressBar.visibility = View.GONE
                     sessionManager.saveAuthToken(state.response.accessToken)
-                    sessionManager.savePhone(phoneToUse)
-                    val tier = state.response.customer.customerTier.ifEmpty { tierToUse }
-                    sessionManager.saveCustomerTier(tier)
-                    RedemptionStubClient.setToken(state.response.accessToken)
-                    findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
-                }
-                is AuthState.SuccessPhone -> {
-                    binding.progressBar.visibility = View.GONE
-                    sessionManager.saveAuthToken(state.response.accessToken)
-                    sessionManager.savePhone(phoneToUse)
+                    sessionManager.saveUniqueId(uniqueIdToUse)
+                    if (state.response.customer.phoneNumber.isNotEmpty()) {
+                        sessionManager.savePhone(state.response.customer.phoneNumber)
+                    }
                     val tier = state.response.customer.customerTier.ifEmpty { tierToUse }
                     sessionManager.saveCustomerTier(tier)
                     RedemptionStubClient.setToken(state.response.accessToken)
@@ -104,12 +101,18 @@ class LoginFragment : Fragment() {
                     // Auto retry after 4 seconds on error
                     Handler(Looper.getMainLooper()).postDelayed({
                         if (isAdded && !sessionManager.isLoggedIn()) {
-                            viewModel.authenticateByPhone(phoneToUse, tierToUse)
+                            viewModel.authenticateByUniqueId(
+                                uniqueId = uniqueIdToUse,
+                                customerTier = tierToUse
+                            )
                         }
                     }, 4000)
                 }
                 AuthState.Idle -> {
                     binding.progressBar.visibility = View.VISIBLE
+                }
+                else -> {
+                    // Ignore legacy auth responses
                 }
             }
         }

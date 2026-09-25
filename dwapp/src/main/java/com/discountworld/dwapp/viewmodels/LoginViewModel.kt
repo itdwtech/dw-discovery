@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.discountworld.discount.CustomerCnicAuthResponse
 import com.discountworld.discount.CustomerPhoneAuthResponse
+import com.discountworld.discount.CustomerUniqueIdAuthResponse
 import com.discountworld.dwapp.repositories.RedemptionRepository
 import kotlinx.coroutines.launch
 
@@ -14,6 +15,7 @@ sealed class AuthState {
     object Loading : AuthState()
     data class Success(val response: CustomerCnicAuthResponse) : AuthState()
     data class SuccessPhone(val response: CustomerPhoneAuthResponse) : AuthState()
+    data class SuccessUniqueId(val response: CustomerUniqueIdAuthResponse) : AuthState()
     data class Error(val message: String) : AuthState()
 }
 
@@ -36,6 +38,38 @@ class LoginViewModel : ViewModel() {
             val response = repository.authenticateByPhone(cleanPhone, customerTier)
             if (response != null) {
                 _authState.value = AuthState.SuccessPhone(response)
+            } else {
+                _authState.value = AuthState.Error("Authentication failed. Check Logcat for 'Auth' or 'gRPC' tags.")
+            }
+        }
+    }
+
+    fun authenticateByUniqueId(
+        uniqueId: String,
+        customerTier: String = "Gold",
+        fullName: String? = null,
+        phoneNumber: String? = null,
+        email: String? = null,
+        cnic: String? = null
+    ) {
+        val cleanUniqueId = uniqueId.replace("-", "").replace(" ", "").trim()
+        if ((cleanUniqueId.length != 12) || (!cleanUniqueId.all { it.isDigit() })) {
+            _authState.value = AuthState.Error("Please enter a valid 12-digit Unique ID")
+            return
+        }
+
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            val response = repository.authenticateByUniqueId(
+                uniqueId = cleanUniqueId,
+                customerTier = customerTier,
+                fullName = fullName,
+                phoneNumber = phoneNumber,
+                email = email,
+                cnic = cnic
+            )
+            if (response != null) {
+                _authState.value = AuthState.SuccessUniqueId(response)
             } else {
                 _authState.value = AuthState.Error("Authentication failed. Check Logcat for 'Auth' or 'gRPC' tags.")
             }

@@ -18,6 +18,7 @@ class SessionManager(context: Context) {
         private const val KEY_AUTH_TOKEN = "auth_token"
         private const val KEY_CUSTOMER_TIER = "customer_tier"
         private const val KEY_PHONE_NUMBER = "phone_number"
+        private const val KEY_UNIQUE_ID = "unique_id"
         private const val KEY_SELECTED_CITY_ID = "selected_city_id"
         private const val KEY_REDEEMED_DEALS = "redeemed_deals"
     }
@@ -45,6 +46,14 @@ class SessionManager(context: Context) {
 
     fun getPhone(): String {
         return prefs.getString(KEY_PHONE_NUMBER, "") ?: ""
+    }
+
+    fun saveUniqueId(uniqueId: String) {
+        prefs.edit().putString(KEY_UNIQUE_ID, uniqueId).apply()
+    }
+
+    fun getUniqueId(): String {
+        return prefs.getString(KEY_UNIQUE_ID, "") ?: ""
     }
 
     fun saveSelectedCityId(cityId: Long) {
@@ -83,6 +92,7 @@ class SessionManager(context: Context) {
             .remove(KEY_AUTH_TOKEN)
             .remove(KEY_CUSTOMER_TIER)
             .remove(KEY_PHONE_NUMBER)
+            .remove(KEY_UNIQUE_ID)
             .remove(KEY_SELECTED_CITY_ID)
             .remove(KEY_REDEEMED_DEALS)
             .apply()
