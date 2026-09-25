@@ -18,17 +18,11 @@ class OffersAdapter(
 ) : RecyclerView.Adapter<OffersAdapter.ViewHolder>() {
 
     private val filteredDeals: List<RedemptionDealSummary> = dealsList.filter { deal ->
-        val requiredTier = deal.customerTier
-        isTierEligible(userTier, requiredTier)
+        isTierEligible(userTier, deal.customerTier)
     }
 
-    private val filteredDummyOffers: List<Offer> = dummyOffers.filterIndexed { index, _ ->
-        val requiredTier = when (index) {
-            0 -> "Gold"
-            1 -> "Silver"
-            else -> "Bronze"
-        }
-        isTierEligible(userTier, requiredTier)
+    private val filteredDummyOffers: List<Offer> = dummyOffers.filter {
+        isTierEligible(userTier, "")
     }
 
     class ViewHolder(val binding: ItemOfferBinding) : RecyclerView.ViewHolder(binding.root)
@@ -44,19 +38,25 @@ class OffersAdapter(
             val title = deal.title.ifEmpty { "Buy 1 Get 1" }
             val description = deal.description.ifEmpty { deal.title }
 
-            val isRedeemed = deal.isRedeemedToday || deal.isLimitReached || isDealRedeemed(deal.id)
+            val isNotRedeemable = !deal.isRedeemable || deal.isRedeemedToday || deal.isLimitReached || isDealRedeemed(deal.id)
 
             holder.binding.tvDiscountAmount.text = title
             holder.binding.tvOfferDescription.text = description
 
-            if (isRedeemed) {
+            if (isNotRedeemable) {
                 holder.binding.llDiscount.setBackgroundResource(R.drawable.bg_discount_gray)
                 holder.itemView.setOnClickListener(null)
                 holder.itemView.isClickable = false
+                holder.binding.llDiscount.setOnClickListener(null)
+                holder.binding.llDiscount.isClickable = false
             } else {
                 holder.binding.llDiscount.setBackgroundResource(R.drawable.bg_discount_purple)
                 holder.itemView.isClickable = true
                 holder.itemView.setOnClickListener {
+                    onOfferClick(deal, null)
+                }
+                holder.binding.llDiscount.isClickable = true
+                holder.binding.llDiscount.setOnClickListener {
                     onOfferClick(deal, null)
                 }
             }
@@ -72,34 +72,26 @@ class OffersAdapter(
                 holder.binding.llDiscount.setBackgroundResource(R.drawable.bg_discount_gray)
                 holder.itemView.setOnClickListener(null)
                 holder.itemView.isClickable = false
+                holder.binding.llDiscount.setOnClickListener(null)
+                holder.binding.llDiscount.isClickable = false
             } else {
                 holder.binding.llDiscount.setBackgroundResource(R.drawable.bg_discount_purple)
                 holder.itemView.isClickable = true
                 holder.itemView.setOnClickListener {
                     onOfferClick(null, offer)
                 }
+                holder.binding.llDiscount.isClickable = true
+                holder.binding.llDiscount.setOnClickListener {
+                    onOfferClick(null, offer)
+                }
             }
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun isTierEligible(userTier: String, requiredTier: String): Boolean {
-        if (requiredTier.isEmpty()) return true
-        val uTier = userTier.lowercase().trim()
-        val rTier = requiredTier.lowercase().trim()
-
-        val uRank = when (uTier) {
-            "gold" -> 3
-            "silver" -> 2
-            "bronze" -> 1
-            else -> 3
-        }
-        val rRank = when (rTier) {
-            "gold" -> 3
-            "silver" -> 2
-            "bronze" -> 1
-            else -> 1
-        }
-        return uRank >= rRank
+        // Show all offers regardless of user tier
+        return true
     }
 
     override fun getItemCount(): Int {
