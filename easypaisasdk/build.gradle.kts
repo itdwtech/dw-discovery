@@ -29,6 +29,11 @@ android {
             )
         }
     }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
     buildFeatures {
         viewBinding = true
     }

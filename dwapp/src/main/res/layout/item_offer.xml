@@ -1,69 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="8dp"
-    android:background="@drawable/bg_ticket_scalloped"
-    android:paddingVertical="8dp">
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
-    <!-- Bronze / Silver / Gold Image -->
-    <ImageView
-        android:id="@+id/imgOffer"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
-        android:layout_marginStart="20dp"
-        android:contentDescription="Offer type"
-        android:scaleType="centerInside"
-        android:src="@drawable/ic_silver"
+    <!-- Ticket Card -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cvTicket"
+        android:layout_width="match_parent"
+        android:layout_height="96dp"
+        android:background="@drawable/bg_ticket_scalloped"
+        android:elevation="3dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Offer Description -->
-    <TextView
-        android:id="@+id/tvOfferDescription"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="16dp"
-        android:text="Buy 1 Whitening Facial Get 1 Haircut &amp; Khat Free"
-        android:textColor="@color/black"
-        android:textSize="14sp"
-        android:textStyle="normal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/llDiscount"
-        app:layout_constraintStart_toEndOf="@id/imgOffer"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Discount -->
-    <LinearLayout
-        android:id="@+id/llDiscount"
-        android:layout_width="140dp"
-        android:layout_height="0dp"
-        android:layout_marginVertical="8dp"
-        android:layout_marginEnd="16dp"
-        android:background="@drawable/bg_discount_purple"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="H,1.5:1"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <!-- Left: Description -->
         <TextView
-            android:id="@+id/tvDiscountAmount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:id="@+id/tvOfferDescription"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="12dp"
+            android:gravity="center_vertical|start"
+            android:lineSpacingExtra="2dp"
+            android:text="Flat 30% off at for new year"
+            android:textColor="#111827"
+            android:textSize="15sp"
+            android:textStyle="normal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/vDivider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Dashed perforation line -->
+        <View
+            android:id="@+id/vDivider"
+            android:layout_width="1dp"
+            android:layout_height="0dp"
+            android:layout_marginVertical="4dp"
+            android:background="@drawable/bg_dashed_divider"
+            android:layerType="software"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/llDiscount"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Right: Green/Purple/Gray discount box -->
+        <LinearLayout
+            android:id="@+id/llDiscount"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_marginVertical="2dp"
+            android:layout_marginEnd="20dp"
+            android:background="@drawable/bg_discount_purple"
             android:gravity="center"
-            android:text="Buy 1 Get 1"
-            android:textColor="@color/white"
-            android:textSize="13sp"
-            android:textStyle="normal" />
+            android:orientation="vertical"
+            android:paddingHorizontal="10dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.46">
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/tvDiscountAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Flat 30% off"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Tier Badge (top-right corner overlay) -->
+    <ImageView
+        android:id="@+id/imgOffer"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:contentDescription="Tier Badge"
+        android:elevation="6dp"
+        android:scaleType="fitCenter"
+        android:layout_marginEnd="6dp"
+        android:src="@drawable/ic_gold"
+        app:layout_constraintEnd_toEndOf="@id/cvTicket"
+        app:layout_constraintTop_toTopOf="@id/cvTicket" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,5 +1,6 @@
 package com.discountworld.dwapp.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
@@ -7,21 +8,32 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ActivityMainBinding
+import com.discountworld.dwapp.fragments.LoginFragment
+import com.discountworld.dwapp.managers.RedemptionStubClient
+import com.discountworld.dwapp.managers.SessionManager
+import com.discountworld.dwapp.repositories.RedemptionRepository
 import com.discountworld.dwapp.viewmodels.MainViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
+    private lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        sessionManager = SessionManager(this)
         hideStatusBar()
+
+        handleBackgroundAuth(intent)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -37,6 +49,54 @@ class MainActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, arguments ->
             val hideBottomNav = arguments?.getBoolean("hideBottomNav", false) ?: false
             viewModel.updateBottomNavVisibility(destination.id, hideBottomNav)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleBackgroundAuth(intent)
+    }
+
+    private fun handleBackgroundAuth(launchIntent: Intent?) {
+        val intentUniqueId = launchIntent?.getStringExtra("unique_id")
+        val intentTier = launchIntent?.getStringExtra("customer_tier")
+
+        val uniqueIdToUse = intentUniqueId?.ifEmpty { null } ?: LoginFragment.UNIQUE_ID
+        val tierToUse = intentTier?.ifEmpty { null } ?: LoginFragment.CUSTOMER_TIER
+
+        val currentSavedUniqueId = sessionManager.getUniqueId()
+        val currentSavedTier = sessionManager.getCustomerTier()
+
+        val needsReAuth = !currentSavedUniqueId.equals(uniqueIdToUse, ignoreCase = true) ||
+                !currentSavedTier.equals(tierToUse, ignoreCase = true) ||
+                !sessionManager.isLoggedIn()
+
+        if (needsReAuth) {
+            sessionManager.clearSession()
+            sessionManager.saveUniqueId(uniqueIdToUse)
+            sessionManager.saveCustomerTier(tierToUse)
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val repo = RedemptionRepository()
+                    val authResp = repo.authenticateByUniqueId(uniqueIdToUse, tierToUse)
+                    if (authResp != null) {
+                        sessionManager.saveAuthToken(authResp.accessToken)
+                        sessionManager.saveUniqueId(uniqueIdToUse)
+                        val tier = authResp.customer.customerTier.ifEmpty { tierToUse }
+                        sessionManager.saveCustomerTier(tier)
+                        if (authResp.customer.phoneNumber.isNotEmpty()) {
+                            sessionManager.savePhone(authResp.customer.phoneNumber)
+                        }
+                        RedemptionStubClient.setToken(authResp.accessToken)
+                    }
+                } catch (_: Exception) { }
+            }
+        } else {
+            sessionManager.getAuthToken()?.let { token ->
+                RedemptionStubClient.setToken(token)
+            }
         }
     }
 
