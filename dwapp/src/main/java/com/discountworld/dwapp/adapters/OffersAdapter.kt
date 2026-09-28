@@ -2,6 +2,7 @@ package com.discountworld.dwapp.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.discountworld.discount.RedemptionDealSummary
 import com.discountworld.dwapp.R
@@ -17,12 +18,30 @@ class OffersAdapter(
     private val onOfferClick: (RedemptionDealSummary?, Offer?) -> Unit
 ) : RecyclerView.Adapter<OffersAdapter.ViewHolder>() {
 
+    private fun isTierEligible(userTier: String, requiredTier: String): Boolean {
+        val uTier = userTier.trim().lowercase()
+        val rTier = requiredTier.trim().lowercase()
+
+        if (rTier.isEmpty()) return true
+
+        return when (uTier) {
+            "gold" -> true // Gold user can redeem all offers
+            "silver" -> rTier != "gold" // Silver user cannot redeem Gold offers
+            "bronze" -> rTier != "gold" && rTier != "silver" // Bronze user cannot redeem Silver or Gold offers
+            else -> uTier == rTier
+        }
+    }
+
     private fun isDealNotRedeemable(deal: RedemptionDealSummary): Boolean {
-        return !deal.isRedeemable || deal.isRedeemedToday || deal.isLimitReached || isDealRedeemed(deal.id)
+        val dealTier = getDealTier(deal)
+        val isEligible = isTierEligible(userTier, dealTier)
+        return !isEligible || !deal.isRedeemable || deal.isRedeemedToday || deal.isLimitReached || isDealRedeemed(deal.id)
     }
 
     private fun isOfferNotRedeemable(offer: Offer): Boolean {
-        return offer.isRedeemed || isOfferRedeemed(offer.discount)
+        val offerTier = getOfferTier(offer)
+        val isEligible = isTierEligible(userTier, offerTier)
+        return !isEligible || offer.isRedeemed || isOfferRedeemed(offer.discount)
     }
 
     private val filteredDeals: List<RedemptionDealSummary> = dealsList.sortedWith(
@@ -120,10 +139,22 @@ class OffersAdapter(
 
             if (isNotRedeemable) {
                 holder.binding.llDiscount.setBackgroundResource(R.drawable.bg_discount_gray)
-                holder.itemView.setOnClickListener(null)
-                holder.itemView.isClickable = false
-                holder.binding.llDiscount.setOnClickListener(null)
-                holder.binding.llDiscount.isClickable = false
+                val clickListener = { _: android.view.View ->
+                    val tier = getDealTier(deal)
+                    val targetUser = tier.ifBlank { "this" }
+                    val message = when {
+                        !isTierEligible(userTier, tier) -> "Offer available for $targetUser user"
+                        deal.isRedeemedToday || isDealRedeemed(deal.id) -> "Offer already redeemed refresh at 12am"
+                        deal.isLimitReached -> "Offer limit reached"
+                        deal.lockReason.isNotBlank() -> deal.lockReason
+                        else -> "Offer available for $targetUser user"
+                    }
+                    Toast.makeText(holder.itemView.context, message, Toast.LENGTH_SHORT).show()
+                }
+                holder.itemView.isClickable = true
+                holder.itemView.setOnClickListener(clickListener)
+                holder.binding.llDiscount.isClickable = true
+                holder.binding.llDiscount.setOnClickListener(clickListener)
             } else {
                 holder.binding.llDiscount.setBackgroundResource(R.drawable.bg_discount_purple)
                 holder.itemView.isClickable = true
@@ -145,10 +176,15 @@ class OffersAdapter(
 
             if (isRedeemed) {
                 holder.binding.llDiscount.setBackgroundResource(R.drawable.bg_discount_gray)
-                holder.itemView.setOnClickListener(null)
-                holder.itemView.isClickable = false
-                holder.binding.llDiscount.setOnClickListener(null)
-                holder.binding.llDiscount.isClickable = false
+                val clickListener = { _: android.view.View ->
+                    val tier = getOfferTier(offer)
+                    val targetUser = tier.ifBlank { "this" }
+                    Toast.makeText(holder.itemView.context, "Offer available for $targetUser user", Toast.LENGTH_SHORT).show()
+                }
+                holder.itemView.isClickable = true
+                holder.itemView.setOnClickListener(clickListener)
+                holder.binding.llDiscount.isClickable = true
+                holder.binding.llDiscount.setOnClickListener(clickListener)
             } else {
                 holder.binding.llDiscount.setBackgroundResource(R.drawable.bg_discount_purple)
                 holder.itemView.isClickable = true
@@ -161,12 +197,6 @@ class OffersAdapter(
                 }
             }
         }
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun isTierEligible(userTier: String, requiredTier: String): Boolean {
-        // Show all offers regardless of user tier
-        return true
     }
 
     override fun getItemCount(): Int {
