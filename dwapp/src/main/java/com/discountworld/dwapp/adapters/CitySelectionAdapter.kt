@@ -1,6 +1,7 @@
 package com.discountworld.dwapp.adapters
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -31,12 +32,17 @@ class CitySelectionAdapter(
 
         holder.binding.tvCityName.text = city.name
 
-        // Highlight selected city in app primary color (purple_primary)
-        if (selectedCityId != null && city.id == selectedCityId) {
-            holder.binding.tvCityName.setTextColor(ContextCompat.getColor(context, R.color.purple_primary))
+        val isSelected = selectedCityId != null && city.id == selectedCityId
+
+        if (isSelected) {
+            holder.binding.tvCityName.setBackgroundResource(R.drawable.bg_city_selected_capsule)
+            holder.binding.tvCityName.setTextColor(ContextCompat.getColor(context, R.color.white))
         } else {
+            holder.binding.tvCityName.background = null
             holder.binding.tvCityName.setTextColor(ContextCompat.getColor(context, R.color.black))
         }
+
+        holder.binding.vCityDivider.visibility = if (position == cities.size - 1) View.GONE else View.VISIBLE
 
         holder.itemView.setOnClickListener {
             selectedCityId = city.id
