@@ -88,7 +88,8 @@ class BrandDetailFragment : Fragment() {
 
         if (vendorId != -1L) {
             val effectiveCityId = selectedCityId ?: 1L
-            viewModel.loadBrandDetail(vendorId, effectiveCityId)
+            val currentTier = sessionManager.getCustomerTier()
+            viewModel.loadBrandDetail(vendorId, effectiveCityId, currentTier)
         } else {
             setupOffersRecyclerView(emptyList())
         }

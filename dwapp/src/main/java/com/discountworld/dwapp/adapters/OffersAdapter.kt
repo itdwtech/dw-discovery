@@ -17,12 +17,87 @@ class OffersAdapter(
     private val onOfferClick: (RedemptionDealSummary?, Offer?) -> Unit
 ) : RecyclerView.Adapter<OffersAdapter.ViewHolder>() {
 
-    private val filteredDeals: List<RedemptionDealSummary> = dealsList.filter { deal ->
-        isTierEligible(userTier, deal.customerTier)
+    private fun isDealNotRedeemable(deal: RedemptionDealSummary): Boolean {
+        return !deal.isRedeemable || deal.isRedeemedToday || deal.isLimitReached || isDealRedeemed(deal.id)
     }
 
-    private val filteredDummyOffers: List<Offer> = dummyOffers.filter {
-        isTierEligible(userTier, "")
+    private fun isOfferNotRedeemable(offer: Offer): Boolean {
+        return offer.isRedeemed || isOfferRedeemed(offer.discount)
+    }
+
+    private val filteredDeals: List<RedemptionDealSummary> = dealsList.sortedWith(
+        compareBy(
+            { isDealNotRedeemable(it) },
+            { getTierPriority(getDealTier(it), userTier) },
+            { it.sortOrder }
+        )
+    )
+
+    private val filteredDummyOffers: List<Offer> = dummyOffers.sortedWith(
+        compareBy(
+            { isOfferNotRedeemable(it) },
+            { getTierPriority(getOfferTier(it), userTier) }
+        )
+    )
+
+    companion object {
+        private fun getDealTier(deal: RedemptionDealSummary): String {
+            if (deal.customerTier.isNotBlank()) return deal.customerTier
+            val text = "${deal.title} ${deal.description} ${deal.customMessage1} ${deal.customMessage2}".lowercase()
+            return when {
+                text.contains("gold") -> "Gold"
+                text.contains("silver") -> "Silver"
+                text.contains("bronze") -> "Bronze"
+                else -> ""
+            }
+        }
+
+        private fun getOfferTier(offer: Offer): String {
+            if (offer.tier.isNotBlank()) return offer.tier
+            val text = "${offer.discount} ${offer.description}".lowercase()
+            return when {
+                text.contains("gold") -> "Gold"
+                text.contains("silver") -> "Silver"
+                text.contains("bronze") -> "Bronze"
+                else -> ""
+            }
+        }
+
+        private fun getTierPriority(dealTier: String, userTier: String): Int {
+            val dTier = dealTier.trim().lowercase()
+            val uTier = userTier.trim().lowercase()
+
+            // Top priority (0) for deals matching user's active tier
+            if ((dTier.isNotEmpty()) && (dTier == uTier)) return 0
+
+            // Priority order for remaining deals
+            return when (uTier) {
+                "gold" -> when (dTier) {
+                    "silver" -> 1
+                    "bronze" -> 2
+                    "" -> 3
+                    else -> 4
+                }
+                "silver" -> when (dTier) {
+                    "gold" -> 1
+                    "bronze" -> 2
+                    "" -> 3
+                    else -> 4
+                }
+                "bronze" -> when (dTier) {
+                    "silver" -> 1
+                    "gold" -> 2
+                    "" -> 3
+                    else -> 4
+                }
+                else -> when (dTier) {
+                    "gold" -> 1
+                    "silver" -> 2
+                    "bronze" -> 3
+                    else -> 4
+                }
+            }
+        }
     }
 
     class ViewHolder(val binding: ItemOfferBinding) : RecyclerView.ViewHolder(binding.root)
@@ -38,7 +113,7 @@ class OffersAdapter(
             val title = deal.title.ifEmpty { "Buy 1 Get 1" }
             val description = deal.description.ifEmpty { deal.title }
 
-            val isNotRedeemable = !deal.isRedeemable || deal.isRedeemedToday || deal.isLimitReached || isDealRedeemed(deal.id)
+            val isNotRedeemable = isDealNotRedeemable(deal)
 
             holder.binding.tvDiscountAmount.text = title
             holder.binding.tvOfferDescription.text = description
@@ -64,7 +139,7 @@ class OffersAdapter(
             val offer = filteredDummyOffers[position]
             holder.binding.tvOfferDescription.text = offer.description
 
-            val isRedeemed = offer.isRedeemed || isOfferRedeemed(offer.discount)
+            val isRedeemed = isOfferNotRedeemable(offer)
 
             holder.binding.tvDiscountAmount.text = offer.discount
 

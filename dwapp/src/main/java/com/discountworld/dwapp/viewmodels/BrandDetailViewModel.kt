@@ -38,12 +38,12 @@ class BrandDetailViewModel : ViewModel() {
     private val _redemptionState = MutableLiveData<RedemptionState>(RedemptionState.Idle)
     val redemptionState: LiveData<RedemptionState> get() = _redemptionState
 
-    fun loadBrandDetail(vendorId: Long, cityId: Long) {
+    fun loadBrandDetail(vendorId: Long, cityId: Long, customerTier: String? = null) {
         viewModelScope.launch {
             _detailState.value = BrandDetailState.Loading
 
             val vendorDetailDeferred = async { repository.getVendorDetail(vendorId, cityId) }
-            val dealsDeferred = async { repository.listVendorDeals(vendorId) }
+            val dealsDeferred = async { repository.listVendorDeals(vendorId, customerTier) }
 
             val vendorDetail = vendorDetailDeferred.await()
             val deals = dealsDeferred.await() ?: emptyList()

@@ -226,12 +226,13 @@ class RedemptionRepository {
         return result.getOrNull()
     }
 
-    suspend fun listVendorDeals(vendorId: Long): List<RedemptionDealSummary>? {
-        val request = ListVendorDealsRequest.newBuilder()
+    suspend fun listVendorDeals(vendorId: Long, customerTier: String? = null): List<RedemptionDealSummary>? {
+        val builder = ListVendorDealsRequest.newBuilder()
             .setVendorId(vendorId)
-            .build()
 
-        val result = grpcCall { stub.listVendorDeals(request) }
+        customerTier?.let { builder.setCustomerTier(it) }
+
+        val result = grpcCall { stub.listVendorDeals(builder.build()) }
         result.onFailure {
             Log.e("RedemptionRepo", "listVendorDeals failed: ${it.message}")
         }
