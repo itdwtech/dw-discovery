@@ -132,6 +132,14 @@ class OffersAdapter(
             val title = deal.title.ifEmpty { "Buy 1 Get 1" }
             val description = deal.description.ifEmpty { deal.title }
 
+            val dealTier = getDealTier(deal)
+            when (dealTier.trim().lowercase()) {
+                "gold" -> holder.binding.imgOffer.setImageResource(R.drawable.ic_gold)
+                "silver" -> holder.binding.imgOffer.setImageResource(R.drawable.ic_silver)
+                "bronze" -> holder.binding.imgOffer.setImageResource(R.drawable.ic_bronze)
+                else -> holder.binding.imgOffer.setImageResource(R.drawable.ic_gold)
+            }
+
             val isNotRedeemable = isDealNotRedeemable(deal)
 
             holder.binding.tvDiscountAmount.text = title
@@ -169,6 +177,14 @@ class OffersAdapter(
         } else if (filteredDummyOffers.isNotEmpty()) {
             val offer = filteredDummyOffers[position]
             holder.binding.tvOfferDescription.text = offer.description
+
+            val offerTier = getOfferTier(offer)
+            when (offerTier.trim().lowercase()) {
+                "gold" -> holder.binding.imgOffer.setImageResource(R.drawable.ic_gold)
+                "silver" -> holder.binding.imgOffer.setImageResource(R.drawable.ic_silver)
+                "bronze" -> holder.binding.imgOffer.setImageResource(R.drawable.ic_bronze)
+                else -> holder.binding.imgOffer.setImageResource(R.drawable.ic_gold)
+            }
 
             val isRedeemed = isOfferNotRedeemable(offer)
 
