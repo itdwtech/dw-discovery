@@ -39,7 +39,7 @@ class RedemptionSuccessFragment : Fragment() {
         val redemptionCode = arguments?.getString("redemptionCode") ?: "6FF92FBB"
         val vendorName = arguments?.getString("vendorName") ?: "Merchant"
         val vendorPhone = arguments?.getString("vendorPhone") ?: "021111363636"
-        var vendorWebsite = arguments?.getString("vendorWebsite") ?: "https://www.14thstreetpizza.com/"
+        val vendorWebsite = arguments?.getString("vendorWebsite")
         val isStoreRedemption = arguments?.getBoolean("isStoreRedemption") ?: false
 
         val customMessage1 = arguments?.getString("customMessage1")
@@ -50,22 +50,20 @@ class RedemptionSuccessFragment : Fragment() {
         if (!customMessage1.isNullOrEmpty() || !customMessage2.isNullOrEmpty()) {
             binding.tvCodeInstruction.text = customMessage1 ?: ""
             binding.tvCodeFooter.text = customMessage2 ?: ""
-
-            if (isStoreRedemption) {
-                binding.cvWebsiteBtn.visibility = View.GONE
-            } else {
-                binding.cvWebsiteBtn.visibility = View.VISIBLE
-            }
         } else {
             if (isStoreRedemption) {
                 binding.tvCodeInstruction.text = "Merchant will use this code"
                 binding.tvCodeFooter.text = "to redeem the offer"
-                binding.cvWebsiteBtn.visibility = View.GONE
             } else {
                 binding.tvCodeInstruction.text = "Enter this code on $vendorName's website"
                 binding.tvCodeFooter.text = "to avail this offer"
-                binding.cvWebsiteBtn.visibility = View.VISIBLE
             }
+        }
+
+        if (vendorWebsite.isNullOrBlank()) {
+            binding.cvWebsiteBtn.visibility = View.GONE
+        } else {
+            binding.cvWebsiteBtn.visibility = View.VISIBLE
         }
 
         val copyAction = View.OnClickListener {
@@ -78,11 +76,12 @@ class RedemptionSuccessFragment : Fragment() {
         binding.llCodeBox.setOnClickListener(copyAction)
 
         binding.cvWebsiteBtn.setOnClickListener {
-            if (vendorWebsite.isNotEmpty()) {
-                if (!vendorWebsite.startsWith("http://") && !vendorWebsite.startsWith("https://")) {
-                    vendorWebsite = "https://$vendorWebsite"
+            if (!vendorWebsite.isNullOrBlank()) {
+                var url = vendorWebsite
+                if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                    url = "https://$url"
                 }
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(vendorWebsite))
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 startActivity(intent)
             }
         }

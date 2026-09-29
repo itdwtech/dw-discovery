@@ -167,8 +167,9 @@
             app:argType="string" />
         <argument
             android:name="vendorWebsite"
-            android:defaultValue="https://www.14thstreetpizza.com/"
-            app:argType="string" />
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
         <argument
             android:name="isStoreRedemption"
             android:defaultValue="false"

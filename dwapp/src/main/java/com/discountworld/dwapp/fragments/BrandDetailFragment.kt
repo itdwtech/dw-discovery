@@ -396,11 +396,16 @@ class BrandDetailFragment : Fragment() {
                                 currentVendorDetail?.companyName
                             } ?: "Merchant"
 
+                            val websiteLink = currentVendorDetail?.socialLinksList?.firstOrNull {
+                                it.url.isNotBlank() &&
+                                        (it.platform.equals("website", ignoreCase = true) || it.url.startsWith("http") || it.url.contains("www."))
+                            }?.url
+
                             val bundle = Bundle().apply {
                                 putString("redemptionCode", redemptionCode)
                                 putString("vendorName", vendorName)
                                 putString("vendorPhone", currentVendorDetail?.headOfficeNumber ?: "")
-                                putString("vendorWebsite", "https://www.14thstreetpizza.com/")
+                                putString("vendorWebsite", websiteLink)
                                 putBoolean("isStoreRedemption", true)
                             }
 
@@ -592,8 +597,8 @@ class BrandDetailFragment : Fragment() {
 
                             val websiteLink = currentVendorDetail?.socialLinksList?.firstOrNull {
                                 it.url.isNotBlank() &&
-                                        (it.platform.equals("website", ignoreCase = true) || it.url.startsWith("http"))
-                            }?.url ?: "https://www.14thstreetpizza.com/"
+                                        (it.platform.equals("website", ignoreCase = true) || it.url.startsWith("http") || it.url.contains("www."))
+                            }?.url
 
                             val bundle = Bundle().apply {
                                 putString("redemptionCode", redemptionCode)
