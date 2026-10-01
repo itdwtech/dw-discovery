@@ -61,6 +61,13 @@ class MainActivity : AppCompatActivity() {
     private fun handleBackgroundAuth(launchIntent: Intent?) {
         val intentUniqueId = launchIntent?.getStringExtra("unique_id")
         val intentTier = launchIntent?.getStringExtra("customer_tier")
+        val intentApiKey = launchIntent?.getStringExtra("api_key") ?: launchIntent?.getStringExtra("apiKey")
+
+        intentApiKey?.let {
+            if (it.isNotBlank()) {
+                RedemptionStubClient.setApiKey(it)
+            }
+        }
 
         val uniqueIdToUse = intentUniqueId?.ifEmpty { null } ?: LoginFragment.UNIQUE_ID
         val tierToUse = intentTier?.ifEmpty { null } ?: LoginFragment.CUSTOMER_TIER

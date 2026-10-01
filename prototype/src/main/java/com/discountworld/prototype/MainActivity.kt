@@ -10,6 +10,10 @@ import androidx.core.view.WindowInsetsCompat
 import com.discountworld.easypaisasdk.activities.DiscoveryActivity
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        private const val API_KEY = "ODZiMjNiOTEtNTZjMS00MDZlLWE1MGMtZWM1NjllNjZiNTdj"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -36,6 +40,7 @@ class MainActivity : AppCompatActivity() {
 
             intent.putExtra("unique_id", uniqueId)
             intent.putExtra("customer_tier", selectedTier)
+            intent.putExtra("api_key", API_KEY)
 
             try {
                 startActivity(intent)
