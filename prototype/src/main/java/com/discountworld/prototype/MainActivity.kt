@@ -11,7 +11,8 @@ import com.discountworld.easypaisasdk.activities.DiscoveryActivity
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        private const val API_KEY = "ODZiMjNiOTEtNTZjMS00MDZlLWE1MGMtZWM1NjllNjZiNTdj"
+        // Base64 encoded API key: YTU1Mjg0YzYtZjQ3MC00ZTA3LWE2ZDMtOGQ3ZTBiNWIzYzEz
+        private const val API_KEY = "YTU1Mjg0YzYtZjQ3MC00ZTA3LWE2ZDMtOGQ3ZTBiNWIzYzEz"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

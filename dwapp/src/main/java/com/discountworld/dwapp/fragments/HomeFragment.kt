@@ -67,6 +67,15 @@ class HomeFragment : Fragment() {
 
         sessionManager = SessionManager(requireContext())
 
+        val intentUniqueId = activity?.intent?.getStringExtra("unique_id")?.ifEmpty { null } ?: sessionManager.getUniqueId()
+        val intentTier = activity?.intent?.getStringExtra("customer_tier")?.ifEmpty { null } ?: sessionManager.getCustomerTier()
+        val authToken = sessionManager.getAuthToken()
+
+        if (intentUniqueId.isEmpty() || intentTier.isEmpty() || authToken.isNullOrEmpty()) {
+            requireActivity().finish()
+            return
+        }
+
         setupRecyclerViews()
         setupFallbackSlider()
         setupSearch()

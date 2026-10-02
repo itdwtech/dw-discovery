@@ -151,7 +151,14 @@ class OffersAdapter(
                     val tier = getDealTier(deal)
                     val targetUser = tier.ifBlank { "this" }
                     val message = when {
-                        !isTierEligible(userTier, tier) -> "Offer available for $targetUser user"
+                        !isTierEligible(userTier, tier) -> {
+                            when (tier.trim().lowercase()) {
+                                "gold" -> "Offer available for Gold users only"
+                                "silver" -> "Offer available for Gold and Silver users"
+                                "bronze" -> "Offer available for Gold, Silver and Bronze users"
+                                else -> "Offer available for $targetUser user"
+                            }
+                        }
                         deal.isRedeemedToday || isDealRedeemed(deal.id) -> "Offer already redeemed refresh at 12am"
                         deal.isLimitReached -> "Offer limit reached"
                         deal.lockReason.isNotBlank() -> deal.lockReason
@@ -195,7 +202,13 @@ class OffersAdapter(
                 val clickListener = { _: android.view.View ->
                     val tier = getOfferTier(offer)
                     val targetUser = tier.ifBlank { "this" }
-                    Toast.makeText(holder.itemView.context, "Offer available for $targetUser user", Toast.LENGTH_SHORT).show()
+                    val message = when (tier.trim().lowercase()) {
+                        "gold" -> "Offer available for Gold users only"
+                        "silver" -> "Offer available for Gold and Silver users"
+                        "bronze" -> "Offer available for Gold, Silver and Bronze users"
+                        else -> "Offer available for $targetUser user"
+                    }
+                    Toast.makeText(holder.itemView.context, message, Toast.LENGTH_SHORT).show()
                 }
                 holder.itemView.isClickable = true
                 holder.itemView.setOnClickListener(clickListener)

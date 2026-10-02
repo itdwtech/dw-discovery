@@ -10,9 +10,9 @@ import io.grpc.stub.MetadataUtils
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 object RedemptionStubClient {
-    private var apiKey: String = "ODZiMjNiOTEtNTZjMS00MDZlLWE1MGMtZWM1NjllNjZiNTdj"
-    private const val SERVER_URL = "192.168.0.104"
-    private const val SERVER_PORT = 9090
+    private var apiKey: String = "YTU1Mjg0YzYtZjQ3MC00ZTA3LWE2ZDMtOGQ3ZTBiNWIzYzEz"
+    private const val SERVER_URL = "stg-api.appbiance.com"
+    private const val SERVER_PORT = 443
 
     private var accessToken: String? = null
 
@@ -29,7 +29,7 @@ object RedemptionStubClient {
     private val channel: ManagedChannel by lazy {
         OkHttpChannelBuilder
             .forAddress(SERVER_URL, SERVER_PORT)
-            .usePlaintext()
+            .useTransportSecurity()
             .build()
     }
 
