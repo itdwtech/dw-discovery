@@ -67,12 +67,16 @@ class HomeFragment : Fragment() {
 
         sessionManager = SessionManager(requireContext())
 
-        val intentUniqueId = activity?.intent?.getStringExtra("unique_id")?.ifEmpty { null } ?: sessionManager.getUniqueId()
-        val intentTier = activity?.intent?.getStringExtra("customer_tier")?.ifEmpty { null } ?: sessionManager.getCustomerTier()
+        val intentUniqueId = activity?.intent?.getStringExtra("unique_id") ?: sessionManager.getUniqueId()
+        val intentTier = activity?.intent?.getStringExtra("customer_tier") ?: sessionManager.getCustomerTier()
         val authToken = sessionManager.getAuthToken()
 
         if (intentUniqueId.isEmpty() || intentTier.isEmpty() || authToken.isNullOrEmpty()) {
-            requireActivity().finish()
+            sessionManager.clearSession()
+            val navOptions = androidx.navigation.NavOptions.Builder()
+                .setPopUpTo(R.id.nav_graph, true)
+                .build()
+            findNavController().navigate(R.id.loginFragment, null, navOptions)
             return
         }
 

@@ -37,7 +37,7 @@ class SessionManager(context: Context) {
     }
 
     fun getCustomerTier(): String {
-        return prefs.getString(KEY_CUSTOMER_TIER, "Gold") ?: "Gold"
+        return prefs.getString(KEY_CUSTOMER_TIER, "") ?: ""
     }
 
     fun savePhone(phone: String) {

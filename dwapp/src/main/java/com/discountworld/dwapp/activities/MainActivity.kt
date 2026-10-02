@@ -69,8 +69,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val uniqueIdToUse = intentUniqueId?.ifEmpty { null } ?: LoginFragment.UNIQUE_ID
-        val tierToUse = intentTier?.ifEmpty { null } ?: LoginFragment.CUSTOMER_TIER
+        val uniqueIdToUse = intentUniqueId ?: LoginFragment.UNIQUE_ID
+        val tierToUse = intentTier ?: LoginFragment.CUSTOMER_TIER
+
+        if (uniqueIdToUse.isEmpty() || tierToUse.isEmpty()) {
+            finish()
+            return
+        }
 
         val currentSavedUniqueId = sessionManager.getUniqueId()
         val currentSavedTier = sessionManager.getCustomerTier()

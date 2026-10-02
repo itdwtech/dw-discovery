@@ -47,8 +47,13 @@ class LoginFragment : Fragment() {
         val intentUniqueId = activity?.intent?.getStringExtra("unique_id")
         val intentTier = activity?.intent?.getStringExtra("customer_tier")
 
-        val uniqueIdToUse = intentUniqueId?.ifEmpty { null } ?: UNIQUE_ID
-        val tierToUse = intentTier?.ifEmpty { null } ?: CUSTOMER_TIER
+        val uniqueIdToUse = intentUniqueId ?: UNIQUE_ID
+        val tierToUse = intentTier ?: CUSTOMER_TIER
+
+        if (uniqueIdToUse.isEmpty() || tierToUse.isEmpty()) {
+            requireActivity().finish()
+            return
+        }
 
         // If saved session credentials don't match active code/intent, clear session to re-auth
         val currentSavedUniqueId = sessionManager.getUniqueId()
