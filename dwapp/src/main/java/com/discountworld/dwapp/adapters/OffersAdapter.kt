@@ -19,17 +19,8 @@ class OffersAdapter(
 ) : RecyclerView.Adapter<OffersAdapter.ViewHolder>() {
 
     private fun isTierEligible(userTier: String, requiredTier: String): Boolean {
-        val uTier = userTier.trim().lowercase()
-        val rTier = requiredTier.trim().lowercase()
-
-        if (rTier.isEmpty()) return true
-
-        return when (uTier) {
-            "gold" -> true // Gold user can redeem all offers
-            "silver" -> rTier != "gold" // Silver user cannot redeem Gold offers
-            "bronze" -> rTier != "gold" && rTier != "silver" // Bronze user cannot redeem Silver or Gold offers
-            else -> uTier == rTier
-        }
+        // All offers are accessible to all users regardless of tier
+        return true
     }
 
     private fun isDealNotRedeemable(deal: RedemptionDealSummary): Boolean {
@@ -127,6 +118,7 @@ class OffersAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.binding.imgOffer.visibility = android.view.View.GONE
         if (filteredDeals.isNotEmpty()) {
             val deal = filteredDeals[position]
             val title = deal.title.ifEmpty { "Buy 1 Get 1" }

@@ -88,8 +88,8 @@ class BrandDetailFragment : Fragment() {
 
         if (vendorId != -1L) {
             val effectiveCityId = selectedCityId ?: 1L
-            val currentTier = sessionManager.getCustomerTier()
-            viewModel.loadBrandDetail(vendorId, effectiveCityId, currentTier)
+            // Pass "Gold" or null to gRPC so all offers/deals are loaded without tier filtering
+            viewModel.loadBrandDetail(vendorId, effectiveCityId, "Gold")
         } else {
             setupOffersRecyclerView(emptyList())
         }
@@ -137,42 +137,45 @@ class BrandDetailFragment : Fragment() {
 
     private fun observeViewModel() {
         viewModel.detailState.observe(viewLifecycleOwner) { state ->
+            val currentBinding = _binding ?: return@observe
             when (state) {
                 is BrandDetailState.Loading -> { }
                 is BrandDetailState.Success -> {
                     val vendorDetail = state.vendorDetail
                     currentVendorDetail = vendorDetail
                     vendorDetail?.let {
-                        binding.tvBrandName.text = it.title.ifEmpty { it.companyName }
+                        currentBinding.tvBrandName.text = it.title.ifEmpty { it.companyName }
                         vendorLogoUrl = it.logoUrl
 
                         if (it.categoriesList.isNotEmpty()) {
-                            binding.tvCategory.text = it.categoriesList.joinToString(", ") { cat -> cat.name }
+                            currentBinding.tvCategory.text = it.categoriesList.joinToString(", ") { cat -> cat.name }
                         }
                         
-                        binding.tvAddress.text = it.description
+                        currentBinding.tvAddress.text = it.description
 
                         if (it.bannerUrl.isNotEmpty()) {
                             Glide.with(requireContext())
                                 .load(it.bannerUrl.fixImageUrl())
                                 .placeholder(R.drawable.ic_placeholder)
                                 .error(R.drawable.ic_placeholder)
-                                .into(binding.ivBanner)
+                                .into(currentBinding.ivBanner)
                         } else if (it.galleryImagesList.isNotEmpty()) {
                             Glide.with(requireContext())
                                 .load(it.galleryImagesList.first().fixImageUrl())
                                 .placeholder(R.drawable.ic_placeholder)
                                 .error(R.drawable.ic_placeholder)
-                                .into(binding.ivBanner)
+                                .into(currentBinding.ivBanner)
                         } else {
-                            binding.ivBanner.setImageResource(R.drawable.ic_placeholder)
+                            currentBinding.ivBanner.setImageResource(R.drawable.ic_placeholder)
                         }
                     }
 
                     setupOffersRecyclerView(state.deals)
                 }
                 is BrandDetailState.Error -> {
-                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
+                    if (isAdded) {
+                        Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
+                    }
                     setupOffersRecyclerView(emptyList())
                 }
                 BrandDetailState.Idle -> { }

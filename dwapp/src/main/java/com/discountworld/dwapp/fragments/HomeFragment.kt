@@ -68,15 +68,16 @@ class HomeFragment : Fragment() {
         sessionManager = SessionManager(requireContext())
 
         val intentUniqueId = activity?.intent?.getStringExtra("unique_id") ?: sessionManager.getUniqueId()
-        val intentTier = activity?.intent?.getStringExtra("customer_tier") ?: sessionManager.getCustomerTier()
         val authToken = sessionManager.getAuthToken()
 
-        if (intentUniqueId.isEmpty() || intentTier.isEmpty() || authToken.isNullOrEmpty()) {
+        if (intentUniqueId.isEmpty() || authToken.isNullOrEmpty()) {
             sessionManager.clearSession()
-            val navOptions = androidx.navigation.NavOptions.Builder()
-                .setPopUpTo(R.id.nav_graph, true)
-                .build()
-            findNavController().navigate(R.id.loginFragment, null, navOptions)
+            if (isAdded && findNavController().currentDestination?.id != R.id.loginFragment) {
+                val navOptions = androidx.navigation.NavOptions.Builder()
+                    .setPopUpTo(R.id.nav_graph, true)
+                    .build()
+                findNavController().navigate(R.id.loginFragment, null, navOptions)
+            }
             return
         }
 
@@ -105,39 +106,44 @@ class HomeFragment : Fragment() {
 
     private fun observeViewModel() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            val currentBinding = _binding ?: return@observe
             if (state.isLoading) {
-                binding.storyShimmerLayout.visibility = View.VISIBLE
-                binding.storyShimmerLayout.startShimmer()
-                binding.storyRV.visibility = View.GONE
+                currentBinding.storyShimmerLayout.visibility = View.VISIBLE
+                currentBinding.storyShimmerLayout.startShimmer()
+                currentBinding.storyRV.visibility = View.GONE
             } else {
-                binding.storyShimmerLayout.stopShimmer()
-                binding.storyShimmerLayout.visibility = View.GONE
+                currentBinding.storyShimmerLayout.stopShimmer()
+                currentBinding.storyShimmerLayout.visibility = View.GONE
             }
 
             if (state.stories.isNotEmpty()) {
-                binding.storyRV.visibility = View.VISIBLE
+                currentBinding.storyRV.visibility = View.VISIBLE
                 val adapter = StoryAdapter(state.stories) { story ->
-                    val bundle = Bundle().apply {
-                        putLong("vendor_id", story.vendorId)
-                        putLong("city_id", selectedCityId)
+                    if (isAdded && findNavController().currentDestination?.id == R.id.nav_home) {
+                        val bundle = Bundle().apply {
+                            putLong("vendor_id", story.vendorId)
+                            putLong("city_id", selectedCityId)
+                        }
+                        findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
                     }
-                    findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
                 }
-                binding.storyRV.adapter = adapter
+                currentBinding.storyRV.adapter = adapter
                 startStoryAutoScroll(state.stories.size)
             } else if (!state.isLoading) {
-                binding.storyRV.visibility = View.GONE
+                currentBinding.storyRV.visibility = View.GONE
             }
 
             if (state.featuredVendors.isNotEmpty()) {
                 val adapter = TopPicksAdapter(vendorList = state.featuredVendors) { selectedVendor ->
-                    val bundle = Bundle().apply {
-                        putLong("vendor_id", selectedVendor.id)
-                        putLong("city_id", selectedCityId)
+                    if (isAdded && findNavController().currentDestination?.id == R.id.nav_home) {
+                        val bundle = Bundle().apply {
+                            putLong("vendor_id", selectedVendor.id)
+                            putLong("city_id", selectedCityId)
+                        }
+                        findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
                     }
-                    findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
                 }
-                binding.bannerRV.adapter = adapter
+                currentBinding.bannerRV.adapter = adapter
             }
 
             if (state.banners.isNotEmpty()) {

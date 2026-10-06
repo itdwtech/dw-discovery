@@ -89,6 +89,7 @@
         android:scaleType="fitCenter"
         android:layout_marginEnd="6dp"
         android:src="@drawable/ic_gold"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@id/cvTicket"
         app:layout_constraintTop_toTopOf="@id/cvTicket" />
 </androidx.constraintlayout.widget.ConstraintLayout>

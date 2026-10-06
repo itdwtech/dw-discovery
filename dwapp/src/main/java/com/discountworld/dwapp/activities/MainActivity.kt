@@ -63,8 +63,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleBackgroundAuth(launchIntent: Intent?) {
-        val intentUniqueId = launchIntent?.getStringExtra("unique_id")
-        val intentTier = launchIntent?.getStringExtra("customer_tier")
         val intentApiKey = launchIntent?.getStringExtra("api_key") ?: launchIntent?.getStringExtra("apiKey")
 
         intentApiKey?.let {
@@ -73,44 +71,26 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        val intentUniqueId = launchIntent?.getStringExtra("unique_id")
+        val intentTier = launchIntent?.getStringExtra("customer_tier")
+
         val uniqueIdToUse = intentUniqueId ?: LoginFragment.UNIQUE_ID
         val tierToUse = intentTier ?: LoginFragment.CUSTOMER_TIER
 
-        if (uniqueIdToUse.isEmpty() || tierToUse.isEmpty()) {
+        if (uniqueIdToUse.isEmpty()) {
             finish()
             return
         }
 
         val currentSavedUniqueId = sessionManager.getUniqueId()
-        val currentSavedTier = sessionManager.getCustomerTier()
 
-        val needsReAuth = !currentSavedUniqueId.equals(uniqueIdToUse, ignoreCase = true) ||
-                !currentSavedTier.equals(tierToUse, ignoreCase = true) ||
-                !sessionManager.isLoggedIn()
-
-        if (needsReAuth) {
+        // If uniqueId changed, clear session so LoginFragment re-authenticates for the new user
+        if (currentSavedUniqueId.isNotEmpty() && !currentSavedUniqueId.equals(uniqueIdToUse, ignoreCase = true)) {
             sessionManager.clearSession()
-            sessionManager.saveUniqueId(uniqueIdToUse)
-            sessionManager.saveCustomerTier(tierToUse)
+        }
 
-            lifecycleScope.launch(Dispatchers.IO) {
-                try {
-                    val repo = RedemptionRepository()
-                    val authResp = repo.authenticateByUniqueId(uniqueIdToUse, tierToUse)
-                    if (authResp != null) {
-                        sessionManager.saveAuthToken(authResp.accessToken)
-                        sessionManager.saveUniqueId(uniqueIdToUse)
-                        val tier = authResp.customer.customerTier.ifEmpty { tierToUse }
-                        sessionManager.saveCustomerTier(tier)
-                        if (authResp.customer.phoneNumber.isNotEmpty()) {
-                            sessionManager.savePhone(authResp.customer.phoneNumber)
-                        }
-                        RedemptionStubClient.setToken(authResp.accessToken)
-                    }
-                } catch (_: Exception) { }
-            }
-        } else {
-            sessionManager.getAuthToken()?.let { token ->
+        sessionManager.getAuthToken()?.let { token ->
+            if (token.isNotEmpty()) {
                 RedemptionStubClient.setToken(token)
             }
         }
