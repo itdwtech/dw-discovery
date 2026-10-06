@@ -40,7 +40,7 @@
                     android:layout_height="60dp"
                     android:layout_marginLeft="7dp"
                     android:layout_marginRight="7dp"
-                    android:src="@drawable/ic_chasevalue"
+                    android:src="@drawable/ic_pakqatar"
                     android:adjustViewBounds="true" />
 
             </LinearLayout>
