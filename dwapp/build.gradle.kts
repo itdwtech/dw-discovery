@@ -1,7 +1,11 @@
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
+
 plugins {
-    alias(libs.plugins.android.application)
+    id("com.android.library")
     alias(libs.plugins.kotlin.android)
     id("com.google.protobuf") version "0.9.4"
+    id("maven-publish")
 }
 
 android {
@@ -9,11 +13,8 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.discountworld.dwapp"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,6 +51,22 @@ android {
                 "build/generated/source/proto/main/java",
                 "build/generated/source/proto/main/grpckt"
             )
+        }
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
+}
+
+configure<PublishingExtension> {
+    publications {
+        register<MavenPublication>("release") {
+            afterEvaluate {
+                from(components["release"])
+            }
         }
     }
 }
