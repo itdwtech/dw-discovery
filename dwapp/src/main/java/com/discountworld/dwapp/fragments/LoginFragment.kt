@@ -21,7 +21,7 @@ class LoginFragment : Fragment() {
 
     companion object {
         // CODE MEIN UNIQUE ID AUR TIER YAHAN SET KAREIN:
-        const val UNIQUE_ID = "123456789012" // Must be a valid 12-digit Unique ID
+        const val UNIQUE_ID = "CV-9185708864" // Must be a valid 12-character Unique ID (hyphens excluded from length)
         const val CUSTOMER_TIER = "Gold" // Options: "Gold", "Silver", or "Bronze"
     }
 

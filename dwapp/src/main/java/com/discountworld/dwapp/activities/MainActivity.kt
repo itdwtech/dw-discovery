@@ -81,25 +81,27 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        val cleanUniqueId = uniqueIdToUse.replace("-", "").replace(" ", "").trim()
+
         val currentSavedUniqueId = sessionManager.getUniqueId()
         val currentSavedTier = sessionManager.getCustomerTier()
 
-        val needsReAuth = !currentSavedUniqueId.equals(uniqueIdToUse, ignoreCase = true) ||
+        val needsReAuth = !currentSavedUniqueId.equals(cleanUniqueId, ignoreCase = true) ||
                 !currentSavedTier.equals(tierToUse, ignoreCase = true) ||
                 !sessionManager.isLoggedIn()
 
         if (needsReAuth) {
             sessionManager.clearSession()
-            sessionManager.saveUniqueId(uniqueIdToUse)
+            sessionManager.saveUniqueId(cleanUniqueId)
             sessionManager.saveCustomerTier(tierToUse)
 
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val repo = RedemptionRepository()
-                    val authResp = repo.authenticateByUniqueId(uniqueIdToUse, tierToUse)
+                    val authResp = repo.authenticateByUniqueId(cleanUniqueId, tierToUse)
                     if (authResp != null) {
                         sessionManager.saveAuthToken(authResp.accessToken)
-                        sessionManager.saveUniqueId(uniqueIdToUse)
+                        sessionManager.saveUniqueId(cleanUniqueId)
                         val tier = authResp.customer.customerTier.ifEmpty { tierToUse }
                         sessionManager.saveCustomerTier(tier)
                         if (authResp.customer.phoneNumber.isNotEmpty()) {

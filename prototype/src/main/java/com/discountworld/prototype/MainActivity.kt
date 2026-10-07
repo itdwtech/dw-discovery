@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnDwApp)?.setOnClickListener {
-            val uniqueId = findViewById<android.widget.EditText>(R.id.etProtoUniqueId)?.text?.toString()?.trim()?.ifEmpty { "123456789012" } ?: "123456789012"
+            val uniqueId = findViewById<android.widget.EditText>(R.id.etProtoUniqueId)?.text?.toString()?.trim()?.ifEmpty { "CV-9185708864" } ?: "CV-9185708864"
             val rgTier = findViewById<android.widget.RadioGroup>(R.id.rgProtoTier)
             val selectedTier = when (rgTier?.checkedRadioButtonId) {
                 R.id.rbProtoGold -> "Gold"
