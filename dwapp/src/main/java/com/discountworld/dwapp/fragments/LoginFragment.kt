@@ -69,7 +69,7 @@ class LoginFragment : Fragment() {
         if (sessionManager.isLoggedIn()) {
             val token = sessionManager.getAuthToken()!!
             RedemptionStubClient.setToken(token)
-            findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+            navigateToHome()
             return
         }
 
@@ -98,7 +98,7 @@ class LoginFragment : Fragment() {
                     val tier = state.response.customer.customerTier.ifEmpty { tierToUse }
                     sessionManager.saveCustomerTier(tier)
                     RedemptionStubClient.setToken(state.response.accessToken)
-                    findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+                    navigateToHome()
                 }
                 is AuthState.Error -> {
                     binding.progressBar.visibility = View.VISIBLE
@@ -120,6 +120,12 @@ class LoginFragment : Fragment() {
                     // Ignore legacy auth responses
                 }
             }
+        }
+    }
+
+    private fun navigateToHome() {
+        if (isAdded && findNavController().currentDestination?.id == R.id.loginFragment) {
+            findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
         }
     }
 

@@ -156,7 +156,9 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
                     putLong("vendor_id", pin.vendorId)
                     putLong("city_id", selectedCityId)
                 }
-                findNavController().navigate(R.id.action_nav_locations_to_nav_brand_detail, bundle)
+                if (isAdded && findNavController().currentDestination?.id == R.id.nav_locations) {
+                    findNavController().navigate(R.id.action_nav_locations_to_nav_brand_detail, bundle)
+                }
             }
         }
     }

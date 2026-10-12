@@ -75,7 +75,7 @@ class PromosFragment : Fragment() {
                         putLong("vendor_id", selectedVendor.id)
                         putLong("city_id", selectedCityId)
                     }
-                    findNavController().navigate(R.id.action_nav_promos_to_nav_brand_detail, bundle)
+                    navigateToBrandDetail(bundle)
                 }
                 binding.rvAmazingDiscounts.adapter = adapter
             }
@@ -88,7 +88,7 @@ class PromosFragment : Fragment() {
                         putLong("vendor_id", story.vendorId)
                         putLong("city_id", selectedCityId)
                     }
-                    findNavController().navigate(R.id.action_nav_promos_to_nav_brand_detail, bundle)
+                    navigateToBrandDetail(bundle)
                 }
             } else if (!state.isLoading) {
                 binding.rvBrandLogos.visibility = View.GONE
@@ -103,7 +103,7 @@ class PromosFragment : Fragment() {
                     putLong("vendor_id", banner.vendorId)
                     putLong("city_id", cityId)
                 }
-                findNavController().navigate(R.id.action_nav_promos_to_nav_brand_detail, bundle)
+                navigateToBrandDetail(bundle)
             }
         }
         binding.promoPager.adapter = adapter
@@ -145,6 +145,12 @@ class PromosFragment : Fragment() {
             TopPick(R.drawable.ic_placeholder, "Allure Beauty")
         )
         binding.rvAmazingDiscounts.adapter = TopPicksAdapter(fallbackList = list)
+    }
+
+    private fun navigateToBrandDetail(bundle: Bundle) {
+        if (isAdded && findNavController().currentDestination?.id == R.id.nav_promos) {
+            findNavController().navigate(R.id.action_nav_promos_to_nav_brand_detail, bundle)
+        }
     }
 
     override fun onDestroyView() {

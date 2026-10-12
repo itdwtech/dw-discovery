@@ -49,7 +49,7 @@ class HomeFragment : Fragment() {
                 putLong("vendor_id", selectedVendor.id)
                 putLong("city_id", selectedCityId)
             }
-            findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+            navigateToBrandDetail(bundle)
         }
     }
 
@@ -76,7 +76,9 @@ class HomeFragment : Fragment() {
             val navOptions = androidx.navigation.NavOptions.Builder()
                 .setPopUpTo(R.id.nav_graph, true)
                 .build()
-            findNavController().navigate(R.id.loginFragment, null, navOptions)
+            if (isAdded && findNavController().currentDestination?.id == R.id.nav_home) {
+                findNavController().navigate(R.id.loginFragment, null, navOptions)
+            }
             return
         }
 
@@ -121,7 +123,7 @@ class HomeFragment : Fragment() {
                         putLong("vendor_id", story.vendorId)
                         putLong("city_id", selectedCityId)
                     }
-                    findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+                    navigateToBrandDetail(bundle)
                 }
                 binding.storyRV.adapter = adapter
                 startStoryAutoScroll(state.stories.size)
@@ -135,7 +137,7 @@ class HomeFragment : Fragment() {
                         putLong("vendor_id", selectedVendor.id)
                         putLong("city_id", selectedCityId)
                     }
-                    findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+                    navigateToBrandDetail(bundle)
                 }
                 binding.bannerRV.adapter = adapter
             }
@@ -214,7 +216,7 @@ class HomeFragment : Fragment() {
                     putLong("vendor_id", banner.vendorId)
                     putLong("city_id", selectedCityId)
                 }
-                findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+                navigateToBrandDetail(bundle)
             } else {
                 navigateToDelivery(showSearch = true)
             }
@@ -341,7 +343,15 @@ class HomeFragment : Fragment() {
             searchQuery?.let { putString("searchQuery", it) }
             putBoolean("forceHideInStore", forceHideInStore)
         }
-        findNavController().navigate(R.id.action_nav_home_to_nav_delivery, bundle)
+        if (isAdded && findNavController().currentDestination?.id == R.id.nav_home) {
+            findNavController().navigate(R.id.action_nav_home_to_nav_delivery, bundle)
+        }
+    }
+
+    private fun navigateToBrandDetail(bundle: Bundle) {
+        if (isAdded && findNavController().currentDestination?.id == R.id.nav_home) {
+            findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+        }
     }
 
     private fun setupRecyclerViews() {

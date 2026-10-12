@@ -128,10 +128,12 @@ class BrandDetailFragment : Fragment() {
                 }
             }
 
-            findNavController().navigate(
-                R.id.nav_brand_info,
-                bundle
-            )
+            if (isAdded && findNavController().currentDestination?.id == R.id.nav_brand_detail) {
+                findNavController().navigate(
+                    R.id.nav_brand_info,
+                    bundle
+                )
+            }
         }
     }
 
@@ -409,10 +411,12 @@ class BrandDetailFragment : Fragment() {
                                 putBoolean("isStoreRedemption", true)
                             }
 
-                            findNavController().navigate(
-                                R.id.action_nav_brand_detail_to_nav_redemption_success,
-                                bundle
-                            )
+                            if (isAdded && findNavController().currentDestination?.id == R.id.nav_brand_detail) {
+                                findNavController().navigate(
+                                    R.id.action_nav_brand_detail_to_nav_redemption_success,
+                                    bundle
+                                )
+                            }
                         } else {
                             val msg = response.message.ifBlank { "Invalid merchant code. Please try again." }
                             Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show()
@@ -610,10 +614,12 @@ class BrandDetailFragment : Fragment() {
                                 putBoolean("isStoreRedemption", false)
                             }
 
-                            findNavController().navigate(
-                                R.id.action_nav_brand_detail_to_nav_redemption_success,
-                                bundle
-                            )
+                            if (isAdded && findNavController().currentDestination?.id == R.id.nav_brand_detail) {
+                                findNavController().navigate(
+                                    R.id.action_nav_brand_detail_to_nav_redemption_success,
+                                    bundle
+                                )
+                            }
                         } else {
                             val msg = response.message.ifBlank { "Redemption failed. Please try again." }
                             Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show()
