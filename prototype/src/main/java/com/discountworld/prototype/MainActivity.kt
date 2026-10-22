@@ -9,10 +9,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.discountworld.easypaisasdk.activities.DiscoveryActivity
 
+@OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
 class MainActivity : AppCompatActivity() {
     companion object {
-        // Base64 encoded API key: YTU1Mjg0YzYtZjQ3MC00ZTA3LWE2ZDMtOGQ3ZTBiNWIzYzEz
-        private const val API_KEY = "YTU1Mjg0YzYtZjQ3MC00ZTA3LWE2ZDMtOGQ3ZTBiNWIzYzEz"
+        private const val API_KEY = "a55284c6-f470-4e07-a6d3-8d7e0b5b3c13"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +41,8 @@ class MainActivity : AppCompatActivity() {
 
             intent.putExtra("unique_id", uniqueId)
             intent.putExtra("customer_tier", selectedTier)
-            intent.putExtra("api_key", API_KEY)
+            val encodedApiKey = kotlin.io.encoding.Base64.encode(API_KEY.toByteArray())
+            intent.putExtra("api_key", encodedApiKey)
 
             try {
                 startActivity(intent)

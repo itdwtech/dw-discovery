@@ -10,7 +10,7 @@ import io.grpc.stub.MetadataUtils
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 object RedemptionStubClient {
-    private var apiKey: String = "YTU1Mjg0YzYtZjQ3MC00ZTA3LWE2ZDMtOGQ3ZTBiNWIzYzEz"
+    private var apiKey: String = "a55284c6-f470-4e07-a6d3-8d7e0b5b3c13"
     private const val SERVER_URL = "stg-api.appbiance.com"
     private const val SERVER_PORT = 443
 
@@ -38,7 +38,8 @@ object RedemptionStubClient {
         get() {
             val headers = Metadata()
             val apiKeyKey = Metadata.Key.of("x-api-key", Metadata.ASCII_STRING_MARSHALLER)
-            headers.put(apiKeyKey, apiKey)
+            val encodedApiKey = kotlin.io.encoding.Base64.encode(apiKey.toByteArray())
+            headers.put(apiKeyKey, encodedApiKey)
 
             accessToken?.let {
                 val authKey = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
