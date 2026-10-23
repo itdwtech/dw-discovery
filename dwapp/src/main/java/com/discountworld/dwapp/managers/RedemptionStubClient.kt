@@ -7,10 +7,12 @@ import io.grpc.StatusException
 import io.grpc.StatusRuntimeException
 import io.grpc.okhttp.OkHttpChannelBuilder
 import io.grpc.stub.MetadataUtils
+import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 object RedemptionStubClient {
-    private var apiKey: String = "YTU1Mjg0YzYtZjQ3MC00ZTA3LWE2ZDMtOGQ3ZTBiNWIzYzEz"
+    // Raw API key (converted to Base64 dynamically for x-api-key header)
+    private var apiKey: String = "a55284c6-f470-4e07-a6d3-8d7e0b5b3c13"
     private const val SERVER_URL = "stg-api.appbiance.com"
     private const val SERVER_PORT = 443
 
@@ -34,11 +36,23 @@ object RedemptionStubClient {
     }
 
     @OptIn(ExperimentalEncodingApi::class)
+    private fun getFormattedBase64ApiKey(key: String): String {
+        return try {
+            val decoded = Base64.decode(key)
+            val reEncoded = Base64.encode(decoded)
+            if (reEncoded == key) key else Base64.encode(key.toByteArray(Charsets.UTF_8))
+        } catch (_: Exception) {
+            Base64.encode(key.toByteArray(Charsets.UTF_8))
+        }
+    }
+
+    @OptIn(ExperimentalEncodingApi::class)
     val stub: RedemptionServiceGrpcKt.RedemptionServiceCoroutineStub
         get() {
             val headers = Metadata()
             val apiKeyKey = Metadata.Key.of("x-api-key", Metadata.ASCII_STRING_MARSHALLER)
-            headers.put(apiKeyKey, apiKey)
+            val encodedApiKey = getFormattedBase64ApiKey(apiKey)
+            headers.put(apiKeyKey, encodedApiKey)
 
             accessToken?.let {
                 val authKey = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
