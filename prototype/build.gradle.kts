@@ -54,6 +54,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation(project(":easypaisasdk"))
+    implementation(project(":dwapp"))
 
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
 

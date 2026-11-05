@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.discountworld.easypaisasdk.activities.DiscoveryActivity
+import com.discountworld.dwapp.activities.MainActivity as DwMainActivity
 
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -44,9 +45,8 @@ class MainActivity : AppCompatActivity() {
                 else -> "Gold"
             }
 
-            val intent = packageManager.getLaunchIntentForPackage("com.discountworld.dwapp") ?: Intent().apply {
-                setClassName("com.discountworld.dwapp", "com.discountworld.dwapp.activities.MainActivity")
-            }
+            val intent = packageManager.getLaunchIntentForPackage("com.discountworld.dwapp")
+                ?: Intent(this, DwMainActivity::class.java)
 
             intent.putExtra("unique_id", uniqueId)
             intent.putExtra("customer_tier", selectedTier)

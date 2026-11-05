@@ -13,7 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.discountworld.dwapp.R
-import com.discountworld.dwapp.databinding.ActivityMainBinding
+import com.discountworld.dwapp.databinding.ActivityDwappMainBinding
 import com.discountworld.dwapp.fragments.LoginFragment
 import com.discountworld.dwapp.managers.RedemptionStubClient
 import com.discountworld.dwapp.managers.SessionManager
@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityDwappMainBinding
     private val viewModel: MainViewModel by viewModels()
     private lateinit var sessionManager: SessionManager
 
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 
         handleBackgroundAuth(intent)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityDwappMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
