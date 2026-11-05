@@ -13,7 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.discountworld.dwapp.R
-import com.discountworld.dwapp.databinding.ActivityMainBinding
+import com.discountworld.dwapp.databinding.ActivityDwMainBinding
 import com.discountworld.dwapp.fragments.LoginFragment
 import com.discountworld.dwapp.managers.RedemptionStubClient
 import com.discountworld.dwapp.managers.SessionManager
@@ -24,22 +24,24 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityDwMainBinding
     private val viewModel: MainViewModel by viewModels()
     private lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Force Light Mode globally
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        // Force Light Mode globally if not already set
+        if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        }
         
         sessionManager = SessionManager(this)
         hideStatusBar()
 
         handleBackgroundAuth(intent)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityDwMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment

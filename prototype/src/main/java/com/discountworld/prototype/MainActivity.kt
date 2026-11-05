@@ -35,14 +35,11 @@ class MainActivity : AppCompatActivity() {
                 else -> "Gold"
             }
 
-            val intent = packageManager.getLaunchIntentForPackage("com.discountworld.dwapp") ?: Intent().apply {
-                setClassName("com.discountworld.dwapp", "com.discountworld.dwapp.activities.MainActivity")
+            val intent = Intent(this, com.discountworld.dwapp.activities.MainActivity::class.java).apply {
+                putExtra("unique_id", uniqueId)
+                putExtra("customer_tier", selectedTier)
+                putExtra("api_key", API_KEY)
             }
-
-            intent.putExtra("unique_id", uniqueId)
-            intent.putExtra("customer_tier", selectedTier)
-            val encodedApiKey = kotlin.io.encoding.Base64.encode(API_KEY.toByteArray())
-            intent.putExtra("api_key", encodedApiKey)
 
             try {
                 startActivity(intent)

@@ -34,12 +34,27 @@ object RedemptionStubClient {
     }
 
     @OptIn(ExperimentalEncodingApi::class)
+    private fun isBase64Encoded(str: String): Boolean {
+        return try {
+            val decoded = kotlin.io.encoding.Base64.decode(str)
+            val reEncoded = kotlin.io.encoding.Base64.encode(decoded)
+            reEncoded == str
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    @OptIn(ExperimentalEncodingApi::class)
     val stub: RedemptionServiceGrpcKt.RedemptionServiceCoroutineStub
         get() {
             val headers = Metadata()
             val apiKeyKey = Metadata.Key.of("x-api-key", Metadata.ASCII_STRING_MARSHALLER)
-            val encodedApiKey = kotlin.io.encoding.Base64.encode(apiKey.toByteArray())
-            headers.put(apiKeyKey, encodedApiKey)
+            val finalApiKey = if (isBase64Encoded(apiKey)) {
+                apiKey
+            } else {
+                kotlin.io.encoding.Base64.encode(apiKey.toByteArray())
+            }
+            headers.put(apiKeyKey, finalApiKey)
 
             accessToken?.let {
                 val authKey = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
