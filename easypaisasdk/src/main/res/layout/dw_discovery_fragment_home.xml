@@ -156,8 +156,7 @@
                                 android:id="@+id/imgBanner"
                                 android:layout_width="match_parent"
                                 android:layout_height="200dp"
-                                android:scaleType="centerCrop"
-                                android:src="@drawable/dw_discovery_ic_banner"/>
+                                android:scaleType="centerCrop"/>
 
                             <LinearLayout
                                 android:padding="12dp"

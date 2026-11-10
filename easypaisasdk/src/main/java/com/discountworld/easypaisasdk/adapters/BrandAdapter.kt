@@ -32,7 +32,7 @@ class BrandAdapter(
         Glide.with(holder.itemView.context)
             .load(brand.logoUrl)
             .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
-            .error(com.discountworld.easypaisasdk.R.drawable.dw_discovery_ic_banner)
+            .error(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
             .into(holder.binding.imgBanner)
 
         holder.binding.root.setOnClickListener {

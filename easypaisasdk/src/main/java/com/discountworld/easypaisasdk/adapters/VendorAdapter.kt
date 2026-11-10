@@ -4,7 +4,6 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.discountworld.discovery.VendorSummary
-import com.discountworld.easypaisasdk.R
 import com.discountworld.easypaisasdk.databinding.DwDiscoveryItemBannerCardBinding
 import com.bumptech.glide.Glide
 import com.discountworld.discovery.Banner
@@ -51,7 +50,7 @@ class VendorAdapter(
         Glide.with(holder.binding.root.context)
             .load(banner?.imageUrl)
             .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
-            .error(R.drawable.dw_discovery_ic_banner)
+            .error(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
             .centerCrop()
             .into(holder.binding.imgBanner)
         holder.binding.root.setOnClickListener {

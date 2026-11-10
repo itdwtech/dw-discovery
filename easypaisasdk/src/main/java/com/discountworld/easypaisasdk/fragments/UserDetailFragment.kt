@@ -195,8 +195,8 @@ class UserDetailFragment : Fragment() {
                                     RoundedCorners(24) // 👈 Rounded corners
                                 )
                         )
-                        .placeholder(R.drawable.dw_discovery_ic_banner)
-                        .error(R.drawable.dw_discovery_ic_banner)
+                        .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
+                        .error(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
                         .into(binding.bannerImage)
                 }
             } catch (e: Exception) {

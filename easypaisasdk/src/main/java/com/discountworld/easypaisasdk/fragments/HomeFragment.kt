@@ -462,7 +462,7 @@ class HomeFragment : Fragment() {
             Glide.with(requireContext())
                 .load(cachedBannerUrl)
                 .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
-                .error(R.drawable.dw_discovery_ic_banner)
+                .error(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
                 .centerCrop()
                 .into(binding.imgBanner)
 
@@ -479,7 +479,7 @@ class HomeFragment : Fragment() {
         } else {
             binding.txtTitle.text = "No Data"
             binding.txtSubtitle.text = ""
-            binding.imgBanner.setImageResource(R.drawable.dw_discovery_ic_banner)
+            binding.imgBanner.setImageDrawable(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
         }
     }
 
@@ -766,7 +766,7 @@ class HomeFragment : Fragment() {
             Glide.with(requireContext())
                 .load(cachedBannerUrl)
                 .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
-                .error(R.drawable.dw_discovery_ic_banner)
+                .error(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
                 .centerCrop()
                 .into(binding.imgBanner)
 

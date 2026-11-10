@@ -67,7 +67,6 @@
                 android:background="@drawable/dw_discovery_banner_image_bg"
                 android:clipToOutline="true"
                 android:contentDescription="@string/dw_discovery_banner"
-                android:src="@drawable/dw_discovery_ic_banner"
                 android:scaleType="centerCrop"
                 app:layout_constraintTop_toBottomOf="@id/title"
                 app:layout_constraintStart_toStartOf="parent"
