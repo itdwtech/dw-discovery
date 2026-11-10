@@ -183,6 +183,8 @@ class HomeFragment : Fragment() {
 
         isSearching = false
 
+        binding.tvNoVendor.visibility = View.GONE
+        binding.rcyVendors.visibility = View.VISIBLE
         binding.lvCity.visibility = View.VISIBLE
         binding.lvFeaturedVendor.visibility = View.VISIBLE
         binding.rcyCities.visibility = View.VISIBLE
@@ -398,6 +400,8 @@ class HomeFragment : Fragment() {
     private fun setupVendorsList() {
         resetPagination()
 
+        binding.tvNoVendor.visibility = View.GONE
+        binding.rcyVendors.visibility = View.VISIBLE
         binding.rcyVendors.layoutManager = LinearLayoutManager(requireContext())
 
         val key = Pair(cityId, null as Long?)
@@ -674,6 +678,8 @@ class HomeFragment : Fragment() {
     private fun loadVendorsByCategory(categoryId: Long) {
         resetPagination()
 
+        binding.tvNoVendor.visibility = View.GONE
+        binding.rcyVendors.visibility = View.VISIBLE
         val key = Pair(cityId, categoryId as Long?)
         val cachedVendors = vendorDataCache[key]
         if (cachedVendors != null) {
@@ -803,6 +809,7 @@ class HomeFragment : Fragment() {
     private fun findVendor(text: String) {
         resetPagination()
         binding.loaderLayout.visibility = View.VISIBLE
+        binding.tvNoVendor.visibility = View.GONE
 
         CoroutineTask.ioThenMain({
 
@@ -830,25 +837,32 @@ class HomeFragment : Fragment() {
             currentPage = 1
             hasMorePages = vendors.size >= 10
 
-            vendorAdapter = VendorAdapter(
-                vendors = vendors,
-                banners = banners
-            ) { vendor ->
+            if (vendors.isEmpty()) {
+                binding.tvNoVendor.visibility = View.VISIBLE
+                binding.rcyVendors.visibility = View.GONE
+            } else {
+                binding.tvNoVendor.visibility = View.GONE
+                binding.rcyVendors.visibility = View.VISIBLE
+                vendorAdapter = VendorAdapter(
+                    vendors = vendors,
+                    banners = banners
+                ) { vendor ->
 
-                if (_binding == null) return@VendorAdapter
+                    if (_binding == null) return@VendorAdapter
 
-                val action =
-                    HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
-                        bannerTitle = vendor.companyName,
-                        bannerSubtitle = vendor.description,
-                        bannerTerms = vendor.title,
-                        vendorId = vendor.id,
-                        cityId = cityId ?: 1
-                    )
+                    val action =
+                        HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
+                            bannerTitle = vendor.companyName,
+                            bannerSubtitle = vendor.description,
+                            bannerTerms = vendor.title,
+                            vendorId = vendor.id,
+                            cityId = cityId ?: 1
+                        )
 
-                findNavController().navigate(action)
+                    findNavController().navigate(action)
+                }
+                binding.rcyVendors.adapter = vendorAdapter
             }
-            binding.rcyVendors.adapter = vendorAdapter
         })
     }
 

@@ -221,6 +221,18 @@
                         android:layout_marginBottom="48dp"
                         android:nestedScrollingEnabled="false"/>
 
+                    <com.discountworld.easypaisasdk.reusables.TextViewMedium
+                        android:id="@+id/tv_no_vendor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="40dp"
+                        android:layout_marginBottom="40dp"
+                        android:gravity="center"
+                        android:text="@string/dw_discovery_vendor_not_found"
+                        android:textColor="@color/dw_discovery_black"
+                        android:textSize="16sp"
+                        android:visibility="gone" />
+
 
                 </LinearLayout>
 

@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -58,6 +57,10 @@ class SearchFragment : Fragment() {
                 if (text.isNotEmpty()) {
                     currentSearchText = text
                     findVendor(text)
+                } else {
+                    currentSearchText = ""
+                    binding.rcyVendors.adapter = null
+                    binding.tvNoVendor.visibility = View.GONE
                 }
             }
 
@@ -89,6 +92,7 @@ class SearchFragment : Fragment() {
         currentPage = 1
         isLoadingPage = false
         hasMorePages = true
+        binding.tvNoVendor.visibility = View.GONE
 
         CoroutineTask.ioThenMain({
 
@@ -107,9 +111,12 @@ class SearchFragment : Fragment() {
             hasMorePages = vendors.size >= 10
 
             if (vendors.isEmpty()) {
-                Toast.makeText(requireContext(), "No vendors found", Toast.LENGTH_SHORT).show()
+                binding.tvNoVendor.visibility = View.VISIBLE
+                binding.rcyVendors.visibility = View.GONE
                 binding.rcyVendors.adapter = null
             } else {
+                binding.tvNoVendor.visibility = View.GONE
+                binding.rcyVendors.visibility = View.VISIBLE
                 vendorAdapter = VendorAdapter(
                     vendors = vendors,
                     banners = banners

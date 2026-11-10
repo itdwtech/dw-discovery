@@ -14,4 +14,5 @@
     <string name="dw_discovery_with_easypaisa_premium_debit_card">with easypaisa premium debit card</string>
     <string name="dw_discovery_terms_applied">Terms applied</string>
     <string name="dw_discovery_terms_conditions"><![CDATA[Terms & Conditions]]></string>
+    <string name="dw_discovery_vendor_not_found">Vendor not found</string>
 </resources>
