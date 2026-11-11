@@ -19,6 +19,7 @@ import com.discountworld.dwapp.adapters.BrandBranchesAdapter
 import com.discountworld.dwapp.databinding.FragmentBrandInfoBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.dwapp.viewmodels.BrandInfoState
 import com.discountworld.dwapp.viewmodels.BrandInfoViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -123,11 +124,7 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
 
         if (vendor.logoUrl.isNotEmpty()) {
             vendorLogoUrl = vendor.logoUrl
-            Glide.with(requireContext())
-                .load(vendor.logoUrl.fixImageUrl())
-                .placeholder(R.drawable.ic_placeholder)
-                .error(R.drawable.ic_placeholder)
-                .into(binding.ivBrandLogo)
+            binding.ivBrandLogo.loadImageWithShimmer(vendor.logoUrl)
         }
 
         if (vendor.description.isNotEmpty()) {

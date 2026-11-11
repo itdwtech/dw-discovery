@@ -3,11 +3,9 @@ package com.discountworld.dwapp.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.discountworld.discount.RedemptionStory
-import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemStoryBinding
-import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 
 class StoryAdapter(
     private val stories: List<RedemptionStory>,
@@ -29,11 +27,7 @@ class StoryAdapter(
         val story = stories[position]
         holder.binding.tvStoryTitle.text = story.vendorTitle
 
-        Glide.with(holder.itemView.context)
-            .load(story.vendorLogoUrl.fixImageUrl())
-            .placeholder(R.drawable.ic_placeholder)
-            .error(R.drawable.ic_placeholder)
-            .into(holder.binding.ivStoryLogo)
+        holder.binding.ivStoryLogo.loadImageWithShimmer(story.vendorLogoUrl)
 
         holder.itemView.setOnClickListener { onStoryClick(story) }
     }

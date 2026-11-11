@@ -10,7 +10,9 @@ import com.bumptech.glide.Glide
 import com.discountworld.discount.RedemptionVendorSummary
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemDeliveryDealBinding
+import com.discountworld.dwapp.utils.createShimmerDrawable
 import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 
 class DeliveryDealsAdapter(
     private var list: List<RedemptionVendorSummary> = emptyList(),
@@ -55,7 +57,7 @@ class DeliveryDealsAdapter(
 
             Glide.with(holder.itemView.context)
                 .load(bannerUrl)
-                .placeholder(R.drawable.ic_placeholder)
+                .placeholder(createShimmerDrawable())
                 .error(R.drawable.ic_placeholder)
                 .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
                     override fun onLoadFailed(
@@ -88,11 +90,7 @@ class DeliveryDealsAdapter(
             holder.binding.ivDealBanner.setImageResource(R.drawable.ic_placeholder)
         }
 
-        Glide.with(holder.itemView.context)
-            .load(item.logoUrl.fixImageUrl())
-            .placeholder(R.drawable.ic_placeholder)
-            .error(R.drawable.ic_placeholder)
-            .into(holder.binding.ivDealLogo)
+        holder.binding.ivDealLogo.loadImageWithShimmer(item.logoUrl)
 
         holder.itemView.setOnClickListener {
             if (onItemClick != null) {

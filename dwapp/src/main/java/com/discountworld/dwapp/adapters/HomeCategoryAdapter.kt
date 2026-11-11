@@ -3,11 +3,9 @@ package com.discountworld.dwapp.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.discountworld.discount.RedemptionCategory
-import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemHomeCategoryBinding
-import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 
 class HomeCategoryAdapter(
     private val categories: List<RedemptionCategory>,
@@ -29,11 +27,7 @@ class HomeCategoryAdapter(
         val category = categories[position]
         holder.binding.tvCategoryName.text = category.name
         
-        Glide.with(holder.itemView.context)
-            .load(category.imageUrl.fixImageUrl())
-            .placeholder(R.drawable.ic_placeholder)
-            .error(R.drawable.ic_placeholder)
-            .into(holder.binding.ivCategoryImage)
+        holder.binding.ivCategoryImage.loadImageWithShimmer(category.imageUrl)
 
         holder.itemView.setOnClickListener { onCategoryClick(category) }
     }

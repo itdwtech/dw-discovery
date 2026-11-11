@@ -5,12 +5,11 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.discountworld.discount.RedemptionVendorSummary
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemTopPickBinding
 import com.discountworld.dwapp.models.TopPick
-import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 
 class TopPicksAdapter(
     private val vendorList: List<RedemptionVendorSummary> = emptyList(),
@@ -32,15 +31,7 @@ class TopPicksAdapter(
             holder.binding.tvBrandName.text = title
 
             val imageUrl = vendor.bannerUrl
-            if (imageUrl.isNotEmpty()) {
-                Glide.with(holder.itemView.context)
-                    .load(imageUrl.fixImageUrl())
-                    .placeholder(R.drawable.ic_placeholder)
-                    .error(R.drawable.ic_placeholder)
-                    .into(holder.binding.ivTopPick)
-            } else {
-                holder.binding.ivTopPick.setImageResource(R.drawable.ic_placeholder)
-            }
+            holder.binding.ivTopPick.loadImageWithShimmer(imageUrl)
 
             holder.itemView.setOnClickListener {
                 if (onItemClick != null) {

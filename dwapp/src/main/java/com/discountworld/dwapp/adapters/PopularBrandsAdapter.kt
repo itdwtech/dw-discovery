@@ -6,11 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.discountworld.discount.RedemptionVendorSummary
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemPopularBrandBinding
-import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 
 class PopularBrandsAdapter(
     private var list: List<RedemptionVendorSummary> = emptyList(),
@@ -56,11 +55,7 @@ class PopularBrandsAdapter(
         }
 
         val imageUrl = if (item.logoUrl.isNotEmpty()) item.logoUrl else item.bannerUrl
-        Glide.with(holder.itemView.context)
-            .load(imageUrl.fixImageUrl())
-            .placeholder(R.drawable.ic_placeholder)
-            .error(R.drawable.ic_placeholder)
-            .into(holder.binding.ivLogo)
+        holder.binding.ivLogo.loadImageWithShimmer(imageUrl)
 
         holder.itemView.setOnClickListener {
             if (onItemClick != null) {

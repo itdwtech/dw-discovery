@@ -30,6 +30,7 @@ import com.discountworld.dwapp.models.Offer
 import androidx.fragment.app.viewModels
 import com.discountworld.dwapp.repositories.RedemptionRepository
 import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.dwapp.utils.makeDraggable
 import com.discountworld.dwapp.viewmodels.BrandDetailState
 import com.discountworld.dwapp.viewmodels.BrandDetailViewModel
@@ -154,21 +155,8 @@ class BrandDetailFragment : Fragment() {
                         
                         binding.tvAddress.text = it.description
 
-                        if (it.bannerUrl.isNotEmpty()) {
-                            Glide.with(requireContext())
-                                .load(it.bannerUrl.fixImageUrl())
-                                .placeholder(R.drawable.ic_placeholder)
-                                .error(R.drawable.ic_placeholder)
-                                .into(binding.ivBanner)
-                        } else if (it.galleryImagesList.isNotEmpty()) {
-                            Glide.with(requireContext())
-                                .load(it.galleryImagesList.first().fixImageUrl())
-                                .placeholder(R.drawable.ic_placeholder)
-                                .error(R.drawable.ic_placeholder)
-                                .into(binding.ivBanner)
-                        } else {
-                            binding.ivBanner.setImageResource(R.drawable.ic_placeholder)
-                        }
+                        val bannerUrl = if (it.bannerUrl.isNotEmpty()) it.bannerUrl else it.galleryImagesList.firstOrNull()
+                        binding.ivBanner.loadImageWithShimmer(bannerUrl)
                     }
 
                     setupOffersRecyclerView(state.deals)
@@ -292,18 +280,7 @@ class BrandDetailFragment : Fragment() {
         // --------------------------------------------------------
 
         if (!vendorLogoUrl.isNullOrEmpty()) {
-
-            Glide.with(ctx)
-                .load(vendorLogoUrl.fixImageUrl())
-                .placeholder(
-                    R.drawable.ic_placeholder
-                )
-                .error(
-                    R.drawable.ic_placeholder
-                )
-                .into(
-                    dialogBinding.ivMerchantLogo
-                )
+            dialogBinding.ivMerchantLogo.loadImageWithShimmer(vendorLogoUrl)
         }
 
         // --------------------------------------------------------
@@ -510,18 +487,7 @@ class BrandDetailFragment : Fragment() {
         // --------------------------------------------------------
 
         if (!vendorLogoUrl.isNullOrEmpty()) {
-
-            Glide.with(ctx)
-                .load(vendorLogoUrl.fixImageUrl())
-                .placeholder(
-                    R.drawable.ic_placeholder
-                )
-                .error(
-                    R.drawable.ic_placeholder
-                )
-                .into(
-                    dialogBinding.ivMerchantLogo
-                )
+            dialogBinding.ivMerchantLogo.loadImageWithShimmer(vendorLogoUrl)
         }
 
         // --------------------------------------------------------
