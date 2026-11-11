@@ -26,6 +26,7 @@ import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.models.TopPick
 import com.discountworld.dwapp.repositories.RedemptionRepository
 import com.discountworld.dwapp.utils.makeDraggable
+import com.discountworld.dwapp.utils.makeSupportCall
 import com.discountworld.dwapp.viewmodels.HomeViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.launch
@@ -99,7 +100,7 @@ class HomeFragment : Fragment() {
 
         binding.fabCallClick.makeDraggable()
         binding.fabCallClick.setOnClickListener {
-            // Add your call click logic here
+            requireContext().makeSupportCall()
         }
 
         initHomeData()

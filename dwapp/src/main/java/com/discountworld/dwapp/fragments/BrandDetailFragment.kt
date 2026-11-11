@@ -32,6 +32,7 @@ import com.discountworld.dwapp.repositories.RedemptionRepository
 import com.discountworld.dwapp.utils.fixImageUrl
 import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.dwapp.utils.makeDraggable
+import com.discountworld.dwapp.utils.makeSupportCall
 import com.discountworld.dwapp.viewmodels.BrandDetailState
 import com.discountworld.dwapp.viewmodels.BrandDetailViewModel
 import kotlinx.coroutines.async
@@ -101,7 +102,7 @@ class BrandDetailFragment : Fragment() {
         
         binding.fabCallClick.makeDraggable()
         binding.fabCallClick.setOnClickListener {
-            // Add your call click logic here
+            requireContext().makeSupportCall()
         }
 
         binding.llInfo.setOnClickListener {

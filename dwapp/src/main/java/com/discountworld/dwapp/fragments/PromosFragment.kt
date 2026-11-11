@@ -19,6 +19,7 @@ import com.discountworld.dwapp.databinding.FragmentPromosBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.models.TopPick
 import com.discountworld.dwapp.utils.makeDraggable
+import com.discountworld.dwapp.utils.makeSupportCall
 import com.discountworld.dwapp.viewmodels.PromosViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 
@@ -53,7 +54,7 @@ class PromosFragment : Fragment() {
         
         binding.fabCallClick.makeDraggable()
         binding.fabCallClick.setOnClickListener {
-            // Add your call click logic here
+            requireContext().makeSupportCall()
         }
 
         val selectedCityId = sessionManager.getSelectedCityId() ?: 1L

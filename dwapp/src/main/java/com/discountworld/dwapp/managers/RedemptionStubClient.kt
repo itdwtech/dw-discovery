@@ -10,8 +10,8 @@ import io.grpc.stub.MetadataUtils
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 object RedemptionStubClient {
-    private var apiKey: String = "a55284c6-f470-4e07-a6d3-8d7e0b5b3c13"
-    private const val SERVER_URL = "stg-api.appbiance.com"
+    private var apiKey: String = "077b3d1b-d833-42f5-8860-971921077f8d"
+    private const val SERVER_URL = "api.appbiance.com"
     private const val SERVER_PORT = 443
 
     private var accessToken: String? = null
