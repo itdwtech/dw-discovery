@@ -381,11 +381,16 @@ class BrandDetailFragment : Fragment() {
                                         (it.platform.equals("website", ignoreCase = true) || it.url.startsWith("http") || it.url.contains("www."))
                             }?.url
 
+                            val msg1 = response.customMessage1.ifBlank { deal?.customMessage1 ?: "" }
+                            val msg2 = response.customMessage2.ifBlank { deal?.customMessage2 ?: "" }
+
                             val bundle = Bundle().apply {
                                 putString("redemptionCode", redemptionCode)
                                 putString("vendorName", vendorName)
                                 putString("vendorPhone", currentVendorDetail?.headOfficeNumber ?: "")
                                 putString("vendorWebsite", websiteLink)
+                                putString("customMessage1", msg1)
+                                putString("customMessage2", msg2)
                                 putBoolean("isStoreRedemption", true)
                             }
 
@@ -571,13 +576,16 @@ class BrandDetailFragment : Fragment() {
                                         (it.platform.equals("website", ignoreCase = true) || it.url.startsWith("http") || it.url.contains("www."))
                             }?.url
 
+                            val msg1 = response.customMessage1.ifBlank { deal?.customMessage1 ?: "" }
+                            val msg2 = response.customMessage2.ifBlank { deal?.customMessage2 ?: "" }
+
                             val bundle = Bundle().apply {
                                 putString("redemptionCode", redemptionCode)
                                 putString("vendorName", vendorName)
                                 putString("vendorPhone", currentVendorDetail?.headOfficeNumber ?: "")
                                 putString("vendorWebsite", websiteLink)
-                                putString("customMessage1", response.customMessage1)
-                                putString("customMessage2", response.customMessage2)
+                                putString("customMessage1", msg1)
+                                putString("customMessage2", msg2)
                                 putBoolean("isStoreRedemption", false)
                             }
 

@@ -50,6 +50,21 @@
                 app:layout_constraintTop_toBottomOf="@+id/ivBanner" />
 
             <TextView
+                android:id="@+id/tvAddress"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_4sdp"
+                android:layout_marginEnd="@dimen/_16sdp"
+                android:ellipsize="end"
+                android:lines="1"
+                android:text="address of the venders"
+                android:textColor="@color/purple_primary"
+                android:textSize="@dimen/_12ssp"
+                app:layout_constraintEnd_toStartOf="@+id/llInfo"
+                app:layout_constraintStart_toStartOf="@+id/tvBrandName"
+                app:layout_constraintTop_toBottomOf="@+id/tvBrandName" />
+
+            <TextView
                 android:id="@+id/tvCategory"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -58,22 +73,7 @@
                 android:textColor="@color/black"
                 android:textSize="@dimen/_10ssp"
                 app:layout_constraintStart_toStartOf="@+id/tvBrandName"
-                app:layout_constraintTop_toBottomOf="@+id/tvBrandName" />
-
-            <TextView
-                android:id="@+id/tvAddress"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_4sdp"
-                android:layout_marginEnd="@dimen/_16sdp"
-                android:text="address of the venders"
-                android:ellipsize="end"
-                android:lines="1"
-                android:textColor="@color/purple_primary"
-                android:textSize="@dimen/_12ssp"
-                app:layout_constraintEnd_toStartOf="@+id/llInfo"
-                app:layout_constraintStart_toStartOf="@+id/tvBrandName"
-                app:layout_constraintTop_toBottomOf="@+id/tvCategory" />
+                app:layout_constraintTop_toBottomOf="@+id/tvAddress" />
 
             <LinearLayout
                 android:id="@+id/llInfo"
@@ -113,7 +113,7 @@
                 android:layout_marginTop="@dimen/_24sdp"
                 android:background="@color/purple_primary"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tvAddress" />
+                app:layout_constraintTop_toBottomOf="@+id/tvCategory" />
 
             <TextView
                 android:id="@+id/tvAllOffers"
