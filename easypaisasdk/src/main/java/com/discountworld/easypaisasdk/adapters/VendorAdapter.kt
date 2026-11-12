@@ -3,40 +3,38 @@ package com.discountworld.easypaisasdk.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.Priority
-import com.discountworld.discovery.Banner
 import com.discountworld.discovery.VendorSummary
 import com.discountworld.easypaisasdk.databinding.DwDiscoveryItemBannerCardBinding
-import com.discountworld.easypaisasdk.utils.loadBannerImage
+import android.util.Log
+import android.graphics.drawable.Drawable
+import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
+import com.discountworld.discovery.Banner
+import com.discountworld.easypaisasdk.R
+import com.discountworld.easypaisasdk.repositories.HomeRepository
 
 class VendorAdapter(
     vendors: List<VendorSummary>,
-    private var banners: List<Banner>?,
+    banners: List<Banner>?,
     private val onClick: (VendorSummary) -> Unit
 ) : RecyclerView.Adapter<VendorAdapter.VendorViewHolder>() {
 
     private val vendorsList: MutableList<VendorSummary> = vendors.toMutableList()
 
-    fun addVendors(newVendors: List<VendorSummary>, newBanners: List<Banner>? = null) {
-        if (!newBanners.isNullOrEmpty()) {
-            banners = ((banners ?: emptyList()) + newBanners).distinctBy { it.vendorId to it.id }
-        }
+    // O(1) lookup instead of scanning the whole banner list on every bind
+    private val bannerByVendor: Map<Long, String> = banners.orEmpty()
+        .filter { it.imageUrl.isNotBlank() }
+        .associate { it.vendorId to it.imageUrl }
+
+    fun addVendors(newVendors: List<VendorSummary>) {
         val startPosition = vendorsList.size
         vendorsList.addAll(newVendors)
         notifyItemRangeInserted(startPosition, newVendors.size)
-    }
-
-    fun updateBanners(updatedBanners: List<Banner>) {
-        val previousBanners = banners
-        banners = updatedBanners
-        vendorsList.forEachIndexed { index, vendor ->
-            val oldUrl = previousBanners?.firstOrNull { it.vendorId == vendor.id }?.imageUrl
-            val newUrl = updatedBanners.firstOrNull { it.vendorId == vendor.id }?.imageUrl
-            if (oldUrl != newUrl) {
-                notifyItemChanged(index)
-            }
-        }
     }
 
     fun updateVendors(newVendors: List<VendorSummary>) {
@@ -59,16 +57,36 @@ class VendorAdapter(
 
     override fun onBindViewHolder(holder: VendorViewHolder, position: Int) {
         val vendor = vendorsList[position]
-        val banner = banners?.firstOrNull { it.vendorId == vendor.id }
+        // Vendor's own banner (from SearchVendors) -> global banner list -> logo
+        val imageUrl = HomeRepository.vendorBannerUrls[vendor.id]
+            ?: bannerByVendor[vendor.id]
+            ?: vendor.logoUrl.takeIf { it.isNotBlank() }
 
         holder.binding.txtTitle.text = vendor.title ?: ""
         holder.binding.txtSubtitle.text = vendor.shortDescription ?: ""
 
-        holder.binding.imgBanner.loadBannerImage(
-            url = banner?.imageUrl,
-            priority = if (position < 4) Priority.HIGH else Priority.LOW,
-            requestManager = Glide.with(holder.binding.root.context)
-        )
+        Glide.with(holder.binding.imgBanner)
+            .load(imageUrl)
+            .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
+            .error(R.color.dw_discovery_dim_gray)
+            .fallback(R.color.dw_discovery_dim_gray)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .priority(if (position < 3) Priority.HIGH else Priority.NORMAL)
+            .centerCrop()
+            .listener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean
+                ): Boolean {
+                    Log.e("VendorAdapter", "Image load failed: $model", e)
+                    return false
+                }
+
+                override fun onResourceReady(
+                    resource: Drawable, model: Any, target: Target<Drawable>?,
+                    dataSource: DataSource, isFirstResource: Boolean
+                ): Boolean = false
+            })
+            .into(holder.binding.imgBanner)
         holder.binding.root.setOnClickListener {
             onClick(vendor)
         }

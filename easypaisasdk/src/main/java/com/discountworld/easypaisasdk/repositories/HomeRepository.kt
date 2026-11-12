@@ -15,12 +15,13 @@ import com.discountworld.discovery.VendorSummary
 import com.discountworld.easypaisasdk.managers.GrpcStubClient
 import com.discountworld.easypaisasdk.managers.GrpcStubClient.grpcCall
 
-data class VendorsWithBanners(
-    val vendors: List<VendorSummary>,
-    val banners: List<Banner>
-)
-
 class HomeRepository {
+
+    companion object {
+        /** vendorId -> banner image URL, filled from SearchVendors responses */
+        val vendorBannerUrls: MutableMap<Long, String> =
+            java.util.concurrent.ConcurrentHashMap()
+    }
 
     val stub = GrpcStubClient.stub
     val stubMerge = GrpcStubClient.stubMerge
@@ -78,28 +79,6 @@ class HomeRepository {
         pageSize: Int = 10,
         featured: Boolean? = null
     ): List<VendorSummary>? {
-        return getVendorsWithBanners(
-            cityId = cityId,
-            categoryId = categoryId,
-            search = search,
-            page = page,
-            pageSize = pageSize,
-            featured = featured
-        )?.vendors
-    }
-
-    /**
-     * Fetches vendors via the merged searchVendors RPC and preserves embedded banners
-     * so callers can render banner images without waiting on a separate listBanners call.
-     */
-    suspend fun getVendorsWithBanners(
-        cityId: Long? = null,
-        categoryId: Long? = null,
-        search: String? = null,
-        page: Int = 1,
-        pageSize: Int = 10,
-        featured: Boolean? = null
-    ): VendorsWithBanners? {
         val pagination = PaginationRequest.newBuilder()
             .setPage(page)
             .setSize(pageSize)
@@ -115,29 +94,27 @@ class HomeRepository {
 
         val result = grpcCall { stubMerge.searchVendors(request.build()) }
         result.onSuccess { response ->
-            val sortedItems = response.vendorsList.sortedBy { it.sortOrder }
-            val vendors = sortedItems.map { item ->
-                VendorSummary.newBuilder()
-                    .setId(item.id)
-                    .setCompanyName(item.companyName)
-                    .setLogoUrl(item.logoUrl)
-                    .setDescription(item.description)
-                    .setFeatured(item.featured)
-                    .addAllCategories(item.categoriesList)
-                    .setTitle(item.title)
-                    .setShortDescription(item.shortDescription)
-                    .build()
+            // SearchVendors already returns each vendor's own banners - keep them
+            response.vendorsList.forEach { item ->
+                item.bannersList
+                    .filter { it.imageUrl.isNotBlank() }
+                    .minByOrNull { it.displayOrder }
+                    ?.let { vendorBannerUrls[item.id] = it.imageUrl }
             }
-            val banners = sortedItems.flatMap { item ->
-                item.bannersList.map { banner ->
-                    if (banner.vendorId == 0L) {
-                        banner.toBuilder().setVendorId(item.id).build()
-                    } else {
-                        banner
-                    }
+            return response.vendorsList
+                .sortedBy { it.sortOrder }
+                .map { item ->
+                    VendorSummary.newBuilder()
+                        .setId(item.id)
+                        .setCompanyName(item.companyName)
+                        .setLogoUrl(item.logoUrl)
+                        .setDescription(item.description)
+                        .setFeatured(item.featured)
+                        .addAllCategories(item.categoriesList)
+                        .setTitle(item.title)
+                        .setShortDescription(item.shortDescription)
+                        .build()
                 }
-            }
-            return VendorsWithBanners(vendors = vendors, banners = banners)
         }.onFailure {
             println("SearchVendors failed: ${it.message}")
         }
