@@ -347,6 +347,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginBottom="60dp"
+            android:visibility="gone"
             android:src="@drawable/baseline_phone_24"
             app:backgroundTint="@color/purple_primary"
             app:shapeAppearanceOverlay="@style/CircleFAB"
