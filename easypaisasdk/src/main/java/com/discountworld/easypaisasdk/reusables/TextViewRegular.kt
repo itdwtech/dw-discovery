@@ -8,17 +8,11 @@ import com.discountworld.easypaisasdk.utils.TypeFaceUtils
 
 class TextViewRegular : AppCompatTextView {
 
-    constructor(context: Context?) : super(
-        context!!
-    ) { init(context) }
+    constructor(context: Context) : super(context) { init(context) }
 
-    constructor(context: Context?, attrs: AttributeSet?) : super(
-        context!!, attrs
-    ) { init(context) }
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) { init(context) }
 
-    constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) : super(
-        context!!, attrs, defStyle
-    ) { init(context) }
+    constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(context, attrs, defStyle) { init(context) }
 
 
     private fun init(context: Context){

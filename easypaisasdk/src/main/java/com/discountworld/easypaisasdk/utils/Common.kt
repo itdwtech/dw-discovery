@@ -74,12 +74,17 @@ fun Context.isTablet(): Boolean {
 }
 
 fun Context.loadJSONFromAsset(jsonPath: String?): String? {
-    val istream : InputStream = this.assets.open(jsonPath!!)
-    val size: Int = istream.available()
-    val buffer = ByteArray(size)
-    istream.read(buffer)
-    istream.close()
-    return String(buffer, charset("UTF-8"))
+    if (jsonPath.isNullOrEmpty()) return null
+    return try {
+        val istream: InputStream = this.assets.open(jsonPath)
+        val size: Int = istream.available()
+        val buffer = ByteArray(size)
+        istream.read(buffer)
+        istream.close()
+        String(buffer, charset("UTF-8"))
+    } catch (_: Exception) {
+        null
+    }
 }
 
 

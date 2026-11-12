@@ -201,7 +201,7 @@ class HomeFragment : Fragment() {
             setupVendorsList()
         } else {
             selectedCategoryId = categoriesList[categoryIndex].id
-            loadVendorsByCategory(selectedCategoryId!!)
+            selectedCategoryId?.let { loadVendorsByCategory(it) }
         }
     }
 
@@ -312,7 +312,7 @@ class HomeFragment : Fragment() {
                 selectedTabPosition = tab.position
 
                 val typeface = TypeFaceUtils.get(requireContext(), FONT_BOLD)
-                (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
+                (tab.view.getChildAt(1) as? TextView)?.setTypeface(typeface)
 
                 val isVisible = if (tab.position == 0) View.VISIBLE else View.GONE
 
@@ -341,14 +341,14 @@ class HomeFragment : Fragment() {
                 if (tab.position == 0) {
                     setupVendorsList()
                 } else {
-                    loadVendorsByCategory(selectedCategoryId!!)
+                    selectedCategoryId?.let { loadVendorsByCategory(it) }
                 }
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) {
                 if (_binding == null) return
                 val typeface = TypeFaceUtils.get(requireContext(), FONT_REG)
-                (tab.view.getChildAt(1) as TextView).setTypeface(typeface)
+                (tab.view.getChildAt(1) as? TextView)?.setTypeface(typeface)
             }
 
             override fun onTabReselected(tab: TabLayout.Tab) {}
@@ -435,7 +435,7 @@ class HomeFragment : Fragment() {
             if (_binding == null) return@launch
 
             vendorDataCache[key] = vendors
-            vendorAdapter = createVendorAdapter(vendors, cachedBanners!!)
+            vendorAdapter = createVendorAdapter(vendors, cachedBanners ?: emptyList())
             binding.rcyVendors.adapter = vendorAdapter
 
             currentPage = 1
@@ -611,12 +611,10 @@ class HomeFragment : Fragment() {
             DividerItemDecoration.VERTICAL
         )
 
-        divider.setDrawable(
-            ContextCompat.getDrawable(
-                requireContext(),
-                R.drawable.dw_discovery_divider
-            )!!
-        )
+        ContextCompat.getDrawable(
+            requireContext(),
+            R.drawable.dw_discovery_divider
+        )?.let { divider.setDrawable(it) }
 
         dialogBinding.rvAllCities.addItemDecoration(divider)
 
@@ -711,7 +709,7 @@ class HomeFragment : Fragment() {
             if (_binding == null) return@launch
 
             vendorDataCache[key] = vendors
-            vendorAdapter = createVendorAdapter(vendors, cachedBanners!!)
+            vendorAdapter = createVendorAdapter(vendors, cachedBanners ?: emptyList())
             binding.rcyVendors.adapter = vendorAdapter
 
             currentPage = 1
