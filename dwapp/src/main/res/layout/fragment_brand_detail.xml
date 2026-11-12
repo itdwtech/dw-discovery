@@ -21,7 +21,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_180sdp"
                 android:scaleType="centerCrop"
-                android:src="@drawable/ic_placeholder"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView

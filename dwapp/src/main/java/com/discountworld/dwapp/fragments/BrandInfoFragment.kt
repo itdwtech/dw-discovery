@@ -18,7 +18,9 @@ import com.discountworld.dwapp.R
 import com.discountworld.dwapp.adapters.BrandBranchesAdapter
 import com.discountworld.dwapp.databinding.FragmentBrandInfoBinding
 import com.discountworld.dwapp.managers.SessionManager
+import com.discountworld.dwapp.utils.createShimmerDrawable
 import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.dwapp.viewmodels.BrandInfoState
 import com.discountworld.dwapp.viewmodels.BrandInfoViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -123,11 +125,9 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
 
         if (vendor.logoUrl.isNotEmpty()) {
             vendorLogoUrl = vendor.logoUrl
-            Glide.with(requireContext())
-                .load(vendor.logoUrl.fixImageUrl())
-                .placeholder(R.drawable.ic_placeholder)
-                .error(R.drawable.ic_placeholder)
-                .into(binding.ivBrandLogo)
+            binding.ivBrandLogo.loadImageWithShimmer(vendor.logoUrl)
+        } else {
+            binding.ivBrandLogo.setImageDrawable(createShimmerDrawable())
         }
 
         if (vendor.description.isNotEmpty()) {
@@ -422,11 +422,9 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
 
         val innerCircleRadius = whiteCircleRadius * 0.88f
         val logoToDraw: Bitmap? = logoBitmap ?: run {
-            val drawable = ContextCompat.getDrawable(context, R.drawable.ic_placeholder)
-            drawable?.let {
-                val size = (innerCircleRadius * 2).toInt()
-                drawableToBitmap(it, size, size)
-            }
+            val shimmer = createShimmerDrawable()
+            val size = (innerCircleRadius * 2).toInt()
+            drawableToBitmap(shimmer, size, size)
         }
 
         if (logoToDraw != null) {

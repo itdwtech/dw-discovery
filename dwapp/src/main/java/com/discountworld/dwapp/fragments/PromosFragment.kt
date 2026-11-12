@@ -113,7 +113,7 @@ class PromosFragment : Fragment() {
     }
 
     private fun setupFallbackSlider() {
-        val sliderImages = listOf(R.drawable.ic_placeholder, R.drawable.ic_placeholder, R.drawable.ic_placeholder)
+        val sliderImages = listOf(0, 0, 0)
         binding.promoPager.adapter = SliderAdapter(fallbackImages = sliderImages)
         TabLayoutMediator(binding.promoTabIndicator, binding.promoPager) { _, _ -> }.attach()
 
@@ -140,9 +140,9 @@ class PromosFragment : Fragment() {
     private fun setupFallbackDiscountsList() {
         binding.rvAmazingDiscounts.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         val list = listOf(
-            TopPick(R.drawable.ic_placeholder, "Allure Beauty"),
-            TopPick(R.drawable.ic_placeholder, "Allure Beauty"),
-            TopPick(R.drawable.ic_placeholder, "Allure Beauty")
+            TopPick(0, "Allure Beauty"),
+            TopPick(0, "Allure Beauty"),
+            TopPick(0, "Allure Beauty")
         )
         binding.rvAmazingDiscounts.adapter = TopPicksAdapter(fallbackList = list)
     }

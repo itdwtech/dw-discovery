@@ -13,6 +13,7 @@ import com.discountworld.discount.CustomerRedemptionItem
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemHistoryBinding
 import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -40,13 +41,8 @@ class HistoryAdapter(private var list: List<CustomerRedemptionItem> = emptyList(
             holder.binding.tvDateTime.text = ""
         }
 
-        val imageUrl = item.vendorLogoUrl.ifEmpty { null }?.fixImageUrl()
-
-        Glide.with(holder.itemView.context)
-            .load(imageUrl)
-            .placeholder(R.drawable.ic_placeholder)
-            .error(R.drawable.ic_placeholder)
-            .into(holder.binding.ivLogo)
+        val imageUrl = item.vendorLogoUrl.ifEmpty { null }
+        holder.binding.ivLogo.loadImageWithShimmer(imageUrl)
 
         holder.itemView.setOnClickListener {
             val context = holder.itemView.context

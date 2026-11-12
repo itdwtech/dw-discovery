@@ -28,6 +28,7 @@ import com.discountworld.dwapp.databinding.FragmentLocationsBinding
 import com.discountworld.dwapp.databinding.ItemMapInfoWindowBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.repositories.RedemptionRepository
+import com.discountworld.dwapp.utils.createShimmerDrawable
 import com.discountworld.dwapp.utils.fixImageUrl
 import com.discountworld.dwapp.utils.makeDraggable
 import com.discountworld.dwapp.viewmodels.LocationsUiState
@@ -282,11 +283,9 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
 
         val innerCircleRadius = whiteCircleRadius * 0.88f
         val logoToDraw: Bitmap? = logoBitmap ?: run {
-            val drawable = ContextCompat.getDrawable(context, R.drawable.ic_placeholder)
-            drawable?.let {
-                val size = (innerCircleRadius * 2).toInt()
-                drawableToBitmap(it, size, size)
-            }
+            val shimmer = createShimmerDrawable()
+            val size = (innerCircleRadius * 2).toInt()
+            drawableToBitmap(shimmer, size, size)
         }
 
         if (logoToDraw != null) {

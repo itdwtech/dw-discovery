@@ -3,7 +3,8 @@ package com.discountworld.dwapp.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import com.discountworld.dwapp.utils.createShimmerDrawable
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.discount.RedemptionBannerItem
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemSliderBinding
@@ -25,18 +26,10 @@ class SliderAdapter(
     override fun onBindViewHolder(holder: SliderViewHolder, position: Int) {
         if (bannerItems.isNotEmpty()) {
             val item = bannerItems[position]
-            if (item.imageUrl.isNotEmpty()) {
-                Glide.with(holder.itemView.context)
-                    .load(item.imageUrl.fixImageUrl())
-                    .placeholder(R.drawable.ic_placeholder)
-                    .error(R.drawable.ic_placeholder)
-                    .into(holder.binding.ivSlider)
-            } else {
-                holder.binding.ivSlider.setImageResource(R.drawable.ic_placeholder)
-            }
+            holder.binding.ivSlider.loadImageWithShimmer(item.imageUrl)
             holder.itemView.setOnClickListener { onBannerClick(item) }
         } else if (fallbackImages.isNotEmpty()) {
-            holder.binding.ivSlider.setImageResource(fallbackImages[position])
+            holder.binding.ivSlider.setImageDrawable(createShimmerDrawable())
             holder.itemView.setOnClickListener { onBannerClick(null) }
         }
     }

@@ -1,6 +1,11 @@
 package com.discountworld.dwapp.utils
 
+import android.graphics.Color
 import android.util.Log
+import android.widget.ImageView
+import com.bumptech.glide.Glide
+import com.facebook.shimmer.Shimmer
+import com.facebook.shimmer.ShimmerDrawable
 
 fun String?.fixImageUrl(): String? {
     if (this.isNullOrEmpty()) return this
@@ -18,3 +23,32 @@ fun String?.fixImageUrl(): String? {
 
     return fixedUrl
 }
+
+fun createShimmerDrawable(): ShimmerDrawable {
+    val shimmer = Shimmer.ColorHighlightBuilder()
+        .setBaseColor(Color.parseColor("#E0E0E0"))
+        .setHighlightColor(Color.parseColor("#F5F5F5"))
+        .setDuration(1200L)
+        .setDirection(Shimmer.Direction.LEFT_TO_RIGHT)
+        .setAutoStart(true)
+        .build()
+
+    return ShimmerDrawable().apply {
+        setShimmer(shimmer)
+    }
+}
+
+fun ImageView.loadImageWithShimmer(url: String?) {
+    val fixedUrl = url.fixImageUrl()
+    val shimmer = createShimmerDrawable()
+    if (!fixedUrl.isNullOrEmpty()) {
+        Glide.with(this.context)
+            .load(fixedUrl)
+            .placeholder(shimmer)
+            .error(shimmer)
+            .into(this)
+    } else {
+        this.setImageDrawable(shimmer)
+    }
+}
+

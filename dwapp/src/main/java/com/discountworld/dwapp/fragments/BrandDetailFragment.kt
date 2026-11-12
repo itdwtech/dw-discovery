@@ -29,7 +29,9 @@ import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.models.Offer
 import androidx.fragment.app.viewModels
 import com.discountworld.dwapp.repositories.RedemptionRepository
+import com.discountworld.dwapp.utils.createShimmerDrawable
 import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.dwapp.utils.makeDraggable
 import com.discountworld.dwapp.viewmodels.BrandDetailState
 import com.discountworld.dwapp.viewmodels.BrandDetailViewModel
@@ -154,19 +156,11 @@ class BrandDetailFragment : Fragment() {
                         currentBinding.tvAddress.text = it.description
 
                         if (it.bannerUrl.isNotEmpty()) {
-                            Glide.with(requireContext())
-                                .load(it.bannerUrl.fixImageUrl())
-                                .placeholder(R.drawable.ic_placeholder)
-                                .error(R.drawable.ic_placeholder)
-                                .into(currentBinding.ivBanner)
+                            currentBinding.ivBanner.loadImageWithShimmer(it.bannerUrl)
                         } else if (it.galleryImagesList.isNotEmpty()) {
-                            Glide.with(requireContext())
-                                .load(it.galleryImagesList.first().fixImageUrl())
-                                .placeholder(R.drawable.ic_placeholder)
-                                .error(R.drawable.ic_placeholder)
-                                .into(currentBinding.ivBanner)
+                            currentBinding.ivBanner.loadImageWithShimmer(it.galleryImagesList.first())
                         } else {
-                            currentBinding.ivBanner.setImageResource(R.drawable.ic_placeholder)
+                            currentBinding.ivBanner.setImageDrawable(createShimmerDrawable())
                         }
                     }
 
@@ -293,18 +287,9 @@ class BrandDetailFragment : Fragment() {
         // --------------------------------------------------------
 
         if (!vendorLogoUrl.isNullOrEmpty()) {
-
-            Glide.with(ctx)
-                .load(vendorLogoUrl.fixImageUrl())
-                .placeholder(
-                    R.drawable.ic_placeholder
-                )
-                .error(
-                    R.drawable.ic_placeholder
-                )
-                .into(
-                    dialogBinding.ivMerchantLogo
-                )
+            dialogBinding.ivMerchantLogo.loadImageWithShimmer(vendorLogoUrl)
+        } else {
+            dialogBinding.ivMerchantLogo.setImageDrawable(createShimmerDrawable())
         }
 
         // --------------------------------------------------------
@@ -509,18 +494,9 @@ class BrandDetailFragment : Fragment() {
         // --------------------------------------------------------
 
         if (!vendorLogoUrl.isNullOrEmpty()) {
-
-            Glide.with(ctx)
-                .load(vendorLogoUrl.fixImageUrl())
-                .placeholder(
-                    R.drawable.ic_placeholder
-                )
-                .error(
-                    R.drawable.ic_placeholder
-                )
-                .into(
-                    dialogBinding.ivMerchantLogo
-                )
+            dialogBinding.ivMerchantLogo.loadImageWithShimmer(vendorLogoUrl)
+        } else {
+            dialogBinding.ivMerchantLogo.setImageDrawable(createShimmerDrawable())
         }
 
         // --------------------------------------------------------

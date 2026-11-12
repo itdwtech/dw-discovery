@@ -232,11 +232,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupFallbackSlider() {
-        val sliderImages = listOf(
-            R.drawable.ic_placeholder,
-            R.drawable.ic_placeholder,
-            R.drawable.ic_placeholder
-        )
+        val sliderImages = listOf(0, 0, 0)
 
         val adapter = SliderAdapter(fallbackImages = sliderImages) {
             navigateToDelivery(showSearch = true)
@@ -365,9 +361,9 @@ class HomeFragment : Fragment() {
 
         binding.bannerRV.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         val topPicks = listOf(
-            TopPick(R.drawable.ic_placeholder, "14th Street Pizza"),
-            TopPick(R.drawable.ic_placeholder, "Broadway Pizza"),
-            TopPick(R.drawable.ic_placeholder, "Pizza Hut")
+            TopPick(0, "14th Street Pizza"),
+            TopPick(0, "Broadway Pizza"),
+            TopPick(0, "Pizza Hut")
         )
         binding.bannerRV.adapter = TopPicksAdapter(fallbackList = topPicks)
 

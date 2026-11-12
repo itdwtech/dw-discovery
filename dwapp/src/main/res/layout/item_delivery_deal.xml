@@ -21,8 +21,7 @@
                 android:id="@+id/ivDealBanner"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_placeholder" />
+                android:scaleType="centerCrop" />
 
             <com.facebook.shimmer.ShimmerFrameLayout
                 android:id="@+id/shimmerBanner"
@@ -61,8 +60,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:padding="4dp"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/ic_placeholder" />
+                    android:scaleType="centerInside" />
             </androidx.cardview.widget.CardView>
 
             <TextView

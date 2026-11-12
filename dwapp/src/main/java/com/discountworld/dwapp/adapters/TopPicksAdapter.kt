@@ -5,7 +5,8 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import com.discountworld.dwapp.utils.createShimmerDrawable
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.discount.RedemptionVendorSummary
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemTopPickBinding
@@ -31,16 +32,7 @@ class TopPicksAdapter(
             val title = vendor.title.ifEmpty { vendor.companyName }
             holder.binding.tvBrandName.text = title
 
-            val imageUrl = vendor.bannerUrl
-            if (imageUrl.isNotEmpty()) {
-                Glide.with(holder.itemView.context)
-                    .load(imageUrl.fixImageUrl())
-                    .placeholder(R.drawable.ic_placeholder)
-                    .error(R.drawable.ic_placeholder)
-                    .into(holder.binding.ivTopPick)
-            } else {
-                holder.binding.ivTopPick.setImageResource(R.drawable.ic_placeholder)
-            }
+            holder.binding.ivTopPick.loadImageWithShimmer(vendor.bannerUrl)
 
             holder.itemView.setOnClickListener {
                 if (onItemClick != null) {
@@ -54,7 +46,11 @@ class TopPicksAdapter(
             }
         } else if (fallbackList.isNotEmpty()) {
             val item = fallbackList[position]
-            holder.binding.ivTopPick.setImageResource(item.image)
+            if (item.image != 0) {
+                holder.binding.ivTopPick.setImageResource(item.image)
+            } else {
+                holder.binding.ivTopPick.setImageDrawable(createShimmerDrawable())
+            }
             holder.binding.tvBrandName.text = item.name
 
             holder.itemView.setOnClickListener {

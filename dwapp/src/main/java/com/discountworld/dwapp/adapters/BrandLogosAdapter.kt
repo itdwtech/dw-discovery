@@ -3,7 +3,7 @@ package com.discountworld.dwapp.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.discount.RedemptionStory
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemBrandLogoBinding
@@ -25,15 +25,7 @@ class BrandLogosAdapter(
         val story = stories[position]
         holder.binding.tvLogoName.text = story.vendorTitle
 
-        if (story.vendorLogoUrl.isNotEmpty()) {
-            Glide.with(holder.itemView.context)
-                .load(story.vendorLogoUrl.fixImageUrl())
-                .placeholder(R.drawable.ic_placeholder)
-                .error(R.drawable.ic_placeholder)
-                .into(holder.binding.ivLogo)
-        } else {
-            holder.binding.ivLogo.setImageResource(R.drawable.ic_placeholder)
-        }
+        holder.binding.ivLogo.loadImageWithShimmer(story.vendorLogoUrl)
 
         holder.itemView.setOnClickListener { onLogoClick(story) }
     }
