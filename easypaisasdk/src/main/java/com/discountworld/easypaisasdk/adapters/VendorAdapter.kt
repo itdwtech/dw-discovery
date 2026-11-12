@@ -3,23 +3,40 @@ package com.discountworld.easypaisasdk.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
+import com.discountworld.discovery.Banner
 import com.discountworld.discovery.VendorSummary
 import com.discountworld.easypaisasdk.databinding.DwDiscoveryItemBannerCardBinding
-import com.bumptech.glide.Glide
-import com.discountworld.discovery.Banner
+import com.discountworld.easypaisasdk.utils.loadBannerImage
 
 class VendorAdapter(
     vendors: List<VendorSummary>,
-    private val banners: List<Banner>?,
+    private var banners: List<Banner>?,
     private val onClick: (VendorSummary) -> Unit
 ) : RecyclerView.Adapter<VendorAdapter.VendorViewHolder>() {
 
     private val vendorsList: MutableList<VendorSummary> = vendors.toMutableList()
 
-    fun addVendors(newVendors: List<VendorSummary>) {
+    fun addVendors(newVendors: List<VendorSummary>, newBanners: List<Banner>? = null) {
+        if (!newBanners.isNullOrEmpty()) {
+            banners = ((banners ?: emptyList()) + newBanners).distinctBy { it.vendorId to it.id }
+        }
         val startPosition = vendorsList.size
         vendorsList.addAll(newVendors)
         notifyItemRangeInserted(startPosition, newVendors.size)
+    }
+
+    fun updateBanners(updatedBanners: List<Banner>) {
+        val previousBanners = banners
+        banners = updatedBanners
+        vendorsList.forEachIndexed { index, vendor ->
+            val oldUrl = previousBanners?.firstOrNull { it.vendorId == vendor.id }?.imageUrl
+            val newUrl = updatedBanners.firstOrNull { it.vendorId == vendor.id }?.imageUrl
+            if (oldUrl != newUrl) {
+                notifyItemChanged(index)
+            }
+        }
     }
 
     fun updateVendors(newVendors: List<VendorSummary>) {
@@ -47,12 +64,11 @@ class VendorAdapter(
         holder.binding.txtTitle.text = vendor.title ?: ""
         holder.binding.txtSubtitle.text = vendor.shortDescription ?: ""
 
-        Glide.with(holder.binding.root.context)
-            .load(banner?.imageUrl)
-            .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
-            .error(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
-            .centerCrop()
-            .into(holder.binding.imgBanner)
+        holder.binding.imgBanner.loadBannerImage(
+            url = banner?.imageUrl,
+            priority = if (position < 4) Priority.HIGH else Priority.LOW,
+            requestManager = Glide.with(holder.binding.root.context)
+        )
         holder.binding.root.setOnClickListener {
             onClick(vendor)
         }

@@ -29,6 +29,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
 import com.discountworld.easypaisasdk.R
 import com.discountworld.easypaisasdk.adapters.*
 import com.discountworld.easypaisasdk.databinding.DwDiscoveryBottomSheetCityBinding
@@ -37,6 +38,8 @@ import com.discountworld.easypaisasdk.managers.CoroutineTask
 import com.discountworld.easypaisasdk.repositories.HomeRepository
 import com.discountworld.easypaisasdk.utils.LocationUtility
 import com.discountworld.easypaisasdk.utils.TypeFaceUtils
+import com.discountworld.easypaisasdk.utils.getShimmerDrawable
+import com.discountworld.easypaisasdk.utils.loadBannerImage
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -73,11 +76,23 @@ class HomeFragment : Fragment() {
     private var vendorAdapter: VendorAdapter? = null
     private var cachedFeaturedVendor: com.discountworld.discovery.VendorSummary? = null
     private var cachedBannerUrl: String? = null
+    private var lastLoadedBannerUrl: String? = null
 
     // Data caches keyed by cityId or (cityId, categoryId)
     private var cachedBanners: List<com.discountworld.discovery.Banner>? = null
     private val vendorDataCache = mutableMapOf<Pair<Long?, Long?>, List<com.discountworld.discovery.VendorSummary>>()
     private val brandDataCache = mutableMapOf<Long?, List<com.discountworld.discovery.VendorSummary>>()
+
+    companion object {
+        private const val KEY_LAST_CITY_ID = "last_city_id"
+        private const val KEY_FEATURED_CITY_ID = "last_featured_city_id"
+        private const val KEY_FEATURED_VENDOR_ID = "last_featured_vendor_id"
+        private const val KEY_FEATURED_COMPANY = "last_featured_company"
+        private const val KEY_FEATURED_DESC = "last_featured_desc"
+        private const val KEY_FEATURED_TITLE = "last_featured_title"
+        private const val KEY_FEATURED_SUBTITLE = "last_featured_subtitle"
+        private const val KEY_FEATURED_BANNER_URL = "last_featured_banner_url"
+    }
 
 
     private val requestPermissionLauncher =
@@ -219,7 +234,13 @@ class HomeFragment : Fragment() {
     }
 
     private fun initialLoad() {
-        binding.loaderLayout.visibility = View.VISIBLE
+        val savedCityId = sharedPreferences.getLong(KEY_LAST_CITY_ID, -1L).takeIf { it > 0 }
+        if (cityId == null && savedCityId != null) {
+            cityId = savedCityId
+        }
+
+        val hasCachedBanner = restoreFeaturedFromPrefs()
+        binding.loaderLayout.visibility = if (hasCachedBanner) View.GONE else View.VISIBLE
 
         binding.rcyCities.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -232,38 +253,35 @@ class HomeFragment : Fragment() {
             val categoriesDeferred = async(Dispatchers.IO) { repository.getCategories() }
             val bannersDeferred = async(Dispatchers.IO) { repository.getBanners() }
 
-            val cities = citiesDeferred.await()
-            if (_binding == null) return@launch
-
-            if (!cities.isNullOrEmpty()) {
-                val sortedCities = cities.sortedBy { it.sortOrder }
-                if (cityId == null) {
-                    val islamabadCity = sortedCities.firstOrNull { it.name.contains("Islamabad", ignoreCase = true) }
-                    cityId = islamabadCity?.id ?: sortedCities.first().id
+            val initialCityResolvedAtStart = cityId != null
+            if (!initialCityResolvedAtStart) {
+                val cities = citiesDeferred.await()
+                if (_binding == null) return@launch
+                if (!cities.isNullOrEmpty()) {
+                    bindCitiesList(cities)
                 }
-
-                cityAdapter = CityAdapter(sortedCities, selectedCityId = cityId) { city ->
-                    if (_binding == null) return@CityAdapter
-                    cityId = city.id
-                    cityAdapter?.setSelectedCity(cityId)
-                    setupBrands()
-                    setupVendorsList()
-                }
-                binding.rcyCities.adapter = cityAdapter
             }
 
-            val topBrandsDeferred = async(Dispatchers.IO) { repository.getTopBrands(cityId = cityId) }
-            val vendorsDeferred = async(Dispatchers.IO) { repository.getVendorsList(cityId = cityId) }
+            val requestCityId = cityId
+            val topBrandsDeferred = async(Dispatchers.IO) { repository.getTopBrands(cityId = requestCityId) }
+            val vendorsDeferred = async(Dispatchers.IO) { repository.getVendorsWithBanners(cityId = requestCityId) }
 
-            val categories = categoriesDeferred.await()
-            val banners = bannersDeferred.await()
-            if (banners != null) {
-                cachedBanners = banners
+            if (initialCityResolvedAtStart) {
+                launch {
+                    val cities = citiesDeferred.await()
+                    if (_binding == null || cities.isNullOrEmpty()) return@launch
+                    val previousCityId = cityId
+                    bindCitiesList(cities)
+                    if (cityId != null && cityId != previousCityId) {
+                        setupBrands()
+                        setupVendorsList()
+                    }
+                }
             }
 
-            if (_binding == null) return@launch
-
-            if (categories != null) {
+            launch {
+                val categories = categoriesDeferred.await()
+                if (_binding == null || categories == null) return@launch
                 categoriesList = categories
                 binding.category.removeAllTabs()
                 binding.category.addTab(binding.category.newTab().setText("All"))
@@ -273,33 +291,75 @@ class HomeFragment : Fragment() {
                 setupCategoryTabListener()
             }
 
-            val topBrands = topBrandsDeferred.await()
-            if (_binding == null) return@launch
-
-            if (!topBrands.isNullOrEmpty()) {
-                brandDataCache[cityId] = topBrands
-                brandAdapter = createBrandAdapter(topBrands)
-                binding.rcyTopBrands.adapter = brandAdapter
+            launch {
+                val topBrands = topBrandsDeferred.await()
+                if (_binding == null || topBrands.isNullOrEmpty()) return@launch
+                brandDataCache[requestCityId] = topBrands
+                if (cityId == requestCityId) {
+                    brandAdapter = createBrandAdapter(topBrands)
+                    binding.rcyTopBrands.adapter = brandAdapter
+                }
             }
 
-            val vendors = vendorsDeferred.await() ?: emptyList()
-            if (_binding == null) return@launch
-
-            val key = Pair(cityId, null as Long?)
-            vendorDataCache[key] = vendors
-            vendorAdapter = createVendorAdapter(vendors, cachedBanners ?: emptyList())
-            binding.rcyVendors.adapter = vendorAdapter
-
-            currentPage = 1
-            hasMorePages = vendors.size >= 10
-            isLoadingPage = false
-
-            if (vendors.isNotEmpty()) {
-                updateFeaturedFromList(vendors[0])
+            launch {
+                val banners = bannersDeferred.await()
+                if (_binding == null || banners == null) return@launch
+                val merged = mergeBanners(cachedBanners, banners)
+                cachedBanners = merged
+                vendorAdapter?.updateBanners(merged)
+                if (cachedBannerUrl.isNullOrBlank()) {
+                    cachedFeaturedVendor?.let { updateFeaturedFromList(it) }
+                }
             }
 
-            binding.loaderLayout.visibility = View.GONE
+            try {
+                val vendorsResult = vendorsDeferred.await()
+                if (_binding == null) return@launch
+
+                val vendors = vendorsResult?.vendors ?: emptyList()
+                val embeddedBanners = vendorsResult?.banners
+                if (!embeddedBanners.isNullOrEmpty()) {
+                    cachedBanners = mergeBanners(embeddedBanners, cachedBanners)
+                }
+
+                val key = Pair(requestCityId, null as Long?)
+                vendorDataCache[key] = vendors
+                if (cityId == requestCityId) {
+                    vendorAdapter = createVendorAdapter(vendors, cachedBanners ?: emptyList())
+                    binding.rcyVendors.adapter = vendorAdapter
+
+                    currentPage = 1
+                    hasMorePages = vendors.size >= 10
+                    isLoadingPage = false
+
+                    if (vendors.isNotEmpty()) {
+                        updateFeaturedFromList(vendors[0])
+                    }
+                }
+            } finally {
+                _binding?.loaderLayout?.visibility = View.GONE
+            }
         }
+    }
+
+    private fun bindCitiesList(cities: List<com.discountworld.discovery.City>) {
+        val sortedCities = cities.sortedBy { it.sortOrder }
+        val currentValid = cityId != null && sortedCities.any { it.id == cityId }
+        if (!currentValid) {
+            val islamabadCity = sortedCities.firstOrNull { it.name.contains("Islamabad", ignoreCase = true) }
+            cityId = islamabadCity?.id ?: sortedCities.first().id
+        }
+        cityId?.let { saveLastCityId(it) }
+
+        cityAdapter = CityAdapter(sortedCities, selectedCityId = cityId) { city ->
+            if (_binding == null) return@CityAdapter
+            cityId = city.id
+            saveLastCityId(city.id)
+            cityAdapter?.setSelectedCity(cityId)
+            setupBrands()
+            setupVendorsList()
+        }
+        binding.rcyCities.adapter = cityAdapter
     }
 
     private fun setupCategoryTabListener() {
@@ -423,13 +483,21 @@ class HomeFragment : Fragment() {
         binding.loaderLayout.visibility = View.VISIBLE
 
         viewLifecycleOwner.lifecycleScope.launch {
-
-            val vendors = repository.getVendorsList(cityId = cityId, page = 1, pageSize = 10) ?: emptyList()
+            val requestCityId = cityId
+            val bannersDeferred = if (cachedBanners == null) {
+                async(Dispatchers.IO) { repository.getBanners() }
+            } else {
+                null
+            }
+            val vendorsResult = repository.getVendorsWithBanners(cityId = requestCityId, page = 1, pageSize = 10)
+            val vendors = vendorsResult?.vendors ?: emptyList()
 
             if (_binding == null) return@launch
 
-            if (cachedBanners == null) {
-                cachedBanners = repository.getBanners() ?: emptyList()
+            if (!vendorsResult?.banners.isNullOrEmpty()) {
+                cachedBanners = mergeBanners(vendorsResult?.banners, cachedBanners)
+            } else if (cachedBanners == null) {
+                cachedBanners = bannersDeferred?.await() ?: emptyList()
             }
 
             if (_binding == null) return@launch
@@ -445,12 +513,28 @@ class HomeFragment : Fragment() {
                 updateFeaturedFromList(vendors[0])
             }
             binding.loaderLayout.visibility = View.GONE
+
+            // Ensure any remaining banners from listBanners are merged without delaying initial banner render
+            bannersDeferred?.await()?.let { allBanners ->
+                if (_binding == null) return@launch
+                val merged = mergeBanners(cachedBanners, allBanners)
+                cachedBanners = merged
+                vendorAdapter?.updateBanners(merged)
+                if (cachedBannerUrl.isNullOrBlank() && vendors.isNotEmpty()) {
+                    updateFeaturedFromList(vendors[0])
+                }
+            }
         }
     }
 
     private fun updateFeaturedFromList(vendor: com.discountworld.discovery.VendorSummary) {
+        val previousVendorId = cachedFeaturedVendor?.id
         cachedFeaturedVendor = vendor
-        cachedBannerUrl = cachedBanners?.firstOrNull { it.vendorId == vendor.id }?.imageUrl
+        val matchedUrl = cachedBanners?.firstOrNull { it.vendorId == vendor.id }?.imageUrl
+        if (matchedUrl != null || previousVendorId != vendor.id) {
+            cachedBannerUrl = matchedUrl
+        }
+        saveFeaturedCache(vendor, cachedBannerUrl, cityId)
         bindFeaturedVendor()
     }
 
@@ -463,12 +547,15 @@ class HomeFragment : Fragment() {
             binding.txtTitle.text = vendor.title ?: ""
             binding.txtSubtitle.text = vendor.shortDescription ?: ""
 
-            Glide.with(requireContext())
-                .load(cachedBannerUrl)
-                .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
-                .error(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
-                .centerCrop()
-                .into(binding.imgBanner)
+            val url = cachedBannerUrl
+            if (url != lastLoadedBannerUrl || binding.imgBanner.drawable == null) {
+                lastLoadedBannerUrl = url
+                binding.imgBanner.loadBannerImage(
+                    url = url,
+                    priority = Priority.IMMEDIATE,
+                    requestManager = Glide.with(this)
+                )
+            }
 
             binding.card.setOnClickListener {
                 val action = HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
@@ -481,9 +568,10 @@ class HomeFragment : Fragment() {
                 findNavController().navigate(action)
             }
         } else {
+            lastLoadedBannerUrl = null
             binding.txtTitle.text = "No Data"
             binding.txtSubtitle.text = ""
-            binding.imgBanner.setImageDrawable(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
+            binding.imgBanner.setImageDrawable(getShimmerDrawable())
         }
     }
 
@@ -557,6 +645,7 @@ class HomeFragment : Fragment() {
             if (city != null) {
                 if (cityId != city.id) {
                     cityId = city.id
+                    saveLastCityId(city.id)
                     cityAdapter?.setSelectedCity(cityId)
                     setupBrands()
                     setupVendorsList()
@@ -596,6 +685,7 @@ class HomeFragment : Fragment() {
                 dialogBinding.rvAllCities.adapter = CitiesAdapter(sortedCities, selectedCityId = cityId){ city ->
                     if (_binding != null) {
                         cityId = city.id
+                        saveLastCityId(city.id)
                         cityAdapter?.setSelectedCity(cityId)
                         setupBrands()
                         setupVendorsList()
@@ -643,13 +733,14 @@ class HomeFragment : Fragment() {
             val searchText = binding.search.text.toString()
             val search = if (searchText.isNotEmpty()) searchText else null
 
-            val newVendors = repository.getVendorsList(
+            val result = repository.getVendorsWithBanners(
                 cityId = cityId,
                 categoryId = selectedCategoryId,
                 search = search,
                 page = nextPage,
                 pageSize = 10
-            ) ?: emptyList()
+            )
+            val newVendors = result?.vendors ?: emptyList()
 
             if (_binding == null) {
                 isLoadingPage = false
@@ -658,7 +749,10 @@ class HomeFragment : Fragment() {
 
             if (newVendors.isNotEmpty()) {
                 currentPage = nextPage
-                vendorAdapter?.addVendors(newVendors)
+                if (!result?.banners.isNullOrEmpty()) {
+                    cachedBanners = mergeBanners(cachedBanners, result?.banners)
+                }
+                vendorAdapter?.addVendors(newVendors, result?.banners)
                 val key = Pair(cityId, selectedCategoryId)
                 val existing = vendorDataCache[key] ?: emptyList()
                 vendorDataCache[key] = existing + newVendors
@@ -692,18 +786,25 @@ class HomeFragment : Fragment() {
         binding.loaderLayout.visibility = View.VISIBLE
 
         viewLifecycleOwner.lifecycleScope.launch {
-
-            val vendors = repository.getVendorsList(
+            val bannersDeferred = if (cachedBanners == null) {
+                async(Dispatchers.IO) { repository.getBanners() }
+            } else {
+                null
+            }
+            val vendorsResult = repository.getVendorsWithBanners(
                 categoryId = categoryId,
                 cityId = cityId,
                 page = 1,
                 pageSize = 10
-            ) ?: emptyList()
+            )
+            val vendors = vendorsResult?.vendors ?: emptyList()
 
             if (_binding == null) return@launch
 
-            if (cachedBanners == null) {
-                cachedBanners = repository.getBanners() ?: emptyList()
+            if (!vendorsResult?.banners.isNullOrEmpty()) {
+                cachedBanners = mergeBanners(vendorsResult?.banners, cachedBanners)
+            } else if (cachedBanners == null) {
+                cachedBanners = bannersDeferred?.await() ?: emptyList()
             }
 
             if (_binding == null) return@launch
@@ -720,6 +821,16 @@ class HomeFragment : Fragment() {
                 updateFeaturedFromList(vendors[0])
             }
             binding.loaderLayout.visibility = View.GONE
+
+            bannersDeferred?.await()?.let { allBanners ->
+                if (_binding == null) return@launch
+                val merged = mergeBanners(cachedBanners, allBanners)
+                cachedBanners = merged
+                vendorAdapter?.updateBanners(merged)
+                if (cachedBannerUrl.isNullOrBlank() && vendors.isNotEmpty()) {
+                    updateFeaturedFromList(vendors[0])
+                }
+            }
         }
     }
 
@@ -762,28 +873,9 @@ class HomeFragment : Fragment() {
         binding.rcyVendors.layoutManager = LinearLayoutManager(requireContext())
         vendorAdapter?.let { binding.rcyVendors.adapter = it }
 
-        // Restore featured vendor
-        cachedFeaturedVendor?.let { vendor ->
-            binding.txtTitle.text = vendor.title ?: ""
-            binding.txtSubtitle.text = vendor.shortDescription ?: ""
-
-            Glide.with(requireContext())
-                .load(cachedBannerUrl)
-                .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
-                .error(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
-                .centerCrop()
-                .into(binding.imgBanner)
-
-            binding.card.setOnClickListener {
-                val action = HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
-                    bannerTitle = vendor.companyName ?: "",
-                    bannerSubtitle = vendor.description ?: "",
-                    bannerTerms = vendor.title ?: "",
-                    vendorId = vendor.id,
-                    cityId = cityId ?: 1
-                )
-                findNavController().navigate(action)
-            }
+        // Restore featured vendor using shared binding helper
+        if (cachedFeaturedVendor != null) {
+            bindFeaturedVendor()
         }
 
         // Restore category tabs
@@ -811,17 +903,20 @@ class HomeFragment : Fragment() {
 
         CoroutineTask.ioThenMain({
 
-            val vendors = repository.getVendorsList(
+            val result = repository.getVendorsWithBanners(
                 search = text,
                 categoryId = selectedCategoryId,
                 cityId = cityId,
                 page = 1,
                 pageSize = 10
             )
+            val banners = if (!result?.banners.isNullOrEmpty()) {
+                result?.banners
+            } else {
+                repository.getBanners()
+            }
 
-            val banners = repository.getBanners()
-
-            Pair(vendors, banners)
+            Pair(result?.vendors, banners)
 
         }, { result ->
 
@@ -841,33 +936,80 @@ class HomeFragment : Fragment() {
             } else {
                 binding.tvNoVendor.visibility = View.GONE
                 binding.rcyVendors.visibility = View.VISIBLE
-                vendorAdapter = VendorAdapter(
-                    vendors = vendors,
-                    banners = banners
-                ) { vendor ->
-
-                    if (_binding == null) return@VendorAdapter
-
-                    val action =
-                        HomeFragmentDirections.actionHomeFragmentToUserDetailFragment(
-                            bannerTitle = vendor.companyName,
-                            bannerSubtitle = vendor.description,
-                            bannerTerms = vendor.title,
-                            vendorId = vendor.id,
-                            cityId = cityId ?: 1
-                        )
-
-                    findNavController().navigate(action)
-                }
+                vendorAdapter = createVendorAdapter(vendors, banners)
                 binding.rcyVendors.adapter = vendorAdapter
             }
         })
+    }
+
+    private fun mergeBanners(
+        primary: List<com.discountworld.discovery.Banner>?,
+        secondary: List<com.discountworld.discovery.Banner>?
+    ): List<com.discountworld.discovery.Banner> {
+        val merged = mutableListOf<com.discountworld.discovery.Banner>()
+        val seen = HashSet<Pair<Long, Long>>()
+        fun appendUnique(list: List<com.discountworld.discovery.Banner>?) {
+            list?.forEach { banner ->
+                if (seen.add(banner.vendorId to banner.id)) {
+                    merged.add(banner)
+                }
+            }
+        }
+        appendUnique(primary)
+        appendUnique(secondary)
+        return merged
+    }
+
+    private fun saveLastCityId(id: Long) {
+        sharedPreferences.edit().putLong(KEY_LAST_CITY_ID, id).apply()
+    }
+
+    private fun saveFeaturedCache(
+        vendor: com.discountworld.discovery.VendorSummary,
+        bannerUrl: String?,
+        forCityId: Long?
+    ) {
+        if (bannerUrl.isNullOrBlank()) return
+        sharedPreferences.edit()
+            .putLong(KEY_FEATURED_CITY_ID, forCityId ?: -1L)
+            .putLong(KEY_FEATURED_VENDOR_ID, vendor.id)
+            .putString(KEY_FEATURED_COMPANY, vendor.companyName ?: "")
+            .putString(KEY_FEATURED_DESC, vendor.description ?: "")
+            .putString(KEY_FEATURED_TITLE, vendor.title ?: "")
+            .putString(KEY_FEATURED_SUBTITLE, vendor.shortDescription ?: "")
+            .putString(KEY_FEATURED_BANNER_URL, bannerUrl)
+            .apply()
+    }
+
+    private fun restoreFeaturedFromPrefs(): Boolean {
+        val savedUrl = sharedPreferences.getString(KEY_FEATURED_BANNER_URL, null)
+        val savedVendorId = sharedPreferences.getLong(KEY_FEATURED_VENDOR_ID, -1L)
+        if (savedUrl.isNullOrBlank() || savedVendorId <= 0L) return false
+
+        val savedFeaturedCityId = sharedPreferences.getLong(KEY_FEATURED_CITY_ID, -1L)
+        if (cityId != null && savedFeaturedCityId > 0L && cityId != savedFeaturedCityId) {
+            return false
+        }
+
+        val vendor = com.discountworld.discovery.VendorSummary.newBuilder()
+            .setId(savedVendorId)
+            .setCompanyName(sharedPreferences.getString(KEY_FEATURED_COMPANY, "") ?: "")
+            .setDescription(sharedPreferences.getString(KEY_FEATURED_DESC, "") ?: "")
+            .setTitle(sharedPreferences.getString(KEY_FEATURED_TITLE, "") ?: "")
+            .setShortDescription(sharedPreferences.getString(KEY_FEATURED_SUBTITLE, "") ?: "")
+            .build()
+
+        cachedFeaturedVendor = vendor
+        cachedBannerUrl = savedUrl
+        bindFeaturedVendor()
+        return true
     }
 
     override fun onDestroyView() {
 
         super.onDestroyView()
 
+        lastLoadedBannerUrl = null
         _binding = null
 
     }

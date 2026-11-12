@@ -6,9 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
 import com.discountworld.discovery.City
 import com.discountworld.easypaisasdk.R
 import com.discountworld.easypaisasdk.databinding.DwDiscoveryItemCityBinding
+import com.discountworld.easypaisasdk.utils.loadOptimizedImage
+import com.discountworld.easypaisasdk.utils.toPx
 import com.google.android.material.card.MaterialCardView
 
 class CityAdapter(
@@ -49,25 +52,33 @@ class CityAdapter(
 
             val image = city.imagesList?.getOrNull(0)?.imageUrl
 
-            Glide.with(holder.binding.root.context)
-                .load(image)
-                .placeholder(com.discountworld.easypaisasdk.utils.getShimmerDrawable())
-                .error(R.drawable.dw_discovery_ic_islamabad)
-                .into(holder.binding.imgCity)
+            holder.binding.imgCity.loadOptimizedImage(
+                url = image,
+                fallbackWidthPx = 90.toPx(),
+                fallbackHeightPx = 60.toPx(),
+                priority = if (position < 4) Priority.HIGH else Priority.LOW,
+                centerCrop = true,
+                errorResId = R.drawable.dw_discovery_ic_islamabad,
+                requestManager = Glide.with(holder.binding.root.context)
+            )
         } else {
             holder.binding.imgCity.visibility = View.GONE
         }
 
         holder.binding.root.setOnClickListener {
-            selectedCityId = city.id
-            notifyDataSetChanged()
+            setSelectedCity(city.id)
             onCityClick(city)
         }
     }
 
     fun setSelectedCity(cityId: Long?) {
+        val oldId = selectedCityId
+        if (oldId == cityId) return
         selectedCityId = cityId
-        notifyDataSetChanged()
+        val oldIndex = cities.indexOfFirst { it.id == oldId }
+        val newIndex = cities.indexOfFirst { it.id == cityId }
+        if (oldIndex >= 0) notifyItemChanged(oldIndex)
+        if (newIndex >= 0) notifyItemChanged(newIndex)
     }
 
     override fun getItemCount() = cities.size
