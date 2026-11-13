@@ -21,7 +21,6 @@
             android:id="@+id/imgLogo"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/dw_discovery_ic_outlets"
             android:scaleType="centerCrop"/>
 
         <LinearLayout
