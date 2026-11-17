@@ -11,7 +11,7 @@
         android:id="@+id/clHeader"
         android:layout_width="match_parent"
         android:layout_height="@dimen/_60sdp"
-        android:background="@color/white"
+        android:background="@color/purple_primary"
         android:paddingHorizontal="@dimen/_12sdp"
         android:paddingTop="@dimen/_12sdp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -81,7 +81,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="PizzaHut"
-                android:textColor="@color/black"
+                android:textColor="@color/white"
                 android:textSize="@dimen/_15ssp"
                 android:textStyle="bold" />
         </LinearLayout>
