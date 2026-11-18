@@ -28,9 +28,9 @@ import com.discountworld.dwapp.databinding.FragmentLocationsBinding
 import com.discountworld.dwapp.databinding.ItemMapInfoWindowBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.repositories.RedemptionRepository
-import com.discountworld.dwapp.utils.createShimmerDrawable
 import com.discountworld.dwapp.utils.fixImageUrl
 import com.discountworld.dwapp.utils.makeDraggable
+import com.discountworld.dwapp.utils.makeSupportCall
 import com.discountworld.dwapp.viewmodels.LocationsUiState
 import com.discountworld.dwapp.viewmodels.LocationsViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -76,7 +76,7 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
 
         binding.fabCallClick.makeDraggable()
         binding.fabCallClick.setOnClickListener {
-            // Add your call click logic here
+            requireContext().makeSupportCall()
         }
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
@@ -103,7 +103,8 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
                 selectedCityId = savedCityId
             } else {
                 val cities = redemptionRepository.listCities()
-                cities?.firstOrNull()?.let {
+                val defaultCity = cities?.find { it.sortOrder == 1 } ?: cities?.minByOrNull { it.sortOrder } ?: cities?.firstOrNull()
+                defaultCity?.let {
                     selectedCityId = it.id
                     sessionManager.saveSelectedCityId(selectedCityId)
                 }
@@ -157,7 +158,9 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
                     putLong("vendor_id", pin.vendorId)
                     putLong("city_id", selectedCityId)
                 }
-                findNavController().navigate(R.id.action_nav_locations_to_nav_brand_detail, bundle)
+                if (isAdded && findNavController().currentDestination?.id == R.id.nav_locations) {
+                    findNavController().navigate(R.id.action_nav_locations_to_nav_brand_detail, bundle)
+                }
             }
         }
     }
@@ -283,9 +286,11 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
 
         val innerCircleRadius = whiteCircleRadius * 0.88f
         val logoToDraw: Bitmap? = logoBitmap ?: run {
-            val shimmer = createShimmerDrawable()
-            val size = (innerCircleRadius * 2).toInt()
-            drawableToBitmap(shimmer, size, size)
+            val drawable = ContextCompat.getDrawable(context, R.drawable.ic_placeholder)
+            drawable?.let {
+                val size = (innerCircleRadius * 2).toInt()
+                drawableToBitmap(it, size, size)
+            }
         }
 
         if (logoToDraw != null) {

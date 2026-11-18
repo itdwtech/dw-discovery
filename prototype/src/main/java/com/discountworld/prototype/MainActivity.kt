@@ -16,7 +16,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 class MainActivity : AppCompatActivity() {
     companion object {
         // Raw API Key (converted to Base64 dynamically)
-        private const val API_KEY = "a55284c6-f470-4e07-a6d3-8d7e0b5b3c13"
+        private const val API_KEY = "077b3d1b-d833-42f5-8860-971921077f8d"
     }
 
     @OptIn(ExperimentalEncodingApi::class)

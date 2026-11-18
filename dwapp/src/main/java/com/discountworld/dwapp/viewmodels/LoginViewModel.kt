@@ -53,8 +53,8 @@ class LoginViewModel : ViewModel() {
         cnic: String? = null
     ) {
         val cleanUniqueId = uniqueId.replace("-", "").replace(" ", "").trim()
-        if ((cleanUniqueId.length != 12) || (!cleanUniqueId.all { it.isDigit() })) {
-            _authState.value = AuthState.Error("Please enter a valid 12-digit Unique ID")
+        if ((cleanUniqueId.length != 12) || (!cleanUniqueId.all { it.isLetterOrDigit() })) {
+            _authState.value = AuthState.Error("Please enter a valid 12-character Unique ID")
             return
         }
 

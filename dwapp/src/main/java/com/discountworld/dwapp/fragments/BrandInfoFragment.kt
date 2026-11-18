@@ -18,7 +18,6 @@ import com.discountworld.dwapp.R
 import com.discountworld.dwapp.adapters.BrandBranchesAdapter
 import com.discountworld.dwapp.databinding.FragmentBrandInfoBinding
 import com.discountworld.dwapp.managers.SessionManager
-import com.discountworld.dwapp.utils.createShimmerDrawable
 import com.discountworld.dwapp.utils.fixImageUrl
 import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.dwapp.viewmodels.BrandInfoState
@@ -126,8 +125,6 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
         if (vendor.logoUrl.isNotEmpty()) {
             vendorLogoUrl = vendor.logoUrl
             binding.ivBrandLogo.loadImageWithShimmer(vendor.logoUrl)
-        } else {
-            binding.ivBrandLogo.setImageDrawable(createShimmerDrawable())
         }
 
         if (vendor.description.isNotEmpty()) {
@@ -210,61 +207,53 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun setupFallbackData() {
-        binding.tvHeaderTitle.text = "PizzaHut"
-        binding.tvDescription.text = "Pizza Hut is an American multinational restaurant chain and international franchise founded in 1958 in Wichita, Kansas by Dan and Frank Carney."
-        
-        val fallbackPhone = arguments?.getString("vendor_phone") ?: "021-111-222-333"
-        binding.vDivider3.visibility = View.VISIBLE
-        binding.tvPhoneHeader.visibility = View.VISIBLE
-        binding.llPhoneContainer.visibility = View.VISIBLE
-        binding.tvPhoneNumber.text = fallbackPhone
-        binding.llPhoneContainer.setOnClickListener {
-            try {
-                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$fallbackPhone"))
-                startActivity(intent)
-            } catch (e: Exception) {
-                e.printStackTrace()
+        binding.tvHeaderTitle.text = ""
+        binding.tvDescription.text = ""
+
+        val fallbackPhone = arguments?.getString("vendor_phone") ?: ""
+        if (fallbackPhone.isNotEmpty()) {
+            binding.vDivider3.visibility = View.VISIBLE
+            binding.tvPhoneHeader.visibility = View.VISIBLE
+            binding.llPhoneContainer.visibility = View.VISIBLE
+            binding.tvPhoneNumber.text = fallbackPhone
+            binding.llPhoneContainer.setOnClickListener {
+                try {
+                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$fallbackPhone"))
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
+        } else {
+            binding.vDivider3.visibility = View.GONE
+            binding.tvPhoneHeader.visibility = View.GONE
+            binding.llPhoneContainer.visibility = View.GONE
         }
 
-        val fallbackWebsite = arguments?.getString("website_url") ?: "https://www.pizzahut.com.pk/"
-        binding.tvWebsiteHeader.visibility = View.VISIBLE
-        binding.llWebsiteContainer.visibility = View.VISIBLE
-        binding.tvWebsiteUrl.visibility = View.VISIBLE
-        binding.tvWebsiteUrl.text = fallbackWebsite
-        binding.llWebsiteContainer.setOnClickListener {
-            try {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fallbackWebsite))
-                startActivity(intent)
-            } catch (e: Exception) {
-                e.printStackTrace()
+        val fallbackWebsite = arguments?.getString("website_url") ?: ""
+        if (fallbackWebsite.isNotEmpty()) {
+            binding.tvWebsiteHeader.visibility = View.VISIBLE
+            binding.llWebsiteContainer.visibility = View.VISIBLE
+            binding.tvWebsiteUrl.visibility = View.VISIBLE
+            binding.tvWebsiteUrl.text = fallbackWebsite
+            binding.llWebsiteContainer.setOnClickListener {
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fallbackWebsite))
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
+        } else {
+            binding.tvWebsiteHeader.visibility = View.GONE
+            binding.llWebsiteContainer.visibility = View.GONE
+            binding.tvWebsiteUrl.visibility = View.GONE
         }
-        setupFallbackBranches()
     }
 
     private fun setupFallbackBranches() {
-        val dummyBranches = listOf(
-            RedemptionBranch.newBuilder()
-                .setId(1)
-                .setName("Main Branch - Clifton")
-                .setAddress("Clifton Block 2, Karachi")
-                .setPhoneNumber("021-111241111")
-                .setLatitude(24.8138)
-                .setLongitude(67.0300)
-                .build(),
-            RedemptionBranch.newBuilder()
-                .setId(2)
-                .setName("Gulshan Branch")
-                .setAddress("Block 13-C, Gulshan-e-Iqbal, Karachi")
-                .setPhoneNumber("021-111241111")
-                .setLatitude(24.9180)
-                .setLongitude(67.0971)
-                .build()
-        )
-        branchesList = dummyBranches
-        setupBranchesList(dummyBranches)
-        showBranchesOnMap()
+        branchesList = emptyList()
+        setupBranchesList(emptyList())
     }
 
     private fun setupBranchesList(branches: List<RedemptionBranch>) {
@@ -422,9 +411,11 @@ class BrandInfoFragment : Fragment(), OnMapReadyCallback {
 
         val innerCircleRadius = whiteCircleRadius * 0.88f
         val logoToDraw: Bitmap? = logoBitmap ?: run {
-            val shimmer = createShimmerDrawable()
-            val size = (innerCircleRadius * 2).toInt()
-            drawableToBitmap(shimmer, size, size)
+            val drawable = ContextCompat.getDrawable(context, R.drawable.ic_placeholder)
+            drawable?.let {
+                val size = (innerCircleRadius * 2).toInt()
+                drawableToBitmap(it, size, size)
+            }
         }
 
         if (logoToDraw != null) {

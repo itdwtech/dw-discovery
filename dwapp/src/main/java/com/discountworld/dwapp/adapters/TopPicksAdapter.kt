@@ -5,13 +5,11 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.discountworld.dwapp.utils.createShimmerDrawable
-import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.discount.RedemptionVendorSummary
 import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemTopPickBinding
 import com.discountworld.dwapp.models.TopPick
-import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 
 class TopPicksAdapter(
     private val vendorList: List<RedemptionVendorSummary> = emptyList(),
@@ -32,7 +30,8 @@ class TopPicksAdapter(
             val title = vendor.title.ifEmpty { vendor.companyName }
             holder.binding.tvBrandName.text = title
 
-            holder.binding.ivTopPick.loadImageWithShimmer(vendor.bannerUrl)
+            val imageUrl = vendor.bannerUrl
+            holder.binding.ivTopPick.loadImageWithShimmer(imageUrl)
 
             holder.itemView.setOnClickListener {
                 if (onItemClick != null) {
@@ -46,11 +45,7 @@ class TopPicksAdapter(
             }
         } else if (fallbackList.isNotEmpty()) {
             val item = fallbackList[position]
-            if (item.image != 0) {
-                holder.binding.ivTopPick.setImageResource(item.image)
-            } else {
-                holder.binding.ivTopPick.setImageDrawable(createShimmerDrawable())
-            }
+            holder.binding.ivTopPick.loadImageWithShimmer(null)
             holder.binding.tvBrandName.text = item.name
 
             holder.itemView.setOnClickListener {

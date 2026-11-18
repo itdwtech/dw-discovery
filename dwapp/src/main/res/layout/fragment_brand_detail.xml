@@ -21,6 +21,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_180sdp"
                 android:scaleType="centerCrop"
+                tools:src="@drawable/ic_placeholder"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
@@ -41,7 +42,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/_16sdp"
                 android:layout_marginTop="@dimen/_16sdp"
-                android:text="14th Street Pizza"
+                android:text=""
                 android:textColor="@color/black"
                 android:textSize="@dimen/_18ssp"
                 android:textStyle="bold"
@@ -54,14 +55,25 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_4sdp"
                 android:layout_marginEnd="@dimen/_16sdp"
-                android:text="address of the venders"
                 android:ellipsize="end"
                 android:lines="1"
+                android:text=""
                 android:textColor="@color/purple_primary"
                 android:textSize="@dimen/_12ssp"
                 app:layout_constraintEnd_toStartOf="@+id/llInfo"
                 app:layout_constraintStart_toStartOf="@+id/tvBrandName"
                 app:layout_constraintTop_toBottomOf="@+id/tvBrandName" />
+
+            <TextView
+                android:id="@+id/tvCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_4sdp"
+                android:text=""
+                android:textColor="@color/black"
+                android:textSize="@dimen/_10ssp"
+                app:layout_constraintStart_toStartOf="@+id/tvBrandName"
+                app:layout_constraintTop_toBottomOf="@+id/tvAddress" />
 
             <LinearLayout
                 android:id="@+id/llInfo"
@@ -92,17 +104,6 @@
                     android:textColor="@color/white"
                     android:textSize="@dimen/_10ssp" />
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/tvCategory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_4sdp"
-                android:text="Salon &amp; Spa"
-                android:textColor="@color/black"
-                android:textSize="@dimen/_10ssp"
-                app:layout_constraintStart_toStartOf="@+id/tvBrandName"
-                app:layout_constraintTop_toBottomOf="@+id/tvAddress" />
 
             <View
                 android:id="@+id/vIndicator"
@@ -143,8 +144,8 @@
         android:id="@+id/fab_call_click"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/_16sdp"
         android:visibility="gone"
+        android:layout_margin="@dimen/_16sdp"
         android:src="@drawable/baseline_phone_24"
         app:backgroundTint="@color/purple_primary"
         app:shapeAppearanceOverlay="@style/CircleFAB"

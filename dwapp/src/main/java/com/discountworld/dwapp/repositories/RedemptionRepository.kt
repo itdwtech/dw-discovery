@@ -144,7 +144,7 @@ class RedemptionRepository {
         result.onFailure {
             Log.e("RedemptionRepo", "listCities failed: ${it.message}")
         }
-        return result.getOrNull()?.citiesList
+        return result.getOrNull()?.citiesList?.sortedBy { it.sortOrder }
     }
 
     suspend fun listVendors(

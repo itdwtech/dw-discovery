@@ -29,10 +29,10 @@ import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.models.Offer
 import androidx.fragment.app.viewModels
 import com.discountworld.dwapp.repositories.RedemptionRepository
-import com.discountworld.dwapp.utils.createShimmerDrawable
 import com.discountworld.dwapp.utils.fixImageUrl
 import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.dwapp.utils.makeDraggable
+import com.discountworld.dwapp.utils.makeSupportCall
 import com.discountworld.dwapp.viewmodels.BrandDetailState
 import com.discountworld.dwapp.viewmodels.BrandDetailViewModel
 import kotlinx.coroutines.async
@@ -90,8 +90,8 @@ class BrandDetailFragment : Fragment() {
 
         if (vendorId != -1L) {
             val effectiveCityId = selectedCityId ?: 1L
-            // Pass "Gold" or null to gRPC so all offers/deals are loaded without tier filtering
-            viewModel.loadBrandDetail(vendorId, effectiveCityId, "Gold")
+            val currentTier = sessionManager.getCustomerTier()
+            viewModel.loadBrandDetail(vendorId, effectiveCityId, currentTier)
         } else {
             setupOffersRecyclerView(emptyList())
         }
@@ -102,7 +102,7 @@ class BrandDetailFragment : Fragment() {
         
         binding.fabCallClick.makeDraggable()
         binding.fabCallClick.setOnClickListener {
-            // Add your call click logic here
+            requireContext().makeSupportCall()
         }
 
         binding.llInfo.setOnClickListener {
@@ -130,46 +130,40 @@ class BrandDetailFragment : Fragment() {
                 }
             }
 
-            findNavController().navigate(
-                R.id.nav_brand_info,
-                bundle
-            )
+            if (isAdded && findNavController().currentDestination?.id == R.id.nav_brand_detail) {
+                findNavController().navigate(
+                    R.id.nav_brand_info,
+                    bundle
+                )
+            }
         }
     }
 
     private fun observeViewModel() {
         viewModel.detailState.observe(viewLifecycleOwner) { state ->
-            val currentBinding = _binding ?: return@observe
             when (state) {
                 is BrandDetailState.Loading -> { }
                 is BrandDetailState.Success -> {
                     val vendorDetail = state.vendorDetail
                     currentVendorDetail = vendorDetail
                     vendorDetail?.let {
-                        currentBinding.tvBrandName.text = it.title.ifEmpty { it.companyName }
+                        binding.tvBrandName.text = it.title.ifEmpty { it.companyName }
                         vendorLogoUrl = it.logoUrl
 
                         if (it.categoriesList.isNotEmpty()) {
-                            currentBinding.tvCategory.text = it.categoriesList.joinToString(", ") { cat -> cat.name }
+                            binding.tvCategory.text = it.categoriesList.joinToString(", ") { cat -> cat.name }
                         }
                         
-                        currentBinding.tvAddress.text = it.description
+                        binding.tvAddress.text = it.description
 
-                        if (it.bannerUrl.isNotEmpty()) {
-                            currentBinding.ivBanner.loadImageWithShimmer(it.bannerUrl)
-                        } else if (it.galleryImagesList.isNotEmpty()) {
-                            currentBinding.ivBanner.loadImageWithShimmer(it.galleryImagesList.first())
-                        } else {
-                            currentBinding.ivBanner.setImageDrawable(createShimmerDrawable())
-                        }
+                        val bannerUrl = if (it.bannerUrl.isNotEmpty()) it.bannerUrl else it.galleryImagesList.firstOrNull()
+                        binding.ivBanner.loadImageWithShimmer(bannerUrl)
                     }
 
                     setupOffersRecyclerView(state.deals)
                 }
                 is BrandDetailState.Error -> {
-                    if (isAdded) {
-                        Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
-                    }
+                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
                     setupOffersRecyclerView(emptyList())
                 }
                 BrandDetailState.Idle -> { }
@@ -288,8 +282,6 @@ class BrandDetailFragment : Fragment() {
 
         if (!vendorLogoUrl.isNullOrEmpty()) {
             dialogBinding.ivMerchantLogo.loadImageWithShimmer(vendorLogoUrl)
-        } else {
-            dialogBinding.ivMerchantLogo.setImageDrawable(createShimmerDrawable())
         }
 
         // --------------------------------------------------------
@@ -389,20 +381,25 @@ class BrandDetailFragment : Fragment() {
                                         (it.platform.equals("website", ignoreCase = true) || it.url.startsWith("http") || it.url.contains("www."))
                             }?.url
 
+                            val msg1 = response.customMessage1.ifBlank { deal?.customMessage1 ?: "" }
+                            val msg2 = response.customMessage2.ifBlank { deal?.customMessage2 ?: "" }
+
                             val bundle = Bundle().apply {
                                 putString("redemptionCode", redemptionCode)
                                 putString("vendorName", vendorName)
                                 putString("vendorPhone", currentVendorDetail?.headOfficeNumber ?: "")
                                 putString("vendorWebsite", websiteLink)
-                                putString("customMessage1", response.customMessage1.ifBlank { deal?.customMessage1 ?: "" })
-                                putString("customMessage2", response.customMessage2.ifBlank { deal?.customMessage2 ?: "" })
+                                putString("customMessage1", msg1)
+                                putString("customMessage2", msg2)
                                 putBoolean("isStoreRedemption", true)
                             }
 
-                            findNavController().navigate(
-                                R.id.action_nav_brand_detail_to_nav_redemption_success,
-                                bundle
-                            )
+                            if (isAdded && findNavController().currentDestination?.id == R.id.nav_brand_detail) {
+                                findNavController().navigate(
+                                    R.id.action_nav_brand_detail_to_nav_redemption_success,
+                                    bundle
+                                )
+                            }
                         } else {
                             val msg = response.message.ifBlank { "Invalid merchant code. Please try again." }
                             Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show()
@@ -497,8 +494,6 @@ class BrandDetailFragment : Fragment() {
 
         if (!vendorLogoUrl.isNullOrEmpty()) {
             dialogBinding.ivMerchantLogo.loadImageWithShimmer(vendorLogoUrl)
-        } else {
-            dialogBinding.ivMerchantLogo.setImageDrawable(createShimmerDrawable())
         }
 
         // --------------------------------------------------------
@@ -581,20 +576,25 @@ class BrandDetailFragment : Fragment() {
                                         (it.platform.equals("website", ignoreCase = true) || it.url.startsWith("http") || it.url.contains("www."))
                             }?.url
 
+                            val msg1 = response.customMessage1.ifBlank { deal?.customMessage1 ?: "" }
+                            val msg2 = response.customMessage2.ifBlank { deal?.customMessage2 ?: "" }
+
                             val bundle = Bundle().apply {
                                 putString("redemptionCode", redemptionCode)
                                 putString("vendorName", vendorName)
                                 putString("vendorPhone", currentVendorDetail?.headOfficeNumber ?: "")
                                 putString("vendorWebsite", websiteLink)
-                                putString("customMessage1", response.customMessage1.ifBlank { deal?.customMessage1 ?: "" })
-                                putString("customMessage2", response.customMessage2.ifBlank { deal?.customMessage2 ?: "" })
+                                putString("customMessage1", msg1)
+                                putString("customMessage2", msg2)
                                 putBoolean("isStoreRedemption", false)
                             }
 
-                            findNavController().navigate(
-                                R.id.action_nav_brand_detail_to_nav_redemption_success,
-                                bundle
-                            )
+                            if (isAdded && findNavController().currentDestination?.id == R.id.nav_brand_detail) {
+                                findNavController().navigate(
+                                    R.id.action_nav_brand_detail_to_nav_redemption_success,
+                                    bundle
+                                )
+                            }
                         } else {
                             val msg = response.message.ifBlank { "Redemption failed. Please try again." }
                             Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show()

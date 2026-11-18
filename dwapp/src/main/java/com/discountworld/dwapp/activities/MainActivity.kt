@@ -13,7 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.discountworld.dwapp.R
-import com.discountworld.dwapp.databinding.ActivityDwappMainBinding
+import com.discountworld.dwapp.databinding.ActivityDwMainBinding
 import com.discountworld.dwapp.fragments.LoginFragment
 import com.discountworld.dwapp.managers.RedemptionStubClient
 import com.discountworld.dwapp.managers.SessionManager
@@ -24,22 +24,24 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityDwappMainBinding
+    private lateinit var binding: ActivityDwMainBinding
     private val viewModel: MainViewModel by viewModels()
     private lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Force Light Mode globally
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        // Force Light Mode globally if not already set
+        if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        }
         
         sessionManager = SessionManager(this)
         hideStatusBar()
 
         handleBackgroundAuth(intent)
 
-        binding = ActivityDwappMainBinding.inflate(layoutInflater)
+        binding = ActivityDwMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
@@ -63,6 +65,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleBackgroundAuth(launchIntent: Intent?) {
+        val intentUniqueId = launchIntent?.getStringExtra("unique_id")
+        val intentTier = launchIntent?.getStringExtra("customer_tier")
         val intentApiKey = launchIntent?.getStringExtra("api_key") ?: launchIntent?.getStringExtra("apiKey")
 
         intentApiKey?.let {
@@ -71,26 +75,46 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val intentUniqueId = launchIntent?.getStringExtra("unique_id")
-        val intentTier = launchIntent?.getStringExtra("customer_tier")
-
         val uniqueIdToUse = intentUniqueId ?: LoginFragment.UNIQUE_ID
         val tierToUse = intentTier ?: LoginFragment.CUSTOMER_TIER
 
-        if (uniqueIdToUse.isEmpty()) {
+        if (uniqueIdToUse.isEmpty() || tierToUse.isEmpty()) {
             finish()
             return
         }
 
+        val cleanUniqueId = uniqueIdToUse.replace("-", "").replace(" ", "").trim()
+
         val currentSavedUniqueId = sessionManager.getUniqueId()
+        val currentSavedTier = sessionManager.getCustomerTier()
 
-        // If uniqueId changed, clear session so LoginFragment re-authenticates for the new user
-        if (currentSavedUniqueId.isNotEmpty() && !currentSavedUniqueId.equals(uniqueIdToUse, ignoreCase = true)) {
+        val needsReAuth = !currentSavedUniqueId.equals(cleanUniqueId, ignoreCase = true) ||
+                !currentSavedTier.equals(tierToUse, ignoreCase = true) ||
+                !sessionManager.isLoggedIn()
+
+        if (needsReAuth) {
             sessionManager.clearSession()
-        }
+            sessionManager.saveUniqueId(cleanUniqueId)
+            sessionManager.saveCustomerTier(tierToUse)
 
-        sessionManager.getAuthToken()?.let { token ->
-            if (token.isNotEmpty()) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val repo = RedemptionRepository()
+                    val authResp = repo.authenticateByUniqueId(cleanUniqueId, tierToUse)
+                    if (authResp != null) {
+                        sessionManager.saveAuthToken(authResp.accessToken)
+                        sessionManager.saveUniqueId(cleanUniqueId)
+                        val tier = authResp.customer.customerTier.ifEmpty { tierToUse }
+                        sessionManager.saveCustomerTier(tier)
+                        if (authResp.customer.phoneNumber.isNotEmpty()) {
+                            sessionManager.savePhone(authResp.customer.phoneNumber)
+                        }
+                        RedemptionStubClient.setToken(authResp.accessToken)
+                    }
+                } catch (_: Exception) { }
+            }
+        } else {
+            sessionManager.getAuthToken()?.let { token ->
                 RedemptionStubClient.setToken(token)
             }
         }

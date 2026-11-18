@@ -1,8 +1,20 @@
 package com.discountworld.dwapp.utils
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.view.MotionEvent
 import android.view.View
+
+const val SUPPORT_PHONE_NUMBER = "+922137292155"
+
+fun Context.makeSupportCall(phoneNumber: String = SUPPORT_PHONE_NUMBER) {
+    try {
+        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phoneNumber"))
+        startActivity(intent)
+    } catch (_: Exception) {}
+}
 
 @SuppressLint("ClickableViewAccessibility")
 fun View.makeDraggable() {

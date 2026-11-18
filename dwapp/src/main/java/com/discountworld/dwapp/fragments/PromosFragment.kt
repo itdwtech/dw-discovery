@@ -17,8 +17,8 @@ import com.discountworld.dwapp.adapters.SliderAdapter
 import com.discountworld.dwapp.adapters.TopPicksAdapter
 import com.discountworld.dwapp.databinding.FragmentPromosBinding
 import com.discountworld.dwapp.managers.SessionManager
-import com.discountworld.dwapp.models.TopPick
 import com.discountworld.dwapp.utils.makeDraggable
+import com.discountworld.dwapp.utils.makeSupportCall
 import com.discountworld.dwapp.viewmodels.PromosViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 
@@ -32,6 +32,7 @@ class PromosFragment : Fragment() {
 
     private val sliderHandler = Handler(Looper.getMainLooper())
     private lateinit var sliderRunnable: Runnable
+    private var promoTabLayoutMediator: TabLayoutMediator? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,13 +48,11 @@ class PromosFragment : Fragment() {
 
         sessionManager = SessionManager(requireContext())
 
-        setupFallbackSlider()
-        setupFallbackDiscountsList()
         observeViewModel()
         
         binding.fabCallClick.makeDraggable()
         binding.fabCallClick.setOnClickListener {
-            // Add your call click logic here
+            requireContext().makeSupportCall()
         }
 
         val selectedCityId = sessionManager.getSelectedCityId() ?: 1L
@@ -75,7 +74,7 @@ class PromosFragment : Fragment() {
                         putLong("vendor_id", selectedVendor.id)
                         putLong("city_id", selectedCityId)
                     }
-                    findNavController().navigate(R.id.action_nav_promos_to_nav_brand_detail, bundle)
+                    navigateToBrandDetail(bundle)
                 }
                 binding.rvAmazingDiscounts.adapter = adapter
             }
@@ -88,7 +87,7 @@ class PromosFragment : Fragment() {
                         putLong("vendor_id", story.vendorId)
                         putLong("city_id", selectedCityId)
                     }
-                    findNavController().navigate(R.id.action_nav_promos_to_nav_brand_detail, bundle)
+                    navigateToBrandDetail(bundle)
                 }
             } else if (!state.isLoading) {
                 binding.rvBrandLogos.visibility = View.GONE
@@ -97,27 +96,28 @@ class PromosFragment : Fragment() {
     }
 
     private fun setupBannersSlider(bannerItems: List<RedemptionBannerItem>, cityId: Long) {
+        if (bannerItems.isEmpty()) {
+            promoTabLayoutMediator?.detach()
+            promoTabLayoutMediator = null
+            binding.promoPager.adapter = null
+            return
+        }
+
         val adapter = SliderAdapter(bannerItems = bannerItems) { banner ->
             if (banner != null && banner.vendorId != 0L) {
                 val bundle = Bundle().apply {
                     putLong("vendor_id", banner.vendorId)
                     putLong("city_id", cityId)
                 }
-                findNavController().navigate(R.id.action_nav_promos_to_nav_brand_detail, bundle)
+                navigateToBrandDetail(bundle)
             }
         }
         binding.promoPager.adapter = adapter
-        TabLayoutMediator(binding.promoTabIndicator, binding.promoPager) { _, _ -> }.attach()
+        promoTabLayoutMediator?.detach()
+        promoTabLayoutMediator = TabLayoutMediator(binding.promoTabIndicator, binding.promoPager) { _, _ -> }
+        promoTabLayoutMediator?.attach()
 
         startSliderAutoScroll(bannerItems.size)
-    }
-
-    private fun setupFallbackSlider() {
-        val sliderImages = listOf(0, 0, 0)
-        binding.promoPager.adapter = SliderAdapter(fallbackImages = sliderImages)
-        TabLayoutMediator(binding.promoTabIndicator, binding.promoPager) { _, _ -> }.attach()
-
-        startSliderAutoScroll(sliderImages.size)
     }
 
     private fun startSliderAutoScroll(itemCount: Int) {
@@ -137,18 +137,18 @@ class PromosFragment : Fragment() {
         sliderHandler.postDelayed(sliderRunnable, 3000)
     }
 
-    private fun setupFallbackDiscountsList() {
-        binding.rvAmazingDiscounts.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        val list = listOf(
-            TopPick(0, "Allure Beauty"),
-            TopPick(0, "Allure Beauty"),
-            TopPick(0, "Allure Beauty")
-        )
-        binding.rvAmazingDiscounts.adapter = TopPicksAdapter(fallbackList = list)
+
+
+    private fun navigateToBrandDetail(bundle: Bundle) {
+        if (isAdded && findNavController().currentDestination?.id == R.id.nav_promos) {
+            findNavController().navigate(R.id.action_nav_promos_to_nav_brand_detail, bundle)
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        promoTabLayoutMediator?.detach()
+        promoTabLayoutMediator = null
         if (::sliderRunnable.isInitialized) {
             sliderHandler.removeCallbacks(sliderRunnable)
         }

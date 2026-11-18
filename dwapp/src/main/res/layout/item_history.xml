@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="12dp"
@@ -20,7 +21,8 @@
             android:id="@+id/ivLogo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerInside" />
+            android:scaleType="centerInside"
+            tools:src="@drawable/ic_placeholder" />
     </androidx.cardview.widget.CardView>
 
     <TextView
@@ -29,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="8dp"
-        android:text="Deal 1 - Mr Chinese Food"
+        tools:text="Deal 1 - Mr Chinese Food"
         android:textColor="@color/black"
         android:textSize="14sp"
         android:textStyle="bold"
@@ -42,7 +44,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:text="12345678"
+        tools:text="12345678"
         android:textColor="@color/purple_primary"
         android:textSize="13sp"
         app:layout_constraintStart_toStartOf="@id/tvTitle"
@@ -54,7 +56,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:layout_marginBottom="4dp"
-        android:text="2026-08-04 13:11:56"
+        tools:text="2026-08-04 13:11:56"
         android:textColor="@color/gray_text"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"

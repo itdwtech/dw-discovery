@@ -21,8 +21,8 @@ class LoginFragment : Fragment() {
 
     companion object {
         // CODE MEIN UNIQUE ID AUR TIER YAHAN SET KAREIN:
-        const val UNIQUE_ID = "123456789012" // Must be a valid 12-digit Unique ID
-        const val CUSTOMER_TIER = "Bronze" // Options: "Gold", "Silver", or "Bronze"
+        const val UNIQUE_ID = "" // Must be a valid 12-character Unique ID (hyphens excluded from length)
+        const val CUSTOMER_TIER = "" // Options: "Gold", "Silver", or "Bronze"
     }
 
     private var _binding: FragmentLoginBinding? = null
@@ -50,15 +50,18 @@ class LoginFragment : Fragment() {
         val uniqueIdToUse = intentUniqueId ?: UNIQUE_ID
         val tierToUse = intentTier ?: CUSTOMER_TIER
 
-        if (uniqueIdToUse.isEmpty()) {
+        if (uniqueIdToUse.isEmpty() || tierToUse.isEmpty()) {
             requireActivity().finish()
             return
         }
 
         // If saved session credentials don't match active code/intent, clear session to re-auth
         val currentSavedUniqueId = sessionManager.getUniqueId()
+        val currentSavedTier = sessionManager.getCustomerTier()
 
-        if (!currentSavedUniqueId.equals(uniqueIdToUse, ignoreCase = true)) {
+        if (!currentSavedUniqueId.equals(uniqueIdToUse, ignoreCase = true) ||
+            !currentSavedTier.equals(tierToUse, ignoreCase = true)
+        ) {
             sessionManager.clearSession()
         }
 
@@ -79,21 +82,14 @@ class LoginFragment : Fragment() {
         )
     }
 
-    private fun navigateToHome() {
-        if (isAdded && findNavController().currentDestination?.id == R.id.loginFragment) {
-            findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
-        }
-    }
-
     private fun observeViewModel(uniqueIdToUse: String, tierToUse: String) {
         viewModel.authState.observe(viewLifecycleOwner) { state ->
-            val currentBinding = _binding ?: return@observe
             when (state) {
                 is AuthState.Loading -> {
-                    currentBinding.progressBar.visibility = View.VISIBLE
+                    binding.progressBar.visibility = View.VISIBLE
                 }
                 is AuthState.SuccessUniqueId -> {
-                    currentBinding.progressBar.visibility = View.GONE
+                    binding.progressBar.visibility = View.GONE
                     sessionManager.saveAuthToken(state.response.accessToken)
                     sessionManager.saveUniqueId(uniqueIdToUse)
                     if (state.response.customer.phoneNumber.isNotEmpty()) {
@@ -105,10 +101,8 @@ class LoginFragment : Fragment() {
                     navigateToHome()
                 }
                 is AuthState.Error -> {
-                    currentBinding.progressBar.visibility = View.VISIBLE
-                    if (isAdded) {
-                        Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
-                    }
+                    binding.progressBar.visibility = View.VISIBLE
+                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
                     // Auto retry after 4 seconds on error
                     Handler(Looper.getMainLooper()).postDelayed({
                         if (isAdded && !sessionManager.isLoggedIn()) {
@@ -120,12 +114,18 @@ class LoginFragment : Fragment() {
                     }, 4000)
                 }
                 AuthState.Idle -> {
-                    currentBinding.progressBar.visibility = View.VISIBLE
+                    binding.progressBar.visibility = View.VISIBLE
                 }
                 else -> {
                     // Ignore legacy auth responses
                 }
             }
+        }
+    }
+
+    private fun navigateToHome() {
+        if (isAdded && findNavController().currentDestination?.id == R.id.loginFragment) {
+            findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
         }
     }
 

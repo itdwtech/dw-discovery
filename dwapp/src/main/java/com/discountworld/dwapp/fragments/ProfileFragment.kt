@@ -51,7 +51,9 @@ class ProfileFragment : Fragment() {
             val navOptions = NavOptions.Builder()
                 .setPopUpTo(R.id.nav_graph, true) // Clear backstack
                 .build()
-            findNavController().navigate(R.id.loginFragment, null, navOptions)
+            if (isAdded && findNavController().currentDestination?.id == R.id.nav_profile) {
+                findNavController().navigate(R.id.loginFragment, null, navOptions)
+            }
         }
     }
 

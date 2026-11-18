@@ -3,12 +3,9 @@ package com.discountworld.dwapp.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.discountworld.dwapp.utils.createShimmerDrawable
-import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.discount.RedemptionBannerItem
-import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemSliderBinding
-import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 
 class SliderAdapter(
     private val bannerItems: List<RedemptionBannerItem> = emptyList(),
@@ -29,7 +26,7 @@ class SliderAdapter(
             holder.binding.ivSlider.loadImageWithShimmer(item.imageUrl)
             holder.itemView.setOnClickListener { onBannerClick(item) }
         } else if (fallbackImages.isNotEmpty()) {
-            holder.binding.ivSlider.setImageDrawable(createShimmerDrawable())
+            holder.binding.ivSlider.loadImageWithShimmer(null)
             holder.itemView.setOnClickListener { onBannerClick(null) }
         }
     }

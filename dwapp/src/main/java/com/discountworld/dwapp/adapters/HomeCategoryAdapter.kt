@@ -3,11 +3,9 @@ package com.discountworld.dwapp.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.discount.RedemptionCategory
-import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemHomeCategoryBinding
-import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 
 class HomeCategoryAdapter(
     private val categories: List<RedemptionCategory>,

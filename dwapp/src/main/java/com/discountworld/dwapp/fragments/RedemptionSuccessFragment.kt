@@ -47,28 +47,24 @@ class RedemptionSuccessFragment : Fragment() {
 
         binding.tvRedemptionCode.text = redemptionCode
 
-        if (!customMessage1.isNullOrEmpty()) {
+        if (!customMessage1.isNullOrBlank()) {
             binding.tvCodeInstruction.text = customMessage1
-            binding.tvCodeInstruction.visibility = View.VISIBLE
         } else {
             if (isStoreRedemption) {
                 binding.tvCodeInstruction.text = "Merchant will use this code"
             } else {
                 binding.tvCodeInstruction.text = "Enter this code on $vendorName's website"
             }
-            binding.tvCodeInstruction.visibility = View.VISIBLE
         }
 
-        if (!customMessage2.isNullOrEmpty()) {
+        if (!customMessage2.isNullOrBlank()) {
             binding.tvCodeFooter.text = customMessage2
-            binding.tvCodeFooter.visibility = View.VISIBLE
         } else {
             if (isStoreRedemption) {
                 binding.tvCodeFooter.text = "to redeem the offer"
             } else {
                 binding.tvCodeFooter.text = "to avail this offer"
             }
-            binding.tvCodeFooter.visibility = View.VISIBLE
         }
 
         if (vendorWebsite.isNullOrBlank()) {

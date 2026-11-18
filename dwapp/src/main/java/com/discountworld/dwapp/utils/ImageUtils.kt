@@ -15,7 +15,7 @@ fun String?.fixImageUrl(): String? {
     // Agar admin portal poora URL bhejne ke bajaye sirf relative path bhej raha ho (jaise "/images/pic.png")
     if (fixedUrl.startsWith("/")) {
         // Stage environment par point karein
-        fixedUrl = "https://stg-api.appbiance.com$fixedUrl"
+        fixedUrl = "https://api.appbiance.com$fixedUrl"
     }
 
     // Is se aap Logcat mein dekh sakenge ke backend se URL kya aa raha hai aur hum kya bana rahe hain
@@ -28,7 +28,7 @@ fun createShimmerDrawable(): ShimmerDrawable {
     val shimmer = Shimmer.ColorHighlightBuilder()
         .setBaseColor(Color.parseColor("#E0E0E0"))
         .setHighlightColor(Color.parseColor("#F5F5F5"))
-        .setDuration(1200L)
+        .setDuration(1200)
         .setDirection(Shimmer.Direction.LEFT_TO_RIGHT)
         .setAutoStart(true)
         .build()
@@ -38,17 +38,22 @@ fun createShimmerDrawable(): ShimmerDrawable {
     }
 }
 
-fun ImageView.loadImageWithShimmer(url: String?) {
+fun ImageView.loadImageWithShimmer(
+    url: String?,
+    errorDrawable: android.graphics.drawable.Drawable? = null
+) {
     val fixedUrl = url.fixImageUrl()
-    val shimmer = createShimmerDrawable()
-    if (!fixedUrl.isNullOrEmpty()) {
-        Glide.with(this.context)
-            .load(fixedUrl)
-            .placeholder(shimmer)
-            .error(shimmer)
-            .into(this)
-    } else {
-        this.setImageDrawable(shimmer)
-    }
-}
+    val shimmerDrawable = createShimmerDrawable()
+    val err = errorDrawable ?: shimmerDrawable
 
+    if (fixedUrl.isNullOrEmpty()) {
+        this.setImageDrawable(err)
+        return
+    }
+
+    Glide.with(this.context)
+        .load(fixedUrl)
+        .placeholder(shimmerDrawable)
+        .error(err)
+        .into(this)
+}

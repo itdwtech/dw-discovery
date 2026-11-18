@@ -23,9 +23,9 @@ import com.discountworld.dwapp.adapters.*
 import com.discountworld.dwapp.databinding.DialogCitySelectionBinding
 import com.discountworld.dwapp.databinding.FragmentHomeBinding
 import com.discountworld.dwapp.managers.SessionManager
-import com.discountworld.dwapp.models.TopPick
 import com.discountworld.dwapp.repositories.RedemptionRepository
 import com.discountworld.dwapp.utils.makeDraggable
+import com.discountworld.dwapp.utils.makeSupportCall
 import com.discountworld.dwapp.viewmodels.HomeViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.launch
@@ -42,6 +42,7 @@ class HomeFragment : Fragment() {
 
     private val sliderHandler = Handler(Looper.getMainLooper())
     private lateinit var sliderRunnable: Runnable
+    private var tabLayoutMediator: TabLayoutMediator? = null
 
     private val popularAdapter by lazy {
         PopularBrandsAdapter { selectedVendor ->
@@ -49,7 +50,7 @@ class HomeFragment : Fragment() {
                 putLong("vendor_id", selectedVendor.id)
                 putLong("city_id", selectedCityId)
             }
-            findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+            navigateToBrandDetail(bundle)
         }
     }
 
@@ -68,21 +69,21 @@ class HomeFragment : Fragment() {
         sessionManager = SessionManager(requireContext())
 
         val intentUniqueId = activity?.intent?.getStringExtra("unique_id") ?: sessionManager.getUniqueId()
+        val intentTier = activity?.intent?.getStringExtra("customer_tier") ?: sessionManager.getCustomerTier()
         val authToken = sessionManager.getAuthToken()
 
-        if (intentUniqueId.isEmpty() || authToken.isNullOrEmpty()) {
+        if (intentUniqueId.isEmpty() || intentTier.isEmpty() || authToken.isNullOrEmpty()) {
             sessionManager.clearSession()
-            if (isAdded && findNavController().currentDestination?.id != R.id.loginFragment) {
-                val navOptions = androidx.navigation.NavOptions.Builder()
-                    .setPopUpTo(R.id.nav_graph, true)
-                    .build()
+            val navOptions = androidx.navigation.NavOptions.Builder()
+                .setPopUpTo(R.id.nav_graph, true)
+                .build()
+            if (isAdded && findNavController().currentDestination?.id == R.id.nav_home) {
                 findNavController().navigate(R.id.loginFragment, null, navOptions)
             }
             return
         }
 
         setupRecyclerViews()
-        setupFallbackSlider()
         setupSearch()
         observeViewModel()
 
@@ -98,7 +99,7 @@ class HomeFragment : Fragment() {
 
         binding.fabCallClick.makeDraggable()
         binding.fabCallClick.setOnClickListener {
-            // Add your call click logic here
+            requireContext().makeSupportCall()
         }
 
         initHomeData()
@@ -106,52 +107,53 @@ class HomeFragment : Fragment() {
 
     private fun observeViewModel() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            val currentBinding = _binding ?: return@observe
             if (state.isLoading) {
-                currentBinding.storyShimmerLayout.visibility = View.VISIBLE
-                currentBinding.storyShimmerLayout.startShimmer()
-                currentBinding.storyRV.visibility = View.GONE
+                binding.storyShimmerLayout.visibility = View.VISIBLE
+                binding.storyShimmerLayout.startShimmer()
+                binding.storyRV.visibility = View.GONE
             } else {
-                currentBinding.storyShimmerLayout.stopShimmer()
-                currentBinding.storyShimmerLayout.visibility = View.GONE
+                binding.storyShimmerLayout.stopShimmer()
+                binding.storyShimmerLayout.visibility = View.GONE
             }
 
             if (state.stories.isNotEmpty()) {
-                currentBinding.storyRV.visibility = View.VISIBLE
+                binding.storyRV.visibility = View.VISIBLE
                 val adapter = StoryAdapter(state.stories) { story ->
-                    if (isAdded && findNavController().currentDestination?.id == R.id.nav_home) {
-                        val bundle = Bundle().apply {
-                            putLong("vendor_id", story.vendorId)
-                            putLong("city_id", selectedCityId)
-                        }
-                        findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+                    val bundle = Bundle().apply {
+                        putLong("vendor_id", story.vendorId)
+                        putLong("city_id", selectedCityId)
                     }
+                    navigateToBrandDetail(bundle)
                 }
-                currentBinding.storyRV.adapter = adapter
+                binding.storyRV.adapter = adapter
                 startStoryAutoScroll(state.stories.size)
             } else if (!state.isLoading) {
-                currentBinding.storyRV.visibility = View.GONE
+                binding.storyRV.visibility = View.GONE
             }
 
             if (state.featuredVendors.isNotEmpty()) {
                 val adapter = TopPicksAdapter(vendorList = state.featuredVendors) { selectedVendor ->
-                    if (isAdded && findNavController().currentDestination?.id == R.id.nav_home) {
-                        val bundle = Bundle().apply {
-                            putLong("vendor_id", selectedVendor.id)
-                            putLong("city_id", selectedCityId)
-                        }
-                        findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+                    val bundle = Bundle().apply {
+                        putLong("vendor_id", selectedVendor.id)
+                        putLong("city_id", selectedCityId)
                     }
+                    navigateToBrandDetail(bundle)
                 }
-                currentBinding.bannerRV.adapter = adapter
+                binding.bannerRV.adapter = adapter
+            } else if (!state.isLoading) {
+                binding.bannerRV.adapter = TopPicksAdapter(vendorList = emptyList())
             }
 
             if (state.banners.isNotEmpty()) {
                 setupBannersSlider(state.banners)
+            } else if (!state.isLoading) {
+                setupBannersSlider(emptyList())
             }
 
             if (state.popularVendors.isNotEmpty()) {
                 popularAdapter.updateData(state.popularVendors)
+            } else if (!state.isLoading) {
+                popularAdapter.updateData(emptyList())
             }
         }
     }
@@ -163,7 +165,7 @@ class HomeFragment : Fragment() {
                 selectedCityId = savedCityId
             } else {
                 val cities = redemptionRepository.listCities()
-                val defaultCity = cities?.firstOrNull()
+                val defaultCity = cities?.find { it.sortOrder == 1 } ?: cities?.minByOrNull { it.sortOrder } ?: cities?.firstOrNull()
                 if (defaultCity != null) {
                     selectedCityId = defaultCity.id
                     sessionManager.saveSelectedCityId(selectedCityId)
@@ -214,34 +216,39 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupBannersSlider(bannerItems: List<RedemptionBannerItem>) {
+        if (bannerItems.isEmpty()) {
+            tabLayoutMediator?.detach()
+            tabLayoutMediator = null
+            binding.pager.adapter = null
+            binding.pager.visibility = View.GONE
+            binding.tabIndicator.visibility = View.GONE
+            return
+        }
+
+        binding.pager.visibility = View.VISIBLE
+        binding.tabIndicator.visibility = View.VISIBLE
+
         val adapter = SliderAdapter(bannerItems = bannerItems) { banner ->
             if (banner != null && banner.vendorId != 0L) {
                 val bundle = Bundle().apply {
                     putLong("vendor_id", banner.vendorId)
                     putLong("city_id", selectedCityId)
                 }
-                findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+                navigateToBrandDetail(bundle)
             } else {
                 navigateToDelivery(showSearch = true)
             }
         }
         binding.pager.adapter = adapter
-        TabLayoutMediator(binding.tabIndicator, binding.pager) { _, _ -> }.attach()
+
+        tabLayoutMediator?.detach()
+        tabLayoutMediator = TabLayoutMediator(binding.tabIndicator, binding.pager) { _, _ -> }
+        tabLayoutMediator?.attach()
 
         startSliderAutoScroll(bannerItems.size)
     }
 
-    private fun setupFallbackSlider() {
-        val sliderImages = listOf(0, 0, 0)
 
-        val adapter = SliderAdapter(fallbackImages = sliderImages) {
-            navigateToDelivery(showSearch = true)
-        }
-        binding.pager.adapter = adapter
-        TabLayoutMediator(binding.tabIndicator, binding.pager) { _, _ -> }.attach()
-
-        startSliderAutoScroll(sliderImages.size)
-    }
 
     private fun startSliderAutoScroll(itemCount: Int) {
         if (::sliderRunnable.isInitialized) {
@@ -343,7 +350,15 @@ class HomeFragment : Fragment() {
             searchQuery?.let { putString("searchQuery", it) }
             putBoolean("forceHideInStore", forceHideInStore)
         }
-        findNavController().navigate(R.id.action_nav_home_to_nav_delivery, bundle)
+        if (isAdded && findNavController().currentDestination?.id == R.id.nav_home) {
+            findNavController().navigate(R.id.action_nav_home_to_nav_delivery, bundle)
+        }
+    }
+
+    private fun navigateToBrandDetail(bundle: Bundle) {
+        if (isAdded && findNavController().currentDestination?.id == R.id.nav_home) {
+            findNavController().navigate(R.id.action_nav_home_to_nav_brand_detail, bundle)
+        }
     }
 
     private fun setupRecyclerViews() {
@@ -360,12 +375,7 @@ class HomeFragment : Fragment() {
         }
 
         binding.bannerRV.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        val topPicks = listOf(
-            TopPick(0, "14th Street Pizza"),
-            TopPick(0, "Broadway Pizza"),
-            TopPick(0, "Pizza Hut")
-        )
-        binding.bannerRV.adapter = TopPicksAdapter(fallbackList = topPicks)
+        binding.bannerRV.adapter = TopPicksAdapter(vendorList = emptyList())
 
         binding.popularDiscRV.layoutManager = LinearLayoutManager(requireContext())
         binding.popularDiscRV.adapter = popularAdapter
@@ -398,6 +408,8 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        tabLayoutMediator?.detach()
+        tabLayoutMediator = null
         _binding = null
     }
 }

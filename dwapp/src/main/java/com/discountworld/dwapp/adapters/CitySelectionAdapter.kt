@@ -15,6 +15,13 @@ class CitySelectionAdapter(
     private val onCitySelected: (RedemptionCity) -> Unit
 ) : RecyclerView.Adapter<CitySelectionAdapter.ViewHolder>() {
 
+    init {
+        if (selectedCityId == null) {
+            val defaultCity = cities.find { it.sortOrder == 1 } ?: cities.minByOrNull { it.sortOrder } ?: cities.firstOrNull()
+            selectedCityId = defaultCity?.id
+        }
+    }
+
     class ViewHolder(val binding: ItemCitySelectionBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

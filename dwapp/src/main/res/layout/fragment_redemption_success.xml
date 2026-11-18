@@ -266,6 +266,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_16sdp"
                 android:gravity="center"
+                android:visibility="gone"
                 android:paddingHorizontal="@dimen/_24sdp"
                 android:text="T&amp;Cs applied, for more information please call the helpline number"
                 android:textColor="@color/gray_text"

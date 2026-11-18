@@ -3,11 +3,9 @@ package com.discountworld.dwapp.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.discountworld.dwapp.utils.loadImageWithShimmer
 import com.discountworld.discount.RedemptionStory
-import com.discountworld.dwapp.R
 import com.discountworld.dwapp.databinding.ItemStoryBinding
-import com.discountworld.dwapp.utils.fixImageUrl
+import com.discountworld.dwapp.utils.loadImageWithShimmer
 
 class StoryAdapter(
     private val stories: List<RedemptionStory>,

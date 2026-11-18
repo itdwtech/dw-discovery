@@ -7,16 +7,15 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.discountworld.dwapp.adapters.DeliveryDealsAdapter
 import com.discountworld.dwapp.databinding.FragmentDeliveryBinding
 import com.discountworld.dwapp.managers.SessionManager
 import com.discountworld.dwapp.utils.makeDraggable
+import com.discountworld.dwapp.utils.makeSupportCall
 import com.discountworld.dwapp.viewmodels.DeliveryUiState
 import com.discountworld.dwapp.viewmodels.DeliveryViewModel
-import kotlinx.coroutines.launch
 
 class DeliveryFragment : Fragment() {
 
@@ -33,6 +32,7 @@ class DeliveryFragment : Fragment() {
     private var isEcommerce: Boolean = false
     private var isDelivery: Boolean = false
     private var forceHideInStore: Boolean = false
+    private var currentSearchQuery: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,13 +51,13 @@ class DeliveryFragment : Fragment() {
         val cityIdArg = arguments?.getLong("cityId", -1L) ?: -1L
         selectedCityId = if (cityIdArg != -1L) cityIdArg else sessionManager.getSelectedCityId()
 
-        val categoryName = arguments?.getString("categoryName") ?: "Delivery Deals"
+        val categoryName = arguments?.getString("categoryName")
         val categoryIdArg = arguments?.getLong("categoryId", -1L) ?: -1L
         if (categoryIdArg != -1L) {
             selectedCategoryId = categoryIdArg
         }
 
-        forceHideInStore = arguments?.getBoolean("forceHideInStore", true) ?: true
+        forceHideInStore = arguments?.getBoolean("forceHideInStore", false) ?: false
 
         if (!categoryName.isNullOrEmpty()) {
             binding.tvTitle.text = categoryName
@@ -70,6 +70,8 @@ class DeliveryFragment : Fragment() {
             val initialSearchQuery = arguments?.getString("searchQuery")
             if (!initialSearchQuery.isNullOrEmpty() || arguments?.containsKey("searchQuery") == true) {
                 binding.tvTitle.text = "Search Results"
+            } else {
+                binding.tvTitle.text = "Delivery Deals"
             }
         }
 
@@ -92,7 +94,7 @@ class DeliveryFragment : Fragment() {
 
         binding.fabCallClick.makeDraggable()
         binding.fabCallClick.setOnClickListener {
-            // Add your call click logic here
+            requireContext().makeSupportCall()
         }
 
         setupRecyclerView()
@@ -107,6 +109,7 @@ class DeliveryFragment : Fragment() {
                 is DeliveryUiState.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE
                     binding.tvNoData.visibility = View.GONE
+                    binding.ivNoData.visibility = View.GONE
                 }
                 is DeliveryUiState.LoadingMore -> {
                     binding.progressBar.visibility = View.VISIBLE
@@ -117,24 +120,44 @@ class DeliveryFragment : Fragment() {
                     if (vendors.isNotEmpty()) {
                         binding.rvDeliveryDeals.visibility = View.VISIBLE
                         binding.tvNoData.visibility = View.GONE
+                        binding.ivNoData.visibility = View.GONE
                         dealsAdapter.updateData(vendors)
                     } else {
                         binding.rvDeliveryDeals.visibility = View.GONE
-                        binding.tvNoData.visibility = View.VISIBLE
-                        binding.tvNoData.text = when {
-                            isEcommerce -> "No E-Commerce vendors found"
-                            isDelivery -> "No Delivery vendors found"
-                            else -> "No vendors found"
-                        }
                         dealsAdapter.updateData(emptyList())
+
+                        val isSearching = !currentSearchQuery.isNullOrBlank()
+                        val isTopBannerCategory = isEcommerce || isDelivery
+
+                        if (isTopBannerCategory && !isSearching) {
+                            binding.ivNoData.visibility = View.VISIBLE
+                            binding.tvNoData.visibility = View.GONE
+                        } else {
+                            binding.ivNoData.visibility = View.GONE
+                            binding.tvNoData.visibility = View.VISIBLE
+                            if (isSearching) {
+                            } else {
+                                "No vendors found"
+                            }
+                        }
                     }
                 }
                 is DeliveryUiState.Error -> {
                     binding.progressBar.visibility = View.GONE
                     binding.rvDeliveryDeals.visibility = View.GONE
-                    binding.tvNoData.visibility = View.VISIBLE
-                    binding.tvNoData.text = state.message
                     dealsAdapter.updateData(emptyList())
+
+                    val isSearching = !currentSearchQuery.isNullOrBlank()
+                    val isTopBannerCategory = isEcommerce || isDelivery
+
+                    if (isTopBannerCategory && !isSearching) {
+                        binding.ivNoData.visibility = View.VISIBLE
+                        binding.tvNoData.visibility = View.GONE
+                    } else {
+                        binding.ivNoData.visibility = View.GONE
+                        binding.tvNoData.visibility = View.VISIBLE
+                        binding.tvNoData.text = state.message
+                    }
                 }
                 DeliveryUiState.Idle -> {
                     binding.progressBar.visibility = View.GONE
@@ -186,10 +209,11 @@ class DeliveryFragment : Fragment() {
     }
 
     private fun loadVendors(searchQuery: String? = null) {
+        currentSearchQuery = searchQuery?.trim()?.ifEmpty { null }
         val cityId = selectedCityId ?: 1L
         viewModel.loadVendors(
             cityId = cityId,
-            searchQuery = searchQuery,
+            searchQuery = currentSearchQuery,
             categoryId = selectedCategoryId,
             // Jab image se aayein tou forceHideInStore true hoga aur backend se in-store walay item nahi aayenge
             inStore = if (forceHideInStore) false else null,
