@@ -100,7 +100,7 @@
         android:layout_centerInParent="true"
         android:layout_marginHorizontal="20dp"
         android:adjustViewBounds="true"
-        android:src="@drawable/ic_brands_coming_soon_banner"
+        android:src="@drawable/ic_exciting_offers_coming_soon"
         android:visibility="gone" />
 
     <TextView

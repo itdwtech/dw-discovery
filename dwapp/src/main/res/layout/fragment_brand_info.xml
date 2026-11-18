@@ -80,7 +80,7 @@
                 android:layout_marginStart="@dimen/_8sdp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="PizzaHut"
+                tools:text="PizzaHut"
                 android:textColor="@color/white"
                 android:textSize="@dimen/_15ssp"
                 android:textStyle="bold" />
@@ -125,7 +125,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_6sdp"
-                android:text="pioneer of pizza in pakistan"
+                tools:text="pioneer of pizza in pakistan"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_12ssp" />
 
@@ -236,7 +236,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/_8sdp"
                             android:layout_weight="1"
-                            android:text="Khayaban-e-Ittehad Road, D.H.A. Phase 7, Karachi, 75500, Pakistan"
+                            tools:text="Khayaban-e-Ittehad Road, D.H.A. Phase 7, Karachi, 75500, Pakistan"
                             android:textColor="@color/black"
                             android:textSize="@dimen/_11ssp" />
                     </LinearLayout>
@@ -260,7 +260,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/_8sdp"
-                            android:text="021-111-222-333"
+                            tools:text="021-111-222-333"
                             android:textColor="@color/black"
                             android:textSize="@dimen/_11ssp" />
                     </LinearLayout>
@@ -339,7 +339,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/_10sdp"
-                    android:text="021-111-222-333"
+                    tools:text="021-111-222-333"
                     android:textColor="@color/black"
                     android:textSize="@dimen/_12ssp" />
             </LinearLayout>
@@ -375,7 +375,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/_10sdp"
                     android:autoLink="web"
-                    android:text="https://www.pizzahut.com.pk/"
+                    tools:text="https://www.pizzahut.com.pk/"
                     android:textColor="@color/purple_primary"
                     android:textSize="@dimen/_11ssp" />
             </LinearLayout>

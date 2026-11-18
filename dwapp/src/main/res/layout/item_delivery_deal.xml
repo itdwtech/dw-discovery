@@ -92,7 +92,7 @@
                 android:backgroundTint="@color/purple_primary"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="4dp"
-                android:text="E-commerce"
+                tools:text="E-commerce"
                 android:textColor="@color/white"
                 android:textSize="11sp" />
 

@@ -23,7 +23,6 @@ import com.discountworld.dwapp.adapters.*
 import com.discountworld.dwapp.databinding.DialogCitySelectionBinding
 import com.discountworld.dwapp.databinding.FragmentHomeBinding
 import com.discountworld.dwapp.managers.SessionManager
-import com.discountworld.dwapp.models.TopPick
 import com.discountworld.dwapp.repositories.RedemptionRepository
 import com.discountworld.dwapp.utils.makeDraggable
 import com.discountworld.dwapp.utils.makeSupportCall
@@ -84,7 +83,6 @@ class HomeFragment : Fragment() {
         }
 
         setupRecyclerViews()
-        setupFallbackSlider()
         setupSearch()
         observeViewModel()
 
@@ -147,8 +145,6 @@ class HomeFragment : Fragment() {
 
             if (state.banners.isNotEmpty()) {
                 setupBannersSlider(state.banners)
-            } else if (!state.isLoading) {
-                setupFallbackSlider()
             }
 
             if (state.popularVendors.isNotEmpty()) {
@@ -234,21 +230,7 @@ class HomeFragment : Fragment() {
         startSliderAutoScroll(bannerItems.size)
     }
 
-    private fun setupFallbackSlider() {
-        val sliderImages = listOf(
-            R.drawable.ic_placeholder,
-            R.drawable.ic_placeholder,
-            R.drawable.ic_placeholder
-        )
 
-        val adapter = SliderAdapter(fallbackImages = sliderImages) {
-            navigateToDelivery(showSearch = true)
-        }
-        binding.pager.adapter = adapter
-        TabLayoutMediator(binding.tabIndicator, binding.pager) { _, _ -> }.attach()
-
-        startSliderAutoScroll(sliderImages.size)
-    }
 
     private fun startSliderAutoScroll(itemCount: Int) {
         if (::sliderRunnable.isInitialized) {
@@ -375,12 +357,7 @@ class HomeFragment : Fragment() {
         }
 
         binding.bannerRV.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        val topPicks = listOf(
-            TopPick(0, ""),
-            TopPick(0, ""),
-            TopPick(0, "")
-        )
-        binding.bannerRV.adapter = TopPicksAdapter(fallbackList = topPicks)
+        binding.bannerRV.adapter = TopPicksAdapter(vendorList = emptyList())
 
         binding.popularDiscRV.layoutManager = LinearLayoutManager(requireContext())
         binding.popularDiscRV.adapter = popularAdapter

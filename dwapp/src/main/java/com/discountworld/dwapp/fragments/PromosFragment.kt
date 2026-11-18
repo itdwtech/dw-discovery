@@ -17,7 +17,6 @@ import com.discountworld.dwapp.adapters.SliderAdapter
 import com.discountworld.dwapp.adapters.TopPicksAdapter
 import com.discountworld.dwapp.databinding.FragmentPromosBinding
 import com.discountworld.dwapp.managers.SessionManager
-import com.discountworld.dwapp.models.TopPick
 import com.discountworld.dwapp.utils.makeDraggable
 import com.discountworld.dwapp.utils.makeSupportCall
 import com.discountworld.dwapp.viewmodels.PromosViewModel
@@ -48,8 +47,6 @@ class PromosFragment : Fragment() {
 
         sessionManager = SessionManager(requireContext())
 
-        setupFallbackSlider()
-        setupFallbackDiscountsList()
         observeViewModel()
         
         binding.fabCallClick.makeDraggable()
@@ -113,14 +110,6 @@ class PromosFragment : Fragment() {
         startSliderAutoScroll(bannerItems.size)
     }
 
-    private fun setupFallbackSlider() {
-        val sliderImages = listOf(R.drawable.ic_placeholder, R.drawable.ic_placeholder, R.drawable.ic_placeholder)
-        binding.promoPager.adapter = SliderAdapter(fallbackImages = sliderImages)
-        TabLayoutMediator(binding.promoTabIndicator, binding.promoPager) { _, _ -> }.attach()
-
-        startSliderAutoScroll(sliderImages.size)
-    }
-
     private fun startSliderAutoScroll(itemCount: Int) {
         if (::sliderRunnable.isInitialized) {
             sliderHandler.removeCallbacks(sliderRunnable)
@@ -138,15 +127,7 @@ class PromosFragment : Fragment() {
         sliderHandler.postDelayed(sliderRunnable, 3000)
     }
 
-    private fun setupFallbackDiscountsList() {
-        binding.rvAmazingDiscounts.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        val list = listOf(
-            TopPick(0, ""),
-            TopPick(0, ""),
-            TopPick(0, "")
-        )
-        binding.rvAmazingDiscounts.adapter = TopPicksAdapter(fallbackList = list)
-    }
+
 
     private fun navigateToBrandDetail(bundle: Bundle) {
         if (isAdded && findNavController().currentDestination?.id == R.id.nav_promos) {
