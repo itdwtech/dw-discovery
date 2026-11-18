@@ -141,14 +141,20 @@ class HomeFragment : Fragment() {
                     navigateToBrandDetail(bundle)
                 }
                 binding.bannerRV.adapter = adapter
+            } else if (!state.isLoading) {
+                binding.bannerRV.adapter = TopPicksAdapter(vendorList = emptyList())
             }
 
             if (state.banners.isNotEmpty()) {
                 setupBannersSlider(state.banners)
+            } else if (!state.isLoading) {
+                setupFallbackSlider()
             }
 
             if (state.popularVendors.isNotEmpty()) {
                 popularAdapter.updateData(state.popularVendors)
+            } else if (!state.isLoading) {
+                popularAdapter.updateData(emptyList())
             }
         }
     }
