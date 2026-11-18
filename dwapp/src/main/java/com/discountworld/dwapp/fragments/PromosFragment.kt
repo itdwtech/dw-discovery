@@ -32,6 +32,7 @@ class PromosFragment : Fragment() {
 
     private val sliderHandler = Handler(Looper.getMainLooper())
     private lateinit var sliderRunnable: Runnable
+    private var promoTabLayoutMediator: TabLayoutMediator? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -95,6 +96,13 @@ class PromosFragment : Fragment() {
     }
 
     private fun setupBannersSlider(bannerItems: List<RedemptionBannerItem>, cityId: Long) {
+        if (bannerItems.isEmpty()) {
+            promoTabLayoutMediator?.detach()
+            promoTabLayoutMediator = null
+            binding.promoPager.adapter = null
+            return
+        }
+
         val adapter = SliderAdapter(bannerItems = bannerItems) { banner ->
             if (banner != null && banner.vendorId != 0L) {
                 val bundle = Bundle().apply {
@@ -105,7 +113,9 @@ class PromosFragment : Fragment() {
             }
         }
         binding.promoPager.adapter = adapter
-        TabLayoutMediator(binding.promoTabIndicator, binding.promoPager) { _, _ -> }.attach()
+        promoTabLayoutMediator?.detach()
+        promoTabLayoutMediator = TabLayoutMediator(binding.promoTabIndicator, binding.promoPager) { _, _ -> }
+        promoTabLayoutMediator?.attach()
 
         startSliderAutoScroll(bannerItems.size)
     }
@@ -137,6 +147,8 @@ class PromosFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        promoTabLayoutMediator?.detach()
+        promoTabLayoutMediator = null
         if (::sliderRunnable.isInitialized) {
             sliderHandler.removeCallbacks(sliderRunnable)
         }

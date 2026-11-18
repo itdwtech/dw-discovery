@@ -42,6 +42,7 @@ class HomeFragment : Fragment() {
 
     private val sliderHandler = Handler(Looper.getMainLooper())
     private lateinit var sliderRunnable: Runnable
+    private var tabLayoutMediator: TabLayoutMediator? = null
 
     private val popularAdapter by lazy {
         PopularBrandsAdapter { selectedVendor ->
@@ -145,6 +146,8 @@ class HomeFragment : Fragment() {
 
             if (state.banners.isNotEmpty()) {
                 setupBannersSlider(state.banners)
+            } else if (!state.isLoading) {
+                setupBannersSlider(emptyList())
             }
 
             if (state.popularVendors.isNotEmpty()) {
@@ -213,6 +216,18 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupBannersSlider(bannerItems: List<RedemptionBannerItem>) {
+        if (bannerItems.isEmpty()) {
+            tabLayoutMediator?.detach()
+            tabLayoutMediator = null
+            binding.pager.adapter = null
+            binding.pager.visibility = View.GONE
+            binding.tabIndicator.visibility = View.GONE
+            return
+        }
+
+        binding.pager.visibility = View.VISIBLE
+        binding.tabIndicator.visibility = View.VISIBLE
+
         val adapter = SliderAdapter(bannerItems = bannerItems) { banner ->
             if (banner != null && banner.vendorId != 0L) {
                 val bundle = Bundle().apply {
@@ -225,7 +240,10 @@ class HomeFragment : Fragment() {
             }
         }
         binding.pager.adapter = adapter
-        TabLayoutMediator(binding.tabIndicator, binding.pager) { _, _ -> }.attach()
+
+        tabLayoutMediator?.detach()
+        tabLayoutMediator = TabLayoutMediator(binding.tabIndicator, binding.pager) { _, _ -> }
+        tabLayoutMediator?.attach()
 
         startSliderAutoScroll(bannerItems.size)
     }
@@ -390,6 +408,8 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        tabLayoutMediator?.detach()
+        tabLayoutMediator = null
         _binding = null
     }
 }
