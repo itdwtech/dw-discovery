@@ -93,6 +93,16 @@
         android:layout_centerInParent="true"
         android:visibility="gone" />
 
+    <ImageView
+        android:id="@+id/ivNoData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_marginHorizontal="20dp"
+        android:adjustViewBounds="true"
+        android:src="@drawable/ic_brands_coming_soon_banner"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/tvNoData"
         android:layout_width="wrap_content"
