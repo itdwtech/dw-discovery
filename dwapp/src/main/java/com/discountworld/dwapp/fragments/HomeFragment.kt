@@ -370,9 +370,9 @@ class HomeFragment : Fragment() {
 
         binding.bannerRV.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         val topPicks = listOf(
-            TopPick(R.drawable.ic_placeholder, "14th Street Pizza"),
-            TopPick(R.drawable.ic_placeholder, "Broadway Pizza"),
-            TopPick(R.drawable.ic_placeholder, "Pizza Hut")
+            TopPick(0, ""),
+            TopPick(0, ""),
+            TopPick(0, "")
         )
         binding.bannerRV.adapter = TopPicksAdapter(fallbackList = topPicks)
 

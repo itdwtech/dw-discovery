@@ -26,7 +26,7 @@ class SliderAdapter(
             holder.binding.ivSlider.loadImageWithShimmer(item.imageUrl)
             holder.itemView.setOnClickListener { onBannerClick(item) }
         } else if (fallbackImages.isNotEmpty()) {
-            holder.binding.ivSlider.setImageResource(fallbackImages[position])
+            holder.binding.ivSlider.loadImageWithShimmer(null)
             holder.itemView.setOnClickListener { onBannerClick(null) }
         }
     }

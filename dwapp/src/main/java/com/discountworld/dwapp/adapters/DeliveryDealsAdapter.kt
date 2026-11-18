@@ -51,14 +51,15 @@ class DeliveryDealsAdapter(
         holder.binding.tvDealCategory.text = dealType
 
         val bannerUrl = item.bannerUrl.fixImageUrl()
+        val shimmerDrawable = createShimmerDrawable()
         if (!bannerUrl.isNullOrEmpty()) {
             holder.binding.shimmerBanner.visibility = View.VISIBLE
             holder.binding.shimmerBanner.startShimmer()
 
             Glide.with(holder.itemView.context)
                 .load(bannerUrl)
-                .placeholder(createShimmerDrawable())
-                .error(R.drawable.ic_placeholder)
+                .placeholder(shimmerDrawable)
+                .error(shimmerDrawable)
                 .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
                     override fun onLoadFailed(
                         e: com.bumptech.glide.load.engine.GlideException?,
@@ -66,8 +67,6 @@ class DeliveryDealsAdapter(
                         target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
                         isFirstResource: Boolean
                     ): Boolean {
-                        holder.binding.shimmerBanner.stopShimmer()
-                        holder.binding.shimmerBanner.visibility = View.GONE
                         return false
                     }
 
@@ -85,9 +84,9 @@ class DeliveryDealsAdapter(
                 })
                 .into(holder.binding.ivDealBanner)
         } else {
-            holder.binding.shimmerBanner.stopShimmer()
-            holder.binding.shimmerBanner.visibility = View.GONE
-            holder.binding.ivDealBanner.setImageResource(R.drawable.ic_placeholder)
+            holder.binding.shimmerBanner.visibility = View.VISIBLE
+            holder.binding.shimmerBanner.startShimmer()
+            holder.binding.ivDealBanner.setImageDrawable(shimmerDrawable)
         }
 
         holder.binding.ivDealLogo.loadImageWithShimmer(item.logoUrl)

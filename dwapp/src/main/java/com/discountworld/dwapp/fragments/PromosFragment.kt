@@ -141,9 +141,9 @@ class PromosFragment : Fragment() {
     private fun setupFallbackDiscountsList() {
         binding.rvAmazingDiscounts.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         val list = listOf(
-            TopPick(R.drawable.ic_placeholder, "Allure Beauty"),
-            TopPick(R.drawable.ic_placeholder, "Allure Beauty"),
-            TopPick(R.drawable.ic_placeholder, "Allure Beauty")
+            TopPick(0, ""),
+            TopPick(0, ""),
+            TopPick(0, "")
         )
         binding.rvAmazingDiscounts.adapter = TopPicksAdapter(fallbackList = list)
     }

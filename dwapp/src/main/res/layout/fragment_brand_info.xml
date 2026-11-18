@@ -69,7 +69,7 @@
                     android:layout_height="match_parent"
                     android:scaleType="fitCenter"
                     android:background="@color/white"
-                    android:src="@drawable/ic_placeholder" />
+                    tools:src="@drawable/ic_placeholder" />
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Brand Title -->

@@ -4,7 +4,6 @@ import android.graphics.Color
 import android.util.Log
 import android.widget.ImageView
 import com.bumptech.glide.Glide
-import com.discountworld.dwapp.R
 import com.facebook.shimmer.Shimmer
 import com.facebook.shimmer.ShimmerDrawable
 
@@ -41,19 +40,20 @@ fun createShimmerDrawable(): ShimmerDrawable {
 
 fun ImageView.loadImageWithShimmer(
     url: String?,
-    errorResId: Int = R.drawable.ic_placeholder
+    errorDrawable: android.graphics.drawable.Drawable? = null
 ) {
     val fixedUrl = url.fixImageUrl()
+    val shimmerDrawable = createShimmerDrawable()
+    val err = errorDrawable ?: shimmerDrawable
+
     if (fixedUrl.isNullOrEmpty()) {
-        this.setImageResource(errorResId)
+        this.setImageDrawable(err)
         return
     }
-
-    val shimmerDrawable = createShimmerDrawable()
 
     Glide.with(this.context)
         .load(fixedUrl)
         .placeholder(shimmerDrawable)
-        .error(errorResId)
+        .error(err)
         .into(this)
 }

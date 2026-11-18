@@ -45,7 +45,7 @@ class TopPicksAdapter(
             }
         } else if (fallbackList.isNotEmpty()) {
             val item = fallbackList[position]
-            holder.binding.ivTopPick.setImageResource(item.image)
+            holder.binding.ivTopPick.loadImageWithShimmer(null)
             holder.binding.tvBrandName.text = item.name
 
             holder.itemView.setOnClickListener {
