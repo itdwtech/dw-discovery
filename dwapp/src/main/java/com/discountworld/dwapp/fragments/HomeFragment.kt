@@ -160,7 +160,7 @@ class HomeFragment : Fragment() {
                 selectedCityId = savedCityId
             } else {
                 val cities = redemptionRepository.listCities()
-                val defaultCity = cities?.firstOrNull()
+                val defaultCity = cities?.find { it.sortOrder == 1 } ?: cities?.minByOrNull { it.sortOrder } ?: cities?.firstOrNull()
                 if (defaultCity != null) {
                     selectedCityId = defaultCity.id
                     sessionManager.saveSelectedCityId(selectedCityId)

@@ -103,7 +103,8 @@ class LocationsFragment : Fragment(), OnMapReadyCallback {
                 selectedCityId = savedCityId
             } else {
                 val cities = redemptionRepository.listCities()
-                cities?.firstOrNull()?.let {
+                val defaultCity = cities?.find { it.sortOrder == 1 } ?: cities?.minByOrNull { it.sortOrder } ?: cities?.firstOrNull()
+                defaultCity?.let {
                     selectedCityId = it.id
                     sessionManager.saveSelectedCityId(selectedCityId)
                 }
