@@ -43,58 +43,12 @@
             android:text="123456789012"
             android:textSize="16sp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Customer Tier:"
-            android:textColor="#1A1C3D"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-        <RadioGroup
-            android:id="@+id/rgProtoTier"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:orientation="horizontal">
-
-            <RadioButton
-                android:id="@+id/rbProtoGold"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:checked="true"
-                android:text="Gold"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <RadioButton
-                android:id="@+id/rbProtoSilver"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Silver"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <RadioButton
-                android:id="@+id/rbProtoBronze"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Bronze"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-        </RadioGroup>
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDwApp"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_marginTop="24dp"
-            android:text="Launch DW App with Selected Tier"
+            android:text="Launch DW App"
             android:textSize="16sp"
             android:textStyle="bold" />
 

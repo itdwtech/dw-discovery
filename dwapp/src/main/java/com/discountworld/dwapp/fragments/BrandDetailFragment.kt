@@ -90,8 +90,7 @@ class BrandDetailFragment : Fragment() {
 
         if (vendorId != -1L) {
             val effectiveCityId = selectedCityId ?: 1L
-            val currentTier = sessionManager.getCustomerTier()
-            viewModel.loadBrandDetail(vendorId, effectiveCityId, currentTier)
+            viewModel.loadBrandDetail(vendorId, effectiveCityId)
         } else {
             setupOffersRecyclerView(emptyList())
         }
@@ -175,11 +174,9 @@ class BrandDetailFragment : Fragment() {
         deals: List<RedemptionDealSummary>
     ) {
         binding.rvOffers.layoutManager = LinearLayoutManager(requireContext())
-        val currentTier = sessionManager.getCustomerTier()
 
         val adapter = OffersAdapter(
             dealsList = deals,
-            userTier = currentTier,
             isDealRedeemed = { id -> sessionManager.isDealRedeemed(id) }
         ) { deal, _ ->
             handleOfferSelected(deal, null)

@@ -20,9 +20,7 @@ import com.discountworld.dwapp.viewmodels.LoginViewModel
 class LoginFragment : Fragment() {
 
     companion object {
-        // CODE MEIN UNIQUE ID AUR TIER YAHAN SET KAREIN:
         const val UNIQUE_ID = "" // Must be a valid 12-character Unique ID (hyphens excluded from length)
-        const val CUSTOMER_TIER = "" // Options: "Gold", "Silver", or "Bronze"
     }
 
     private var _binding: FragmentLoginBinding? = null
@@ -45,23 +43,17 @@ class LoginFragment : Fragment() {
         sessionManager = SessionManager(requireContext())
 
         val intentUniqueId = activity?.intent?.getStringExtra("unique_id")
-        val intentTier = activity?.intent?.getStringExtra("customer_tier")
-
         val uniqueIdToUse = intentUniqueId ?: UNIQUE_ID
-        val tierToUse = intentTier ?: CUSTOMER_TIER
 
-        if (uniqueIdToUse.isEmpty() || tierToUse.isEmpty()) {
+        if (uniqueIdToUse.isEmpty()) {
             requireActivity().finish()
             return
         }
 
         // If saved session credentials don't match active code/intent, clear session to re-auth
         val currentSavedUniqueId = sessionManager.getUniqueId()
-        val currentSavedTier = sessionManager.getCustomerTier()
 
-        if (!currentSavedUniqueId.equals(uniqueIdToUse, ignoreCase = true) ||
-            !currentSavedTier.equals(tierToUse, ignoreCase = true)
-        ) {
+        if (!currentSavedUniqueId.equals(uniqueIdToUse, ignoreCase = true)) {
             sessionManager.clearSession()
         }
 
@@ -73,16 +65,13 @@ class LoginFragment : Fragment() {
             return
         }
 
-        observeViewModel(uniqueIdToUse, tierToUse)
+        observeViewModel(uniqueIdToUse)
 
-        // Login strictly based on Unique ID and Tier
-        viewModel.authenticateByUniqueId(
-            uniqueId = uniqueIdToUse,
-            customerTier = tierToUse
-        )
+        // Login strictly based on Unique ID
+        viewModel.authenticateByUniqueId(uniqueId = uniqueIdToUse)
     }
 
-    private fun observeViewModel(uniqueIdToUse: String, tierToUse: String) {
+    private fun observeViewModel(uniqueIdToUse: String) {
         viewModel.authState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is AuthState.Loading -> {
@@ -95,8 +84,6 @@ class LoginFragment : Fragment() {
                     if (state.response.customer.phoneNumber.isNotEmpty()) {
                         sessionManager.savePhone(state.response.customer.phoneNumber)
                     }
-                    val tier = state.response.customer.customerTier.ifEmpty { tierToUse }
-                    sessionManager.saveCustomerTier(tier)
                     RedemptionStubClient.setToken(state.response.accessToken)
                     navigateToHome()
                 }
@@ -106,10 +93,7 @@ class LoginFragment : Fragment() {
                     // Auto retry after 4 seconds on error
                     Handler(Looper.getMainLooper()).postDelayed({
                         if (isAdded && !sessionManager.isLoggedIn()) {
-                            viewModel.authenticateByUniqueId(
-                                uniqueId = uniqueIdToUse,
-                                customerTier = tierToUse
-                            )
+                            viewModel.authenticateByUniqueId(uniqueId = uniqueIdToUse)
                         }
                     }, 4000)
                 }

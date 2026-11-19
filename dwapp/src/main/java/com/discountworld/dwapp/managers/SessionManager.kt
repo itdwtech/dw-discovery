@@ -16,7 +16,6 @@ class SessionManager(context: Context) {
 
     companion object {
         private const val KEY_AUTH_TOKEN = "auth_token"
-        private const val KEY_CUSTOMER_TIER = "customer_tier"
         private const val KEY_PHONE_NUMBER = "phone_number"
         private const val KEY_UNIQUE_ID = "unique_id"
         private const val KEY_SELECTED_CITY_ID = "selected_city_id"
@@ -30,14 +29,6 @@ class SessionManager(context: Context) {
 
     fun getAuthToken(): String? {
         return prefs.getString(KEY_AUTH_TOKEN, null)
-    }
-
-    fun saveCustomerTier(tier: String) {
-        prefs.edit().putString(KEY_CUSTOMER_TIER, tier).apply()
-    }
-
-    fun getCustomerTier(): String {
-        return prefs.getString(KEY_CUSTOMER_TIER, "") ?: ""
     }
 
     fun savePhone(phone: String) {
@@ -90,7 +81,6 @@ class SessionManager(context: Context) {
     fun clearSession() {
         prefs.edit()
             .remove(KEY_AUTH_TOKEN)
-            .remove(KEY_CUSTOMER_TIER)
             .remove(KEY_PHONE_NUMBER)
             .remove(KEY_UNIQUE_ID)
             .remove(KEY_SELECTED_CITY_ID)

@@ -66,7 +66,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleBackgroundAuth(launchIntent: Intent?) {
         val intentUniqueId = launchIntent?.getStringExtra("unique_id")
-        val intentTier = launchIntent?.getStringExtra("customer_tier")
         val intentApiKey = launchIntent?.getStringExtra("api_key") ?: launchIntent?.getStringExtra("apiKey")
 
         intentApiKey?.let {
@@ -76,9 +75,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         val uniqueIdToUse = intentUniqueId ?: LoginFragment.UNIQUE_ID
-        val tierToUse = intentTier ?: LoginFragment.CUSTOMER_TIER
 
-        if (uniqueIdToUse.isEmpty() || tierToUse.isEmpty()) {
+        if (uniqueIdToUse.isEmpty()) {
             finish()
             return
         }
@@ -86,26 +84,21 @@ class MainActivity : AppCompatActivity() {
         val cleanUniqueId = uniqueIdToUse.replace("-", "").replace(" ", "").trim()
 
         val currentSavedUniqueId = sessionManager.getUniqueId()
-        val currentSavedTier = sessionManager.getCustomerTier()
 
         val needsReAuth = !currentSavedUniqueId.equals(cleanUniqueId, ignoreCase = true) ||
-                !currentSavedTier.equals(tierToUse, ignoreCase = true) ||
                 !sessionManager.isLoggedIn()
 
         if (needsReAuth) {
             sessionManager.clearSession()
             sessionManager.saveUniqueId(cleanUniqueId)
-            sessionManager.saveCustomerTier(tierToUse)
 
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val repo = RedemptionRepository()
-                    val authResp = repo.authenticateByUniqueId(cleanUniqueId, tierToUse)
+                    val authResp = repo.authenticateByUniqueId(cleanUniqueId)
                     if (authResp != null) {
                         sessionManager.saveAuthToken(authResp.accessToken)
                         sessionManager.saveUniqueId(cleanUniqueId)
-                        val tier = authResp.customer.customerTier.ifEmpty { tierToUse }
-                        sessionManager.saveCustomerTier(tier)
                         if (authResp.customer.phoneNumber.isNotEmpty()) {
                             sessionManager.savePhone(authResp.customer.phoneNumber)
                         }

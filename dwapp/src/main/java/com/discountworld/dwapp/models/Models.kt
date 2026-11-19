@@ -11,8 +11,7 @@ data class HistoryItem(val logo: Int, val title: String, val code: String, val d
 data class Offer(
     val description: String,
     val discount: String,
-    val isRedeemed: Boolean = false,
-    val tier: String = ""
+    val isRedeemed: Boolean = false
 )
 
 data class City(val name: String)
