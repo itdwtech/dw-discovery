@@ -2,7 +2,10 @@ package com.discountworld.prototype
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.Button
+import android.widget.EditText
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -35,13 +38,55 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        val etProtoCnic = findViewById<EditText>(R.id.etProtoCnic)
+
+        fun formatCnicText(raw: String): String {
+            val digits = raw.filter { it.isDigit() }.take(13)
+            val sb = StringBuilder()
+            for (i in digits.indices) {
+                sb.append(digits[i])
+                if ((i == 4 || i == 11) && i != digits.lastIndex) {
+                    sb.append('-')
+                }
+            }
+            return sb.toString()
+        }
+
+        etProtoCnic?.addTextChangedListener(object : TextWatcher {
+            private var isUpdating = false
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                if (isUpdating || s == null) return
+
+                val currentStr = s.toString()
+                val formatted = formatCnicText(currentStr)
+
+                if (formatted != currentStr) {
+                    isUpdating = true
+                    s.replace(0, s.length, formatted)
+                    try {
+                        etProtoCnic.setSelection(formatted.length)
+                    } catch (_: Exception) { }
+                    isUpdating = false
+                }
+            }
+        })
+
         findViewById<Button>(R.id.btnDwApp)?.setOnClickListener {
-            val uniqueId = findViewById<android.widget.EditText>(R.id.etProtoUniqueId)?.text?.toString()?.trim()?.ifEmpty { "123456789012" } ?: "123456789012"
+            val rawInput = etProtoCnic?.text?.toString()?.trim() ?: ""
+            if (rawInput.isEmpty()) {
+                android.widget.Toast.makeText(this, "Please enter CNIC", android.widget.Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val cnic = rawInput
 
             val intent = packageManager.getLaunchIntentForPackage("com.discountworld.dwapp")
                 ?: Intent(this, DwMainActivity::class.java)
 
-            intent.putExtra("unique_id", uniqueId)
+            intent.putExtra("cnic", cnic)
             intent.putExtra("api_key", getBase64ApiKey())
 
             try {

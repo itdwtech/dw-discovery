@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -30,11 +29,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Force Light Mode globally if not already set
-        if (AppCompatDelegate.getDefaultNightMode() != AppCompatDelegate.MODE_NIGHT_NO) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-        }
         
         sessionManager = SessionManager(this)
         hideStatusBar()
@@ -65,7 +59,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleBackgroundAuth(launchIntent: Intent?) {
-        val intentUniqueId = launchIntent?.getStringExtra("unique_id")
+        val intentCnic = launchIntent?.getStringExtra("cnic")
+            ?: launchIntent?.getStringExtra("unique_id")
         val intentApiKey = launchIntent?.getStringExtra("api_key") ?: launchIntent?.getStringExtra("apiKey")
 
         intentApiKey?.let {
@@ -74,31 +69,31 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val uniqueIdToUse = intentUniqueId ?: LoginFragment.UNIQUE_ID
+        val cnicToUse = intentCnic ?: LoginFragment.CNIC.ifEmpty { LoginFragment.UNIQUE_ID }
 
-        if (uniqueIdToUse.isEmpty()) {
+        if (cnicToUse.isEmpty()) {
             finish()
             return
         }
 
-        val cleanUniqueId = uniqueIdToUse.replace("-", "").replace(" ", "").trim()
+        val cleanCnic = cnicToUse.replace("-", "").replace(" ", "").trim()
 
-        val currentSavedUniqueId = sessionManager.getUniqueId()
+        val currentSavedCnic = sessionManager.getCnic()
 
-        val needsReAuth = !currentSavedUniqueId.equals(cleanUniqueId, ignoreCase = true) ||
+        val needsReAuth = !currentSavedCnic.equals(cleanCnic, ignoreCase = true) ||
                 !sessionManager.isLoggedIn()
 
         if (needsReAuth) {
             sessionManager.clearSession()
-            sessionManager.saveUniqueId(cleanUniqueId)
+            sessionManager.saveCnic(cleanCnic)
 
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val repo = RedemptionRepository()
-                    val authResp = repo.authenticateByUniqueId(cleanUniqueId)
+                    val authResp = repo.authenticateByCnic(cleanCnic)
                     if (authResp != null) {
                         sessionManager.saveAuthToken(authResp.accessToken)
-                        sessionManager.saveUniqueId(cleanUniqueId)
+                        sessionManager.saveCnic(cleanCnic)
                         if (authResp.customer.phoneNumber.isNotEmpty()) {
                             sessionManager.savePhone(authResp.customer.phoneNumber)
                         }

@@ -20,7 +20,8 @@ import com.discountworld.dwapp.viewmodels.LoginViewModel
 class LoginFragment : Fragment() {
 
     companion object {
-        const val UNIQUE_ID = "" // Must be a valid 12-character Unique ID (hyphens excluded from length)
+        const val CNIC = "" // Must be a valid 13-digit CNIC
+        const val UNIQUE_ID = ""
     }
 
     private var _binding: FragmentLoginBinding? = null
@@ -42,18 +43,19 @@ class LoginFragment : Fragment() {
 
         sessionManager = SessionManager(requireContext())
 
-        val intentUniqueId = activity?.intent?.getStringExtra("unique_id")
-        val uniqueIdToUse = intentUniqueId ?: UNIQUE_ID
+        val intentCnic = activity?.intent?.getStringExtra("cnic")
+            ?: activity?.intent?.getStringExtra("unique_id")
+        val cnicToUse = intentCnic ?: CNIC.ifEmpty { UNIQUE_ID }
 
-        if (uniqueIdToUse.isEmpty()) {
+        if (cnicToUse.isEmpty()) {
             requireActivity().finish()
             return
         }
 
         // If saved session credentials don't match active code/intent, clear session to re-auth
-        val currentSavedUniqueId = sessionManager.getUniqueId()
+        val currentSavedCnic = sessionManager.getCnic()
 
-        if (!currentSavedUniqueId.equals(uniqueIdToUse, ignoreCase = true)) {
+        if (!currentSavedCnic.equals(cnicToUse, ignoreCase = true)) {
             sessionManager.clearSession()
         }
 
@@ -65,22 +67,32 @@ class LoginFragment : Fragment() {
             return
         }
 
-        observeViewModel(uniqueIdToUse)
+        observeViewModel(cnicToUse)
 
-        // Login strictly based on Unique ID
-        viewModel.authenticateByUniqueId(uniqueId = uniqueIdToUse)
+        // Login based on CNIC
+        viewModel.authenticateByCnic(cnic = cnicToUse)
     }
 
-    private fun observeViewModel(uniqueIdToUse: String) {
+    private fun observeViewModel(cnicToUse: String) {
         viewModel.authState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is AuthState.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE
                 }
+                is AuthState.Success -> {
+                    binding.progressBar.visibility = View.GONE
+                    sessionManager.saveAuthToken(state.response.accessToken)
+                    sessionManager.saveCnic(cnicToUse)
+                    if (state.response.customer.phoneNumber.isNotEmpty()) {
+                        sessionManager.savePhone(state.response.customer.phoneNumber)
+                    }
+                    RedemptionStubClient.setToken(state.response.accessToken)
+                    navigateToHome()
+                }
                 is AuthState.SuccessUniqueId -> {
                     binding.progressBar.visibility = View.GONE
                     sessionManager.saveAuthToken(state.response.accessToken)
-                    sessionManager.saveUniqueId(uniqueIdToUse)
+                    sessionManager.saveCnic(cnicToUse)
                     if (state.response.customer.phoneNumber.isNotEmpty()) {
                         sessionManager.savePhone(state.response.customer.phoneNumber)
                     }
@@ -93,7 +105,7 @@ class LoginFragment : Fragment() {
                     // Auto retry after 4 seconds on error
                     Handler(Looper.getMainLooper()).postDelayed({
                         if (isAdded && !sessionManager.isLoggedIn()) {
-                            viewModel.authenticateByUniqueId(uniqueId = uniqueIdToUse)
+                            viewModel.authenticateByCnic(cnic = cnicToUse)
                         }
                     }, 4000)
                 }

@@ -16,8 +16,8 @@ class SessionManager(context: Context) {
 
     companion object {
         private const val KEY_AUTH_TOKEN = "auth_token"
+        private const val KEY_CNIC = "cnic"
         private const val KEY_PHONE_NUMBER = "phone_number"
-        private const val KEY_UNIQUE_ID = "unique_id"
         private const val KEY_SELECTED_CITY_ID = "selected_city_id"
         private const val KEY_REDEEMED_DEALS = "redeemed_deals"
     }
@@ -31,20 +31,23 @@ class SessionManager(context: Context) {
         return prefs.getString(KEY_AUTH_TOKEN, null)
     }
 
+    fun saveCnic(cnic: String) {
+        prefs.edit().putString(KEY_CNIC, cnic).apply()
+    }
+
+    fun getCnic(): String {
+        return prefs.getString(KEY_CNIC, "") ?: ""
+    }
+
+    fun saveUniqueId(uniqueId: String) = saveCnic(uniqueId)
+    fun getUniqueId(): String = getCnic()
+
     fun savePhone(phone: String) {
         prefs.edit().putString(KEY_PHONE_NUMBER, phone).apply()
     }
 
     fun getPhone(): String {
         return prefs.getString(KEY_PHONE_NUMBER, "") ?: ""
-    }
-
-    fun saveUniqueId(uniqueId: String) {
-        prefs.edit().putString(KEY_UNIQUE_ID, uniqueId).apply()
-    }
-
-    fun getUniqueId(): String {
-        return prefs.getString(KEY_UNIQUE_ID, "") ?: ""
     }
 
     fun saveSelectedCityId(cityId: Long) {
@@ -81,8 +84,8 @@ class SessionManager(context: Context) {
     fun clearSession() {
         prefs.edit()
             .remove(KEY_AUTH_TOKEN)
+            .remove(KEY_CNIC)
             .remove(KEY_PHONE_NUMBER)
-            .remove(KEY_UNIQUE_ID)
             .remove(KEY_SELECTED_CITY_ID)
             .remove(KEY_REDEEMED_DEALS)
             .apply()

@@ -25,22 +25,23 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Unique ID:"
+            android:text="CNIC:"
             android:textColor="#1A1C3D"
             android:textSize="15sp"
             android:textStyle="bold" />
 
         <EditText
-            android:id="@+id/etProtoUniqueId"
+            android:id="@+id/etProtoCnic"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="6dp"
             android:background="@android:drawable/editbox_background"
-            android:hint="e.g. 123456789012"
-            android:inputType="number"
-            android:maxLength="12"
+            android:digits="0123456789-"
+            android:hint="e.g. 42301-8245417-1"
+            android:inputType="phone"
+            android:maxLength="15"
             android:paddingHorizontal="12dp"
-            android:text="123456789012"
+            android:text=""
             android:textSize="16sp" />
 
         <com.google.android.material.button.MaterialButton

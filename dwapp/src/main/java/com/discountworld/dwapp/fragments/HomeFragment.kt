@@ -68,10 +68,12 @@ class HomeFragment : Fragment() {
 
         sessionManager = SessionManager(requireContext())
 
-        val intentUniqueId = activity?.intent?.getStringExtra("unique_id") ?: sessionManager.getUniqueId()
+        val intentCnic = activity?.intent?.getStringExtra("cnic")
+            ?: activity?.intent?.getStringExtra("unique_id")
+            ?: sessionManager.getCnic()
         val authToken = sessionManager.getAuthToken()
 
-        if (intentUniqueId.isEmpty() || authToken.isNullOrEmpty()) {
+        if (intentCnic.isEmpty() || authToken.isNullOrEmpty()) {
             sessionManager.clearSession()
             val navOptions = androidx.navigation.NavOptions.Builder()
                 .setPopUpTo(R.id.nav_graph, true)
